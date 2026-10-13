@@ -1,4 +1,26 @@
 {
   "name": "orbit",
-  "packageManager": "yarn@4.14.1"
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.9.1",
+  "scripts": {
+    "dev": "pnpm --parallel --stream --filter api --filter web run dev",
+    "build": "pnpm --recursive --sort --filter api --filter web run build",
+    "start": "pnpm --filter api start",
+    "test": "pnpm --filter api test",
+    "lint": "pnpm exec eslint --config eslint.config.js apps/api apps/web",
+    "typecheck": "pnpm --recursive --sort --filter api --filter web run typecheck",
+    "migration:run": "pnpm --filter api migration:run"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.19.0",
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.6",
+    "globals": "^17.12.0",
+    "ts-node": "^10.9.2",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.69.0"
+  }
 }

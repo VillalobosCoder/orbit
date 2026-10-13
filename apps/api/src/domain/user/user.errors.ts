@@ -1,0 +1,49 @@
+import { DomainError } from "../shared/domain-error.js";
+
+export class InvalidEmailError extends DomainError {
+  readonly statusCode = 400;
+
+  constructor(raw: string) {
+    super(`El correo "${raw}" no tiene un formato válido.`);
+  }
+}
+
+export class WeakPasswordError extends DomainError {
+  readonly statusCode = 400;
+
+  constructor() {
+    super("La contraseña debe tener al menos 8 caracteres.");
+  }
+}
+
+export class PasswordTooLongError extends DomainError {
+  readonly statusCode = 400;
+
+  constructor() {
+    super("La contraseña no puede superar 1024 bytes.");
+  }
+}
+
+export class UserAlreadyExistsError extends DomainError {
+  readonly statusCode = 409;
+
+  constructor(email: string) {
+    super(`Ya existe un usuario con el correo ${email}.`);
+  }
+}
+
+export class UserNotFoundError extends DomainError {
+  readonly statusCode = 404;
+
+  constructor(id: number) {
+    super(`No se encontró el usuario ${id}.`);
+  }
+}
+
+export class InvalidCredentialsError extends DomainError {
+  readonly statusCode = 401;
+  
+  constructor() {
+    super("Correo o contraseña incorrectos.");
+  }
+}
