@@ -6,7 +6,10 @@ import {
   UserAlreadyExistsError,
   UserNotFoundError,
 } from "../../../domain/user/user.errors.js";
-import { users } from "../schema/users.js";
+import {
+  DEFAULT_USER_STATUS_ID,
+  users,
+} from "../schema/users.js";
 
 function isEmailUniqueViolation(error: unknown): boolean {
   if (
@@ -35,7 +38,7 @@ export class DBUserRepository implements UserRepository {
           email: data.email,
           password: data.password,
           createdAt: new Date(),
-          statusId: 1,
+          statusId: DEFAULT_USER_STATUS_ID,
         })
     } catch (error) {
       if (isEmailUniqueViolation(error)) {
@@ -50,7 +53,7 @@ export class DBUserRepository implements UserRepository {
     const [row] = await this.db
       .select()
       .from(users)
-      .where(eq(users.email, email.trim()))
+      .where(eq(users.email, email.trim().toLowerCase()))
       .limit(1);
 
     return row ? User.fromPersistence(row) : null;

@@ -1,5 +1,7 @@
 import { integer, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 
+export const DEFAULT_USER_STATUS_ID = 1;
+
 export const users = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   name: varchar({ length: 50 }).notNull(),

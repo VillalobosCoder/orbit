@@ -7,15 +7,18 @@
     "dev": "node --env-file=.env --import tsx --watch index.ts",
     "build": "tsc",
     "start": "node --env-file=.env dist/index.js",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
+    "test:typecheck": "tsc --project tsconfig.test.json",
     "typecheck": "tsc --noEmit",
-    "migration:run": "..."
+    "migration:generate": "node --env-file-if-exists=.env ./node_modules/drizzle-kit/bin.cjs generate --config=src/infrastructure/db/config.ts",
+    "migration:run": "node --env-file-if-exists=.env ./node_modules/drizzle-kit/bin.cjs migrate --config=src/infrastructure/db/config.ts"
   },
   "dependencies": {
     "@orbit/shared": "workspace:*",
     "cookie-parser": "^1.4.7",
     "drizzle-orm": "1.0.0-rc.4",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.1",
     "pg": "^8.23.1",
     "zod": "^4.6.5"
   },

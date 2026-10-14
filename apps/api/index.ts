@@ -5,8 +5,8 @@ import { DBUserRepository } from "./src/infrastructure/db/repositories/db-user.r
 import { ScryptPasswordHasher } from "./src/infrastructure/security/scrypt-password-hasher.js";
 import { JwtTokenService } from "./src/infrastructure/security/jwt-token-service.js";
 
-const hostname = process.env.HOSTNAME ?? "127.0.0.1";
-const port = Number(process.env.PORT ?? 3000);
+const hostname = process.env.HOSTNAME!;
+const port = Number(process.env.PORT!);
 
 const { db, pool } = createDbClient();
 const userRepository = new DBUserRepository(db);

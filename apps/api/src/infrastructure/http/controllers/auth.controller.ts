@@ -3,10 +3,11 @@ import type { LoginUseCase } from "../../../application/auth/use-cases/login.use
 import { loginSchema } from "../schemas/auth.schema.js";
 
 const ACCESS_TOKEN_MAX_AGE_MS = 15 * 60 * 1000;
+const isProduction = process.env.NODE_ENV !== "development";
 
 const accessTokenCookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  secure: isProduction,
   sameSite: "strict" as const,
   path: "/",
 };

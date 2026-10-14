@@ -1,10 +1,19 @@
 import { Router } from "express";
+import { rateLimit } from "express-rate-limit";
 import type { AuthController } from "../controllers/auth.controller.js";
+
+const loginRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { error: "Demasiados intentos. Intenta de nuevo más tarde." },
+});
 
 export function createAuthRoutes(controller: AuthController) {
   const router = Router();
 
-  router.post("/login", controller.login);
+  router.post("/login", loginRateLimit, controller.login);
   router.post("/logout", controller.logout);
 
   return router;
