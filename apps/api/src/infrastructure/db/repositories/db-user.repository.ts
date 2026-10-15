@@ -6,10 +6,8 @@ import {
   UserAlreadyExistsError,
   UserNotFoundError,
 } from "../../../domain/user/user.errors.js";
-import {
-  DEFAULT_USER_STATUS_ID,
-  users,
-} from "../schema/users.js";
+import { users } from "../schema/users.js";
+import { USER_STATUS_IDS } from "../schema/user-statuses.js";
 
 function isEmailUniqueViolation(error: unknown): boolean {
   if (
@@ -38,7 +36,7 @@ export class DBUserRepository implements UserRepository {
           email: data.email,
           password: data.password,
           createdAt: new Date(),
-          statusId: DEFAULT_USER_STATUS_ID,
+          statusId: USER_STATUS_IDS.ACTIVE,
         })
     } catch (error) {
       if (isEmailUniqueViolation(error)) {
@@ -84,7 +82,7 @@ export class DBUserRepository implements UserRepository {
           name: data.name,
           email: data.email,
           password: data.password,
-          modifiedAt: new Date(),
+          updatedAt: new Date(),
         })
         .where(eq(users.id, id!))
         .returning({ id: users.id });
@@ -106,7 +104,7 @@ export class DBUserRepository implements UserRepository {
       .update(users)
       .set({
         password: passwordHash,
-        modifiedAt: new Date(),
+        updatedAt: new Date(),
       })
       .where(eq(users.id, id))
       .returning({ id: users.id });
