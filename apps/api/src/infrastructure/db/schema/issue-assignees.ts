@@ -14,13 +14,12 @@ export const issueAssignees = pgTable(
   {
     issueId: integer("issue_id")
       .notNull()
-      .references(() => issues.id, { onDelete: "cascade" }),
+      .references(() => issues.id),
     userId: integer("user_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id),
     assignedByUserId: integer("assigned_by_user_id").references(
       (): AnyPgColumn => users.id,
-      { onDelete: "set null" },
     ),
     assignedAt: timestamp("assigned_at", { withTimezone: true })
       .notNull()

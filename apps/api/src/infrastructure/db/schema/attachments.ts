@@ -17,16 +17,14 @@ export const attachments = pgTable(
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     issueId: integer("issue_id")
       .notNull()
-      .references(() => issues.id, { onDelete: "cascade" }),
-    commentId: integer("comment_id").references(() => comments.id, {
-      onDelete: "cascade",
-    }),
+      .references(() => issues.id),
+    commentId: integer("comment_id").references(() => comments.id),
     fileId: integer("file_id")
       .notNull()
-      .references(() => files.id, { onDelete: "restrict" }),
+      .references(() => files.id),
     uploadedByUserId: integer("uploaded_by_user_id")
       .notNull()
-      .references(() => users.id, { onDelete: "restrict" }),
+      .references(() => users.id),
     ...auditColumns((): AnyPgColumn => users.id),
   },
   (table) => [

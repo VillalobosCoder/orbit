@@ -3,7 +3,6 @@ import {
   bigint,
   integer,
   pgTable,
-  timestamp,
   unique,
   varchar,
 } from "drizzle-orm/pg-core";
@@ -16,7 +15,7 @@ export const files = pgTable(
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     uploadedByUserId: integer("uploaded_by_user_id")
       .notNull()
-      .references(() => users.id, { onDelete: "restrict" }),
+      .references(() => users.id),
     bucket: varchar({ length: 100 }).notNull(),
     storageKey: varchar("storage_key", { length: 1024 }).notNull(),
     originalName: varchar("original_name", { length: 255 }).notNull(),
@@ -34,28 +33,5 @@ export const files = pgTable(
   ],
 );
 
-export const fileVariants = pgTable(
-  "file_variants",
-  {
-    id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    fileId: integer("file_id")
-      .notNull()
-      .references(() => files.id, { onDelete: "cascade" }),
-    variant: varchar({ length: 50 }).notNull(),
-    storageKey: varchar("storage_key", { length: 1024 }).notNull().unique(),
-    width: integer(),
-    height: integer(),
-    ...auditColumns((): AnyPgColumn => users.id),
-  },
-  (table) => [
-    unique("file_variants_file_id_variant_unique").on(
-      table.fileId,
-      table.variant,
-    ),
-  ],
-);
-
 export type FileRow = typeof files.$inferSelect;
 export type NewFileRow = typeof files.$inferInsert;
-export type FileVariantRow = typeof fileVariants.$inferSelect;
-export type NewFileVariantRow = typeof fileVariants.$inferInsert;

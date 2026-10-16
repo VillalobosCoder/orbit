@@ -16,7 +16,7 @@ export const sprints = pgTable(
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     projectId: integer("project_id")
       .notNull()
-      .references(() => projects.id, { onDelete: "restrict" }),
+      .references(() => projects.id),
     name: varchar({ length: 100 }).notNull(),
     goal: varchar({ length: 1000 }),
     startDate: date("start_date"),

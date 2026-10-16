@@ -15,11 +15,11 @@ export const boardColumns = pgTable(
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     projectId: integer("project_id")
       .notNull()
-      .references(() => projects.id, { onDelete: "restrict" }),
-    name: varchar({ length: 100 }).notNull(),
-    category: varchar({ length: 20 }).notNull(),
+      .references(() => projects.id),
+    name: varchar({ length: 50 }).notNull(),
+    category: varchar({ length: 25 }).notNull(),
     position: integer().notNull(),
-    color: varchar({ length: 20 }),
+    color: varchar({ length: 25 }),
     wipLimit: integer("wip_limit"),
     ...auditColumns((): AnyPgColumn => users.id),
   },

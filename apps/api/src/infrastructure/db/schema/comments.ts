@@ -15,10 +15,10 @@ export const comments = pgTable(
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     issueId: integer("issue_id")
       .notNull()
-      .references(() => issues.id, { onDelete: "cascade" }),
+      .references(() => issues.id),
     authorId: integer("author_id")
       .notNull()
-      .references(() => users.id, { onDelete: "restrict" }),
+      .references(() => users.id),
     body: text().notNull(),
     ...auditColumns((): AnyPgColumn => users.id),
   },

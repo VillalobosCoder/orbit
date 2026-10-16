@@ -13,10 +13,8 @@ export const notifications = pgTable("notifications", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   recipientId: integer("recipient_id")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  actorId: integer("actor_id").references(() => users.id, {
-    onDelete: "set null",
-  }),
+    .references(() => users.id),
+  actorId: integer("actor_id").references(() => users.id),
   type: varchar({ length: 50 }).notNull(),
   entityType: varchar("entity_type", { length: 50 }).notNull(),
   entityId: integer("entity_id").notNull(),

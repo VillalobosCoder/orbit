@@ -16,7 +16,7 @@ export const issueTypes = pgTable(
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     projectId: integer("project_id")
       .notNull()
-      .references(() => projects.id, { onDelete: "cascade" }),
+      .references(() => projects.id),
     name: varchar({ length: 50 }).notNull(),
     isSubtask: boolean("is_subtask").notNull().default(false),
     icon: varchar({ length: 50 }),

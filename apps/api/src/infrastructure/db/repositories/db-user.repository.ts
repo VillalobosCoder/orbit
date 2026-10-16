@@ -1,13 +1,13 @@
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { UserRepository } from "../../../application/user/ports/user-repository.port.js";
 import { User } from "../../../domain/user/user.entity.js";
+import { UserStatusKey } from "@orbit/shared";
 import {
   UserAlreadyExistsError,
   UserNotFoundError,
 } from "../../../domain/user/user.errors.js";
 import { users } from "../schema/users.js";
-import { USER_STATUS_IDS } from "../schema/user-statuses.js";
 
 function isEmailUniqueViolation(error: unknown): boolean {
   if (
@@ -35,8 +35,7 @@ export class DBUserRepository implements UserRepository {
           name: data.name,
           email: data.email,
           password: data.password,
-          createdAt: new Date(),
-          statusId: USER_STATUS_IDS.ACTIVE,
+          statusKey: UserStatusKey.ACTIVE,
         })
     } catch (error) {
       if (isEmailUniqueViolation(error)) {
@@ -51,7 +50,12 @@ export class DBUserRepository implements UserRepository {
     const [row] = await this.db
       .select()
       .from(users)
-      .where(eq(users.email, email.trim().toLowerCase()))
+      .where(
+        and(
+          eq(users.email, email.trim().toLowerCase()),
+          ne(users.statusKey, UserStatusKey.DELETED),
+        ),
+      )
       .limit(1);
 
     return row ? User.fromPersistence(row) : null;
@@ -61,14 +65,22 @@ export class DBUserRepository implements UserRepository {
     const [row] = await this.db
       .select()
       .from(users)
-      .where(eq(users.id, id))
+      .where(
+        and(
+          eq(users.id, id),
+          ne(users.statusKey, UserStatusKey.DELETED),
+        ),
+      )
       .limit(1);
 
     return row ? User.fromPersistence(row) : null;
   }
 
   async findAll(): Promise<User[]> {
-    const rows = await this.db.select().from(users);
+    const rows = await this.db
+      .select()
+      .from(users)
+      .where(ne(users.statusKey, UserStatusKey.DELETED));
     return rows.map((row) => User.fromPersistence(row));
   }
 
@@ -84,7 +96,12 @@ export class DBUserRepository implements UserRepository {
           password: data.password,
           updatedAt: new Date(),
         })
-        .where(eq(users.id, id!))
+        .where(
+          and(
+            eq(users.id, id!),
+            ne(users.statusKey, UserStatusKey.DELETED),
+          ),
+        )
         .returning({ id: users.id });
 
       if (!row) {
@@ -106,7 +123,12 @@ export class DBUserRepository implements UserRepository {
         password: passwordHash,
         updatedAt: new Date(),
       })
-      .where(eq(users.id, id))
+      .where(
+        and(
+          eq(users.id, id),
+          ne(users.statusKey, UserStatusKey.DELETED),
+        ),
+      )
       .returning({ id: users.id });
 
     if (!row) {
@@ -115,6 +137,22 @@ export class DBUserRepository implements UserRepository {
   }
 
   async delete(id: number): Promise<void> {
-    await this.db.delete(users).where(eq(users.id, id));
+    const [row] = await this.db
+      .update(users)
+      .set({
+        statusKey: UserStatusKey.DELETED,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(users.id, id),
+          ne(users.statusKey, UserStatusKey.DELETED),
+        ),
+      )
+      .returning({ id: users.id });
+
+    if (!row) {
+      throw new UserNotFoundError(id);
+    }
   }
 }

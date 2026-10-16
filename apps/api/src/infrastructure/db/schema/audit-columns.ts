@@ -12,11 +12,7 @@ export function auditColumns(userId: () => AnyPgColumn) {
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
-    createdByUserId: integer("created_by_user_id").references(userId, {
-      onDelete: "set null",
-    }),
-    updatedByUserId: integer("updated_by_user_id").references(userId, {
-      onDelete: "set null",
-    }),
+    createdByUserId: integer("created_by_user_id").references(userId),
+    updatedByUserId: integer("updated_by_user_id").references(userId),
   };
 }

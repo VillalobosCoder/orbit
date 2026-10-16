@@ -13,9 +13,7 @@ export const priorities = pgTable(
   "priorities",
   {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    projectId: integer("project_id").references(() => projects.id, {
-      onDelete: "cascade",
-    }),
+    projectId: integer("project_id").references(() => projects.id),
     name: varchar({ length: 50 }).notNull(),
     level: integer().notNull(),
     color: varchar({ length: 20 }),
