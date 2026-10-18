@@ -1,30 +1,40 @@
-export enum StatusTypeKey {
-  USER = "USER",
-  TEAM = "TEAM",
-  PROJECT = "PROJECT",
-  ISSUE = "ISSUE",
-}
+export const StatusTypeKey = {
+  USER: "USER",
+  TEAM: "TEAM",
+  PROJECT: "PROJECT",
+  ISSUE: "ISSUE",
+} as const;
+export type StatusTypeKey =
+  (typeof StatusTypeKey)[keyof typeof StatusTypeKey];
 
-export enum UserStatusKey {
-  ACTIVE = "USER_ACTIVE",
-  PENDING = "USER_PENDING",
-  SUSPENDED = "USER_SUSPENDED",
-  DELETED = "USER_DELETED",
-}
+export const UserStatusKey = {
+  ACTIVE: "USER_ACTIVE",
+  PENDING: "USER_PENDING",
+  SUSPENDED: "USER_SUSPENDED",
+  DELETED: "USER_DELETED",
+} as const;
+export type UserStatusKey =
+  (typeof UserStatusKey)[keyof typeof UserStatusKey];
 
-export enum TeamStatusKey {
-  ACTIVE = "TEAM_ACTIVE",
-  ARCHIVED = "TEAM_ARCHIVED",
-  DELETED = "TEAM_DELETED",
-}
+export const TeamStatusKey = {
+  ACTIVE: "TEAM_ACTIVE",
+  ARCHIVED: "TEAM_ARCHIVED",
+  DELETED: "TEAM_DELETED",
+} as const;
+export type TeamStatusKey =
+  (typeof TeamStatusKey)[keyof typeof TeamStatusKey];
 
-export enum ProjectStatusKey {
-  ACTIVE = "PROJECT_ACTIVE",
-  ARCHIVED = "PROJECT_ARCHIVED",
-  DELETED = "PROJECT_DELETED",
-}
+export const ProjectStatusKey = {
+  ACTIVE: "PROJECT_ACTIVE",
+  ARCHIVED: "PROJECT_ARCHIVED",
+  DELETED: "PROJECT_DELETED",
+} as const;
+export type ProjectStatusKey =
+  (typeof ProjectStatusKey)[keyof typeof ProjectStatusKey];
 
-export enum IssueStatusKey {
-  ACTIVE = "ISSUE_ACTIVE",
-  DELETED = "ISSUE_DELETED",
-}
+export const IssueStatusKey = {
+  ACTIVE: "ISSUE_ACTIVE",
+  DELETED: "ISSUE_DELETED",
+} as const;
+export type IssueStatusKey =
+  (typeof IssueStatusKey)[keyof typeof IssueStatusKey];

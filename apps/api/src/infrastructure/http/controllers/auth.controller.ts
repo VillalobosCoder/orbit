@@ -1,9 +1,15 @@
 import type { NextFunction, Request, Response } from "express";
+import type {
+  LoginRequestDto,
+  LoginResponseDto,
+} from "@orbit/shared";
 import type { LoginUseCase } from "../../../application/auth/use-cases/login.use-case.js";
+import type { GetCurrentUserUseCase } from "../../../application/auth/use-cases/get-current-user.use-case.js";
 import { loginSchema } from "../schemas/auth.schema.js";
+import type { AuthedRequest } from "../middleware/auth.middleware.js";
 
 const ACCESS_TOKEN_MAX_AGE_MS = 15 * 60 * 1000;
-const isProduction = process.env.NODE_ENV !== "development";
+const isProduction = process.env.NODE_ENV === "production";
 
 const accessTokenCookieOptions = {
   httpOnly: true,
@@ -13,7 +19,37 @@ const accessTokenCookieOptions = {
 };
 
 export class AuthController {
-  constructor(private readonly loginUseCase: LoginUseCase) {}
+  constructor(
+    private readonly loginUseCase: LoginUseCase,
+    private readonly getCurrentUserUseCase: GetCurrentUserUseCase,
+  ) {}
+
+  me = async (
+    req: AuthedRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const authenticatedUserId = req.auth?.id;
+
+      if (authenticatedUserId === undefined) {
+        res.status(401).json({ error: "No autenticado." });
+        return;
+      }
+
+      const user = await this.getCurrentUserUseCase.execute(authenticatedUserId);
+
+      if (!user) {
+        res.status(401).json({ error: "La sesión ya no es válida." });
+        return;
+      }
+
+      const response: LoginResponseDto = { user };
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 
   login = async (
     req: Request,
@@ -21,7 +57,7 @@ export class AuthController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const input = loginSchema.parse(req.body);
+      const input: LoginRequestDto = loginSchema.parse(req.body);
       const result = await this.loginUseCase.execute(input);
 
       res.cookie("access_token", result.token, {
@@ -29,7 +65,8 @@ export class AuthController {
         maxAge: ACCESS_TOKEN_MAX_AGE_MS,
       });
 
-      res.status(200).json({ user: result.user });
+      const response: LoginResponseDto = { user: result.user };
+      res.status(200).json(response);
     } catch (error) {
       next(error);
     }

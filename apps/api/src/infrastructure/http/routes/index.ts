@@ -16,7 +16,7 @@ export function createApiRoutes(
 ) {
   const router = Router();
 
-  router.use("/auth", createAuthRoutes(controllers.auth));
+  router.use("/auth", createAuthRoutes(controllers.auth, authenticate));
   router.use("/users", createUserRoutes(controllers.users, authenticate));
 
   return router;

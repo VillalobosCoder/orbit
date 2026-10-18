@@ -1,12 +1,11 @@
-import { Card, CardContent, CardHeader } from "./components/ui/card";
+import Login from "./features/auth/pages/login";
 
 function App() {
-  return <>
-    <Card>
-      <CardHeader>LOGIN</CardHeader>
-      <CardContent>LOGIN 2</CardContent>
-    </Card>
-  </>;
+  return (
+    <>
+      <Login />
+    </>
+  );
 }
 
 export default App;
