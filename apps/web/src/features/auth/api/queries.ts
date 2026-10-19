@@ -2,7 +2,7 @@ import {
   login as loginRequest,
   logout as logoutRequest,
 } from "@/features/auth/api/auth.api";
-import { useAuth } from "@/context/use-auth";
+import { useAuth } from "@/context/auth/use-auth";
 import type { LoginRequestDto } from "@orbit/shared";
 import { useMutation } from "@tanstack/react-query";
 
