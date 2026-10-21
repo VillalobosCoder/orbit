@@ -16,14 +16,13 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth/use-auth";
 import { useLogin, useLogout } from "@/features/auth/api/queries";
 import type { LoginRequestDto } from "@orbit/shared";
-import type { ChangeEvent } from "react";
 
 export default function Login() {
   const { user, isLoading, sessionError } = useAuth();
   const loginMutation = useLogin();
   const logoutMutation = useLogout();
 
-  function handleSubmit(event: ChangeEvent<HTMLFormElement>) {
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const email = formData.get("email");
@@ -33,7 +32,7 @@ export default function Login() {
 
     const credentials: LoginRequestDto = { email, password };
     loginMutation.mutate(credentials);
-  }
+  };
 
   return (
     <Card>

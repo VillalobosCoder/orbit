@@ -5,6 +5,7 @@ import AuthLayout from "@/features/auth/pages/auth-layout";
 import ModuleLayout from "@/shared/ui/layouts/module-loyout";
 import NotFoundPage from "./not-found";
 import HomePage from "@/features/home/pages/home";
+import UsersPage from "@/features/users/pages/users";
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +27,10 @@ export const router = createBrowserRouter([
           {
             index: true,
             element: <HomePage />,
+          },
+          {
+            path: "users",
+            element: <UsersPage />,
           },
           {
             path: "*",

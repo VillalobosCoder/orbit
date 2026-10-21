@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, House, Orbit, type LucideIcon } from "lucide-react";
+import { ChevronDown, House, Orbit, User, type LucideIcon } from "lucide-react";
 
 import {
   Sidebar,
@@ -27,11 +27,17 @@ interface SidebarItem {
 
 const navigationItems: SidebarItem[] = [
   {
-    title: "Inicio",
+    title: "Home",
     url: "/",
     icon: House,
     items: [],
   },
+  {
+    title: "Users",
+    url: "/users",
+    icon: User,
+    items: [],
+  }
 ];
 
 function isPathActive(pathname: string, url: string) {

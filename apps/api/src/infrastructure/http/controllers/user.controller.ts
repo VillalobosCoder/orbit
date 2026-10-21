@@ -1,4 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
+import type {
+  CreateUserRequestDto,
+  CreateUserResponseDto,
+} from "@orbit/shared";
 import { CreateUserUseCase } from "../../../application/user/use-cases/create-user.use-case.js";
 import { createSchema, deleteSchema } from "../schemas/user.schema.js";
 import { DeleteUserUseCase } from "../../../application/user/use-cases/delete-user.use-case.js";
@@ -16,9 +20,10 @@ export class UserController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const input = createSchema.parse(req.body);
-      await this.createUserUseCase.execute(input);
-      res.status(201).end();
+      const input: CreateUserRequestDto = createSchema.parse(req.body);
+      const result = await this.createUserUseCase.execute(input);
+      const response: CreateUserResponseDto = result;
+      res.status(201).json(response);
     } catch (error) {
       next(error);
     }

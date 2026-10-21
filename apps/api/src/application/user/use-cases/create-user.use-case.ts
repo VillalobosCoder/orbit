@@ -10,9 +10,15 @@ import { UserRepository } from "../ports/user-repository.port.js";
 
 export type CreateUserInput = {
   name: string;
+  lastName: string;
   email: string;
-  password: string;
 };
+
+export type CreateUserOutput = {
+  temporaryPassword: string;
+};
+
+const TEMPORARY_USER_PASSWORD = "12345678";
 
 export class CreateUserUseCase {
   constructor(
@@ -20,24 +26,27 @@ export class CreateUserUseCase {
     private readonly hasher: PasswordHasher,
   ) {}
 
-  async execute(input: CreateUserInput): Promise<void> {
-    if (input.password.length < 8) {
-      throw new WeakPasswordError();
-    }
-
-    if (exceedsPasswordByteLimit(input.password)) {
-      throw new PasswordTooLongError();
-    }
-
+  async execute(input: CreateUserInput): Promise<CreateUserOutput> {
     const existing = await this.userRepository.findByEmail(input.email);
 
     if (existing) {
       throw new UserAlreadyExistsError(input.email);
     }
 
-    const passwordHasher = await this.hasher.hash(input.password);
+    const password = TEMPORARY_USER_PASSWORD;
+    if (password.length < 8) {
+      throw new WeakPasswordError();
+    }
+
+    if (exceedsPasswordByteLimit(password)) {
+      throw new PasswordTooLongError();
+    }
+
+    const passwordHasher = await this.hasher.hash(password);
     const user = User.register({ ...input, password: passwordHasher });
 
     await this.userRepository.save(user);
+
+    return { temporaryPassword: password };
   }
 }

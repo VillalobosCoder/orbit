@@ -33,6 +33,7 @@ export class DBUserRepository implements UserRepository {
         .insert(users)
         .values({
           name: data.name,
+          lastName: data.lastName,
           email: data.email,
           password: data.password,
           statusKey: UserStatusKey.ACTIVE,
@@ -92,6 +93,7 @@ export class DBUserRepository implements UserRepository {
         .update(users)
         .set({
           name: data.name,
+          lastName: data.lastName,
           email: data.email,
           password: data.password,
           updatedAt: new Date(),

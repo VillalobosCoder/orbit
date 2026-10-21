@@ -2,6 +2,7 @@ import { Email } from "./value-objects/email.vo.js";
 
 export type RegisterUserInput = {
   name: string;
+  lastName: string;
   email: string;
   password: string;
 };
@@ -9,6 +10,7 @@ export type RegisterUserInput = {
 export type UserPrimitives = {
   id: number;
   name: string;
+  lastName: string;
   email: string;
   password: string;
   createdAt: Date;
@@ -17,6 +19,7 @@ export type UserPrimitives = {
 type UserProps = {
   id?: number;
   name: string;
+  lastName: string;
   email: Email;
   password: string;
   createdAt: Date;
@@ -28,6 +31,7 @@ export class User {
   static register(input: RegisterUserInput): User {
     return new User({
       name: input.name.trim(),
+      lastName: input.lastName.trim(),
       email: Email.create(input.email),
       password: input.password,
       createdAt: new Date(),
@@ -38,6 +42,7 @@ export class User {
     return new User({
       id: data.id,
       name: data.name,
+      lastName: data.lastName,
       email: Email.create(data.email),
       password: data.password,
       createdAt: data.createdAt,
@@ -68,6 +73,7 @@ export class User {
     return {
       id: this.props.id,
       name: this.props.name,
+      lastName: this.props.lastName,
       email: this.props.email.toString(),
       password: this.props.password,
       createdAt: this.props.createdAt,

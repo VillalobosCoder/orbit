@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "lastName" varchar(50) NOT NULL;

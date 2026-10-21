@@ -14,6 +14,7 @@ export const users = pgTable(
   {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     name: varchar({ length: 50 }).notNull(),
+    lastName: varchar({ length: 50 }).notNull(),
     email: varchar({ length: 30 }).notNull().unique(),
     password: varchar("password_hash", { length: 255 }).notNull(),
     statusTypeKey: varchar("status_type_key", { length: 25 })
