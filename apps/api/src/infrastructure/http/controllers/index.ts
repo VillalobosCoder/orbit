@@ -7,6 +7,7 @@ import { CreateUserUseCase } from "../../../application/user/use-cases/create-us
 import { DeleteUserUseCase } from "../../../application/user/use-cases/delete-user.use-case.js";
 import { AuthController } from "./auth.controller.js";
 import { UserController } from "./user.controller.js";
+import { GetUserListUseCase } from "../../../application/user/use-cases/get-user-list.use-case.js";
 
 export interface ControllerDependencies {
   userRepository: UserRepository;
@@ -20,15 +21,16 @@ export function createControllers(dependencies: ControllerDependencies) {
     dependencies.passwordHasher,
   );
   const deleteUser = new DeleteUserUseCase(dependencies.userRepository);
+  const getCurrentUser = new GetCurrentUserUseCase(dependencies.userRepository);
+  const getAllUsers = new GetUserListUseCase(dependencies.userRepository);
   const login = new LoginUseCase(
     dependencies.userRepository,
     dependencies.passwordHasher,
     dependencies.tokenService,
   );
-  const getCurrentUser = new GetCurrentUserUseCase(dependencies.userRepository);
 
   return {
-    users: new UserController(createUser, deleteUser),
+    users: new UserController(getAllUsers, createUser, deleteUser),
     auth: new AuthController(login, getCurrentUser),
   };
 }

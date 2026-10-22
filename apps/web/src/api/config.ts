@@ -1,13 +1,11 @@
-import type { ApiErrorResponseDto } from "@orbit/shared";
+import { ERROR_500, type ApiError, type ApiErrorResponseDto } from "@orbit/shared";
 
 function resolveApiUrl(configuredUrl?: string) {
   return import.meta.env.PROD ? "/api" : configuredUrl ?? "/api";
 }
 
 const AUTH_API_URL = resolveApiUrl(import.meta.env.VITE_AUTH_API_URL);
-const RESTAURANT_API_URL = resolveApiUrl(
-  import.meta.env.VITE_RESTAURANT_API_URL,
-);
+
 const REQUEST_TIMEOUT_MS = 15_000;
 
 export const HttpMethod = {
@@ -118,10 +116,12 @@ export async function injectQuery<T = unknown>(
   return requestQuery<T>(AUTH_API_URL, segments, options, params);
 }
 
-export async function injectRestaurantQuery<T = unknown>(
-  segments: string[],
-  options: RequestInit = {},
-  params?: Record<string, string | number>,
-): Promise<T | null> {
-  return requestQuery<T>(RESTAURANT_API_URL, segments, options, params);
+
+export function handleMutationError(error: unknown) {
+  const apiError = error as ApiError;
+  if (apiError.message) {
+    console.log(apiError.message);
+    return;
+  }
+  console.log(ERROR_500);
 }

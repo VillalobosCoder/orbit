@@ -1,24 +1,31 @@
-import { HttpMethod, injectQuery } from "@/api/config";
+import { handleMutationError, HttpMethod, injectQuery } from "@/api/config";
+import { queryClient } from "@/api/tanstack-query-config";
 import { USERS } from "@/api/uris";
-import type {
-  CreateUserRequestDto,
-  CreateUserResponseDto,
+import {
+  type CreateUserRequestDto,
+  type CreateUserResponseDto,
+  type UserDto,
 } from "@orbit/shared";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+
+export function useGetUsers() {
+  return useQuery({
+    queryKey: [USERS],
+    queryFn: () =>
+      injectQuery([USERS], { method: HttpMethod.GET }) as Promise<UserDto[]>,
+  });
+}
 
 export function useCreateUser() {
   return useMutation({
-    mutationFn: async (input: CreateUserRequestDto) => {
-      const response = await injectQuery<CreateUserResponseDto>([USERS], {
+    mutationFn: (payload: CreateUserRequestDto) =>
+      injectQuery<CreateUserResponseDto>([USERS], {
         method: HttpMethod.POST,
-        body: JSON.stringify(input),
-      });
-
-      if (!response) {
-        throw new Error("La API no devolvió la contraseña temporal.");
-      }
-
-      return response;
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [USERS] });
     },
+    onError: handleMutationError,
   });
 }

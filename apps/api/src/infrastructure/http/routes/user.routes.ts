@@ -8,6 +8,7 @@ export function createUserRoutes(
 ) {
   const router = Router();
 
+  router.get("/", authenticate, controller.getAllUsers);
   router.post("/", controller.create);
   router.delete("/:id", authenticate, controller.delete);
 

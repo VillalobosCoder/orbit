@@ -64,7 +64,11 @@ export default function Login() {
                 ? "Cerrando sesión..."
                 : "Cerrar sesión"}
             </Button>
-            <FieldError>{logoutMutation.error?.message}</FieldError>
+            <FieldError>
+              {logoutMutation.error instanceof Error
+                ? logoutMutation.error.message
+                : undefined}
+            </FieldError>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
@@ -91,7 +95,11 @@ export default function Login() {
                   required
                 />
               </Field>
-              <FieldError>{loginMutation.error?.message}</FieldError>
+              <FieldError>
+                {loginMutation.error instanceof Error
+                  ? loginMutation.error.message
+                  : undefined}
+              </FieldError>
               <Button
                 className="w-full"
                 type="submit"

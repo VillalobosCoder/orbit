@@ -1,4 +1,5 @@
 import AddUserDialog from "./components/add-user-dialog";
+import UserTable from "./components/user-table";
 
 
 export default function UsersPage() {
@@ -8,6 +9,7 @@ export default function UsersPage() {
       <div>
         <AddUserDialog />
       </div>
+      <UserTable />
     </div>
   );
 }

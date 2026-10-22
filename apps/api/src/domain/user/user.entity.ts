@@ -57,6 +57,10 @@ export class User {
     return this.props.name;
   }
 
+  get lastName(): string {
+    return this.props.lastName;
+  }
+
   get email(): Email {
     return this.props.email;
   }

@@ -7,3 +7,10 @@ export type CreateUserRequestDto = {
 export type CreateUserResponseDto = {
   temporaryPassword: string;
 };
+
+export type UserDto = {
+  id: number;
+  name: string;
+  lastName: string;
+  email: string;
+};

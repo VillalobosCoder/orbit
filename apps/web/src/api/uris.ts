@@ -3,6 +3,7 @@ export const AUTH = '/auth';
 export const LOGIN = '/login';
 export const ME = '/me';
 export const LOGOUT = '/logout';
+export const SESSION = '/session';
 // #endregion
 
 // #region Mains

@@ -1,14 +1,12 @@
 import { createContext } from "react";
-import type { AuthenticatedUserDto } from "@orbit/shared";
-
-export type UserSession = AuthenticatedUserDto;
+import type { LoginResponseDto } from "@orbit/shared";
 
 export interface AuthContextType {
-  user: UserSession | null;
+  user: LoginResponseDto["user"] | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   sessionError: string | undefined;
-  login: (user: UserSession) => void;
+  login: (response: LoginResponseDto) => void;
   logout: () => void;
 }
 

@@ -7,12 +7,33 @@ import { CreateUserUseCase } from "../../../application/user/use-cases/create-us
 import { createSchema, deleteSchema } from "../schemas/user.schema.js";
 import { DeleteUserUseCase } from "../../../application/user/use-cases/delete-user.use-case.js";
 import type { AuthedRequest } from "../middleware/auth.middleware.js";
+import { GetUserListUseCase } from "../../../application/user/use-cases/get-user-list.use-case.js";
 
 export class UserController {
   constructor(
+    private readonly getUserListUseCase: GetUserListUseCase,
     private readonly createUserUseCase: CreateUserUseCase,
     private readonly deleteUserUseCase: DeleteUserUseCase,
   ) {}
+
+  getAllUsers = async (
+    req: AuthedRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const authenticatedUserId = req.auth?.id;
+      if (authenticatedUserId === undefined) {
+        res.status(401).json({ error: "No autenticado." });
+        return;
+      }
+
+      const users = await this.getUserListUseCase.execute();
+      res.status(200).json(users);
+    } catch (error) {
+      next(error);
+    }
+  };
 
   create = async (
     req: Request,

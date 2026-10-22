@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Field, FieldError, FieldGroup } from "@/components/ui/field";
+import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateUser } from "@/features/users/api/queries";
@@ -31,7 +31,7 @@ export default function AddUserDialog() {
     }
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
@@ -48,11 +48,7 @@ export default function AddUserDialog() {
     }
 
     const input: CreateUserRequestDto = { name, lastName, email };
-    createUser.mutate(input, {
-      onSuccess: ({ temporaryPassword: generatedPassword }) => {
-        setTemporaryPassword(generatedPassword);
-      },
-    });
+    createUser.mutate(input);
   }
 
   return (
@@ -120,7 +116,6 @@ export default function AddUserDialog() {
                   required
                 />
               </Field>
-              <FieldError>{createUser.error?.message}</FieldError>
             </FieldGroup>
             <DialogFooter>
               <Button
