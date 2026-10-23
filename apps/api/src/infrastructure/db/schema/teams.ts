@@ -1,12 +1,10 @@
 import {
   AnyPgColumn,
-  foreignKey,
   integer,
   pgTable,
   unique,
   varchar,
 } from "drizzle-orm/pg-core";
-import { StatusTypeKey, TeamStatusKey } from "@orbit/shared";
 import { auditColumns } from "./audit-columns.js";
 import { statuses } from "./statuses.js";
 import { users } from "./users.js";
@@ -18,12 +16,9 @@ export const teams = pgTable(
     ownerUserId: integer("owner_user_id")
       .notNull()
       .references(() => users.id),
-    statusTypeKey: varchar("status_type_key", { length: 25 })
+    statusId: integer("status_id")
       .notNull()
-      .default(StatusTypeKey.TEAM),
-    statusKey: varchar("status_key", { length: 25 })
-      .notNull()
-      .default(TeamStatusKey.ACTIVE),
+      .references(() => statuses.id),
     name: varchar({ length: 100 }).notNull(),
     description: varchar({ length: 255 }),
     ...auditColumns((): AnyPgColumn => users.id),
@@ -34,11 +29,6 @@ export const teams = pgTable(
       table.name,
     ),
     unique("teams_owner_user_id_id_unique").on(table.ownerUserId, table.id),
-    foreignKey({
-      name: "teams_status_fk",
-      columns: [table.statusTypeKey, table.statusKey],
-      foreignColumns: [statuses.statusTypeKey, statuses.key],
-    }),
   ],
 );
 

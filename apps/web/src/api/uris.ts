@@ -8,6 +8,7 @@ export const SESSION = '/session';
 
 // #region Mains
 export const USERS = '/users';
+export const MODULES = '/modules';
 // #endregion
 
 // #region Extensions

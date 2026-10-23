@@ -40,6 +40,22 @@ export class UserNotFoundError extends DomainError {
   }
 }
 
+export class InvalidUserPermissionError extends DomainError {
+  readonly statusCode = 400;
+
+  constructor(module: string) {
+    super(`El módulo "${module}" no existe.`);
+  }
+}
+
+export class InitialAdminAlreadyExistsError extends DomainError {
+  readonly statusCode = 409;
+
+  constructor() {
+    super("El administrador inicial solo puede configurarse si no existen usuarios.");
+  }
+}
+
 export class InvalidCredentialsError extends DomainError {
   readonly statusCode = 401;
   

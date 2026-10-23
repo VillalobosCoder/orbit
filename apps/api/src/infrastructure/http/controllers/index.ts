@@ -1,6 +1,8 @@
 import type { PasswordHasher } from "../../../application/user/ports/password-hasher.port.js";
 import type { UserRepository } from "../../../application/user/ports/user-repository.port.js";
 import type { TokenService } from "../../../application/auth/ports/token-service.port.js";
+import type { UserPermissionRepository } from "../../../application/auth/ports/user-permission-repository.port.js";
+import type { ModuleRepository } from "../../../application/modules/ports/module-repository.port.js";
 import { LoginUseCase } from "../../../application/auth/use-cases/login.use-case.js";
 import { GetCurrentUserUseCase } from "../../../application/auth/use-cases/get-current-user.use-case.js";
 import { CreateUserUseCase } from "../../../application/user/use-cases/create-user.use-case.js";
@@ -8,11 +10,14 @@ import { DeleteUserUseCase } from "../../../application/user/use-cases/delete-us
 import { AuthController } from "./auth.controller.js";
 import { UserController } from "./user.controller.js";
 import { GetUserListUseCase } from "../../../application/user/use-cases/get-user-list.use-case.js";
+import { ModuleController } from "./module.controller.js";
 
 export interface ControllerDependencies {
   userRepository: UserRepository;
   passwordHasher: PasswordHasher;
   tokenService: TokenService;
+  userPermissionRepository: UserPermissionRepository;
+  moduleRepository: ModuleRepository;
 }
 
 export function createControllers(dependencies: ControllerDependencies) {
@@ -21,16 +26,21 @@ export function createControllers(dependencies: ControllerDependencies) {
     dependencies.passwordHasher,
   );
   const deleteUser = new DeleteUserUseCase(dependencies.userRepository);
-  const getCurrentUser = new GetCurrentUserUseCase(dependencies.userRepository);
+  const getCurrentUser = new GetCurrentUserUseCase(
+    dependencies.userRepository,
+    dependencies.userPermissionRepository,
+  );
   const getAllUsers = new GetUserListUseCase(dependencies.userRepository);
   const login = new LoginUseCase(
     dependencies.userRepository,
     dependencies.passwordHasher,
     dependencies.tokenService,
+    dependencies.userPermissionRepository,
   );
 
   return {
     users: new UserController(getAllUsers, createUser, deleteUser),
     auth: new AuthController(login, getCurrentUser),
+    modules: new ModuleController(dependencies.moduleRepository),
   };
 }

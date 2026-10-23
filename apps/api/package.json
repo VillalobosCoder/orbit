@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:typecheck": "tsc --project tsconfig.test.json",
     "typecheck": "tsc --noEmit",
+    "bootstrap:admin": "node --env-file-if-exists=.env --import tsx scripts/bootstrap-admin.ts",
     "migration:generate": "node --env-file-if-exists=.env ./node_modules/drizzle-kit/bin.cjs generate --config=src/infrastructure/db/config.ts",
     "migration:run": "node --env-file-if-exists=.env ./node_modules/drizzle-kit/bin.cjs migrate --config=src/infrastructure/db/config.ts"
   },

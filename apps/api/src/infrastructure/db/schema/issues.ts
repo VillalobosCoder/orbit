@@ -9,7 +9,6 @@ import {
   unique,
   varchar,
 } from "drizzle-orm/pg-core";
-import { IssueStatusKey, StatusTypeKey } from "@orbit/shared";
 import { auditColumns } from "./audit-columns.js";
 import { boardColumns } from "./board-columns.js";
 import { issueTypes } from "./issue-types.js";
@@ -26,12 +25,9 @@ export const issues = pgTable(
     projectId: integer("project_id")
       .notNull()
       .references(() => projects.id),
-    statusTypeKey: varchar("status_type_key", { length: 25 })
+    statusId: integer("status_id")
       .notNull()
-      .default(StatusTypeKey.ISSUE),
-    statusKey: varchar("status_key", { length: 25 })
-      .notNull()
-      .default(IssueStatusKey.ACTIVE),
+      .references(() => statuses.id),
     issueNumber: integer("issue_number").notNull(),
     typeId: integer("type_id")
       .notNull()
@@ -75,11 +71,6 @@ export const issues = pgTable(
       name: "issues_project_sprint_fk",
       columns: [table.projectId, table.sprintId],
       foreignColumns: [sprints.projectId, sprints.id],
-    }),
-    foreignKey({
-      name: "issues_status_fk",
-      columns: [table.statusTypeKey, table.statusKey],
-      foreignColumns: [statuses.statusTypeKey, statuses.key],
     }),
   ],
 );

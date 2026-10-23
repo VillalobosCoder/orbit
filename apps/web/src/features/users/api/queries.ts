@@ -29,3 +29,16 @@ export function useCreateUser() {
     onError: handleMutationError,
   });
 }
+
+export function useDeleteUser() {
+  return useMutation({
+    mutationFn: (id: number) =>
+      injectQuery([USERS, `/${id}`], {
+        method: HttpMethod.DELETE,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [USERS] });
+    },
+    onError: handleMutationError,
+  });
+}

@@ -5,10 +5,12 @@ import type { RouteControllers } from "./routes/index.js";
 import { createApiRoutes } from "./routes/index.js";
 import { errorHandler } from "./middleware/error-handler.middleware.js";
 import { makeAuthMiddleware } from "./middleware/auth.middleware.js";
+import type { UserPermissionRepository } from "../../application/auth/ports/user-permission-repository.port.js";
 
 export function createHttpApp(
   controllers: RouteControllers,
   tokenService: TokenService,
+  userPermissionRepository: UserPermissionRepository,
 ) {
   const app = express();
 
@@ -18,6 +20,7 @@ export function createHttpApp(
   app.use("/api", createApiRoutes(
     controllers,
     makeAuthMiddleware(tokenService),
+    userPermissionRepository,
   ));
   app.use(errorHandler);
 

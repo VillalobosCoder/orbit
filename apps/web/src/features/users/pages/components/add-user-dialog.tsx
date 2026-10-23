@@ -14,19 +14,22 @@ import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateUser } from "@/features/users/api/queries";
-import type { CreateUserRequestDto } from "@orbit/shared";
+import { useGetModules } from "@/features/modules/api/queries";
+import type { CreateUserRequestDto, UserPermissionDto } from "@orbit/shared";
 
 export default function AddUserDialog() {
   const [open, setOpen] = useState(false);
-  const [temporaryPassword, setTemporaryPassword] = useState<string | null>(
-    null,
-  );
+  const [selectedPermissions, setSelectedPermissions] = useState<
+    Record<string, Pick<UserPermissionDto, "canRead" | "canWrite">>
+  >({});
   const createUser = useCreateUser();
+  const modulesQuery = useGetModules();
+  const temporaryPassword = createUser.data?.temporaryPassword;
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
     if (!nextOpen) {
-      setTemporaryPassword(null);
+      setSelectedPermissions({});
       createUser.reset();
     }
   }
@@ -47,7 +50,14 @@ export default function AddUserDialog() {
       return;
     }
 
-    const input: CreateUserRequestDto = { name, lastName, email };
+    const input: CreateUserRequestDto = {
+      name,
+      lastName,
+      email,
+      permissions: Object.entries(selectedPermissions)
+        .filter(([, permission]) => permission.canRead || permission.canWrite)
+        .map(([module, permission]) => ({ module, ...permission })),
+    };
     createUser.mutate(input);
   }
 
@@ -111,11 +121,84 @@ export default function AddUserDialog() {
                   id="email"
                   name="email"
                   type="email"
-                  maxLength={30}
+                  maxLength={254}
                   autoComplete="email"
                   required
                 />
               </Field>
+              <fieldset className="max-h-56 space-y-3 overflow-y-auto">
+                <legend className="mb-2 text-sm font-medium">
+                  Permisos de acceso
+                </legend>
+                {modulesQuery.isPending && (
+                  <p className="text-sm text-muted-foreground">
+                    Cargando módulos...
+                  </p>
+                )}
+                {modulesQuery.isError && (
+                  <p className="text-sm text-destructive" role="alert">
+                    No se pudieron cargar los módulos. Intenta de nuevo antes
+                    de crear el usuario.
+                  </p>
+                )}
+                {modulesQuery.data?.map((module) => {
+                  const permission = selectedPermissions[module.key] ?? {
+                    canRead: false,
+                    canWrite: false,
+                  };
+                  const parentName = modulesQuery.data.find(
+                    (item) => item.key === module.parentKey,
+                  )?.name;
+                  const label = parentName
+                    ? `${parentName} · ${module.name}`
+                    : module.name;
+
+                  return (
+                    <div
+                      key={module.key}
+                      className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 rounded-md border border-border px-3 py-2"
+                    >
+                      <span className="min-w-0 truncate text-sm">{label}</span>
+                      <label className="flex items-center gap-1.5 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={permission.canRead}
+                          onChange={(event) => {
+                            const canRead = event.currentTarget.checked;
+                            setSelectedPermissions((current) => ({
+                              ...current,
+                              [module.key]: {
+                                canRead,
+                                canWrite:
+                                  current[module.key]?.canWrite ?? false,
+                              },
+                            }));
+                          }}
+                        />
+                        Leer
+                      </label>
+                      <label className="flex items-center gap-1.5 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={permission.canWrite}
+                          onChange={(event) => {
+                            const canWrite = event.currentTarget.checked;
+                            setSelectedPermissions((current) => ({
+                              ...current,
+                              [module.key]: {
+                                canRead:
+                                  current[module.key]?.canRead ?? false,
+                                canWrite,
+                              },
+                            }));
+                          }}
+                        />
+                        Escribir
+                      </label>
+                    </div>
+                  );
+                })}
+              </fieldset>
             </FieldGroup>
             <DialogFooter>
               <Button
@@ -125,7 +208,14 @@ export default function AddUserDialog() {
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={createUser.isPending}>
+              <Button
+                type="submit"
+                disabled={
+                  createUser.isPending ||
+                  modulesQuery.isPending ||
+                  modulesQuery.isError
+                }
+              >
                 {createUser.isPending ? "Creando usuario..." : "Crear usuario"}
               </Button>
             </DialogFooter>

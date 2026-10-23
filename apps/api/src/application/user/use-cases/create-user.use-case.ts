@@ -6,12 +6,17 @@ import {
 } from "../../../domain/user/user.errors.js";
 import { exceedsPasswordByteLimit } from "../../../domain/user/password-policy.js";
 import { PasswordHasher } from "../ports/password-hasher.port.js";
-import { UserRepository } from "../ports/user-repository.port.js";
+import {
+  UserRepository,
+  type UserPermissionAssignment,
+} from "../ports/user-repository.port.js";
 
 export type CreateUserInput = {
   name: string;
   lastName: string;
   email: string;
+  permissions: UserPermissionAssignment[];
+  createdByUserId: number;
 };
 
 export type CreateUserOutput = {
@@ -43,9 +48,18 @@ export class CreateUserUseCase {
     }
 
     const passwordHasher = await this.hasher.hash(password);
-    const user = User.register({ ...input, password: passwordHasher });
+    const user = User.register({
+      name: input.name,
+      lastName: input.lastName,
+      email: input.email,
+      password: passwordHasher,
+    });
 
-    await this.userRepository.save(user);
+    await this.userRepository.save(
+      user,
+      input.permissions,
+      input.createdByUserId,
+    );
 
     return { temporaryPassword: password };
   }

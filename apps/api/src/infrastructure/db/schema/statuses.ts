@@ -1,5 +1,6 @@
 import {
   AnyPgColumn,
+  integer,
   pgTable,
   unique,
   varchar,
@@ -18,7 +19,8 @@ import { users } from "./users.js";
 export const statuses = pgTable(
   "statuses",
   {
-    key: varchar({ length: 25 }).primaryKey(),
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    key: varchar({ length: 25 }).notNull().unique(),
     statusTypeKey: varchar("status_type_key", { length: 25 })
       .notNull()
       .references(() => statusTypes.key),
@@ -26,10 +28,7 @@ export const statuses = pgTable(
     ...auditColumns((): AnyPgColumn => users.id),
   },
   (table) => [
-    unique("statuses_status_type_key_key_unique").on(
-      table.statusTypeKey,
-      table.key,
-    ),
+    unique("statuses_status_type_key_key_unique").on(table.statusTypeKey, table.key),
   ],
 );
 

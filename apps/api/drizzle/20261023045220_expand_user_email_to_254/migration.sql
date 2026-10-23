@@ -1,0 +1,1 @@
+ALTER TABLE "users" ALTER COLUMN "email" SET DATA TYPE varchar(254) USING "email"::varchar(254);

@@ -3,10 +3,12 @@ import { exceedsPasswordByteLimit } from "../../../domain/user/password-policy.j
 import { PasswordHasher } from "../../user/ports/password-hasher.port.js";
 import { UserRepository } from "../../user/ports/user-repository.port.js";
 import { TokenService } from "../ports/token-service.port.js";
+import type { UserPermissionRepository } from "../ports/user-permission-repository.port.js";
+import type { AuthenticatedUserDto } from "@orbit/shared";
 
 export interface LoginOutput {
   token: string;
-  user: { id: number; name: string; email: string };
+  user: AuthenticatedUserDto;
 }
 
 export interface LoginInput {
@@ -19,6 +21,7 @@ export class LoginUseCase {
     private readonly usersRepository: UserRepository,
     private readonly hasher: PasswordHasher,
     private readonly tokens: TokenService,
+    private readonly permissions: UserPermissionRepository,
   ) {}
 
   async execute(input: LoginInput): Promise<LoginOutput> {
@@ -47,6 +50,7 @@ export class LoginUseCase {
     }
 
     const token = this.tokens.sign({ sub: String(user.id!) });
+    const permissions = await this.permissions.findByUserId(user.id!);
 
     return {
       token,
@@ -54,6 +58,7 @@ export class LoginUseCase {
         id: user.id!,
         name: user.name,
         email: user.email.toString(),
+        permissions,
       },
     };
   }

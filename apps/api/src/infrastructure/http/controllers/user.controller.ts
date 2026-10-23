@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction, Response } from "express";
 import type {
   CreateUserRequestDto,
   CreateUserResponseDto,
@@ -36,13 +36,22 @@ export class UserController {
   };
 
   create = async (
-    req: Request,
+    req: AuthedRequest,
     res: Response,
     next: NextFunction,
   ): Promise<void> => {
     try {
+      const createdByUserId = req.auth?.id;
+      if (createdByUserId === undefined) {
+        res.status(401).json({ error: "No autenticado." });
+        return;
+      }
+
       const input: CreateUserRequestDto = createSchema.parse(req.body);
-      const result = await this.createUserUseCase.execute(input);
+      const result = await this.createUserUseCase.execute({
+        ...input,
+        createdByUserId,
+      });
       const response: CreateUserResponseDto = result;
       res.status(201).json(response);
     } catch (error) {
@@ -64,8 +73,8 @@ export class UserController {
         return;
       }
 
-      if (id !== authenticatedUserId) {
-        res.status(403).json({ error: "No puedes eliminar esta cuenta." });
+      if (id === authenticatedUserId) {
+        res.status(403).json({ error: "No puedes eliminar tu propia cuenta." });
         return;
       }
 

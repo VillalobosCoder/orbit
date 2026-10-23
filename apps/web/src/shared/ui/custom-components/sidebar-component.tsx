@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, House, Orbit, User, type LucideIcon } from "lucide-react";
+import {
+  ChevronDown,
+  House,
+  Orbit,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -17,28 +23,18 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/context/auth/use-auth";
+import { useGetModules } from "@/features/modules/api/queries";
 
-interface SidebarItem {
-  title: string;
-  url: string;
-  icon: LucideIcon;
-  items?: Omit<SidebarItem, "icon" | "items">[];
-}
+const MODULE_ROUTES: Record<string, string> = {
+  home: "/",
+  users: "/users",
+};
 
-const navigationItems: SidebarItem[] = [
-  {
-    title: "Home",
-    url: "/",
-    icon: House,
-    items: [],
-  },
-  {
-    title: "Users",
-    url: "/users",
-    icon: User,
-    items: [],
-  }
-];
+const MODULE_ICONS: Record<string, LucideIcon> = {
+  House,
+  Users: UserRound,
+};
 
 function isPathActive(pathname: string, url: string) {
   if (url === "/") {
@@ -51,9 +47,32 @@ function isPathActive(pathname: string, url: string) {
 export default function SidebarComponent() {
   const { pathname } = useLocation();
   const { state } = useSidebar();
+  const { user } = useAuth();
+  const { data: modules = [] } = useGetModules();
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {},
   );
+  const accessibleModuleKeys = new Set(
+    user?.permissions
+      .filter((permission) => permission.canRead || permission.canWrite)
+      .map((permission) => permission.module) ?? [],
+  );
+  const navigationItems = modules
+    .filter(
+      (module) =>
+        module.parentKey === null &&
+        accessibleModuleKeys.has(module.key) &&
+        MODULE_ROUTES[module.key] !== undefined,
+    )
+    .map((module) => ({
+      module,
+      children: modules.filter(
+        (child) =>
+          child.parentKey === module.key &&
+          accessibleModuleKeys.has(child.key) &&
+          MODULE_ROUTES[child.key] !== undefined,
+      ),
+    }));
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -76,39 +95,40 @@ export default function SidebarComponent() {
           <SidebarGroupLabel>Navegación</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
-                const hasActiveChild =
-                  item.items?.some((child) =>
-                    isPathActive(pathname, child.url),
-                  ) ?? false;
+              {navigationItems.map(({ module, children }) => {
+                const url = MODULE_ROUTES[module.key]!;
+                const Icon = MODULE_ICONS[module.icon ?? ""] ?? House;
+                const hasActiveChild = children.some((child) =>
+                  isPathActive(pathname, MODULE_ROUTES[child.key]!),
+                );
                 const isActive =
-                  isPathActive(pathname, item.url) || hasActiveChild;
-                const isExpanded = expandedItems[item.url] ?? hasActiveChild;
+                  isPathActive(pathname, url) || hasActiveChild;
+                const isExpanded =
+                  expandedItems[module.key] ?? hasActiveChild;
 
                 return (
-                  <SidebarMenuItem key={item.url}>
+                  <SidebarMenuItem key={module.key}>
                     <SidebarMenuButton
-                      render={<NavLink to={item.url} end={item.url === "/"} />}
+                      render={<NavLink to={url} end={url === "/"} />}
                       isActive={isActive}
-                      tooltip={item.title}
+                      tooltip={module.name}
                     >
                       <Icon />
-                      <span>{item.title}</span>
+                      <span>{module.name}</span>
                     </SidebarMenuButton>
 
-                    {item.items && item.items.length > 0 && (
+                    {children.length > 0 && (
                       <>
                         {state === "expanded" && (
                           <button
                             type="button"
                             className="absolute right-1 top-1.5 flex size-6 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                            aria-label={`${isExpanded ? "Contraer" : "Expandir"} ${item.title}`}
+                            aria-label={`${isExpanded ? "Contraer" : "Expandir"} ${module.name}`}
                             aria-expanded={isExpanded}
                             onClick={() =>
                               setExpandedItems((current) => ({
                                 ...current,
-                                [item.url]: !isExpanded,
+                                [module.key]: !isExpanded,
                               }))
                             }
                           >
@@ -119,21 +139,25 @@ export default function SidebarComponent() {
                         )}
                         {state === "expanded" && isExpanded && (
                           <SidebarMenuSub>
-                            {item.items.map((child) => (
-                              <SidebarMenuSubItem key={child.url}>
-                                <SidebarMenuSubButton
-                                  render={
-                                    <NavLink
-                                      to={child.url}
-                                      end={child.url === "/"}
-                                    />
-                                  }
-                                  isActive={isPathActive(pathname, child.url)}
-                                >
-                                  <span>{child.title}</span>
-                                </SidebarMenuSubButton>
-                              </SidebarMenuSubItem>
-                            ))}
+                            {children.map((child) => {
+                              const childUrl = MODULE_ROUTES[child.key]!;
+
+                              return (
+                                <SidebarMenuSubItem key={child.key}>
+                                  <SidebarMenuSubButton
+                                    render={
+                                      <NavLink
+                                        to={childUrl}
+                                        end={childUrl === "/"}
+                                      />
+                                    }
+                                    isActive={isPathActive(pathname, childUrl)}
+                                  >
+                                    <span>{child.name}</span>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              );
+                            })}
                           </SidebarMenuSub>
                         )}
                       </>
