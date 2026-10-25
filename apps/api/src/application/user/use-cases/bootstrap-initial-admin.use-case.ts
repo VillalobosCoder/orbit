@@ -3,6 +3,7 @@ import { PasswordTooLongError } from "../../../domain/user/user.errors.js";
 import { exceedsPasswordByteLimit } from "../../../domain/user/password-policy.js";
 import type { PasswordHasher } from "../ports/password-hasher.port.js";
 import type { UserRepository } from "../ports/user-repository.port.js";
+import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
 
 export type BootstrapInitialAdminInput = {
   name: string;
@@ -15,6 +16,7 @@ export class BootstrapInitialAdminUseCase {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly hasher: PasswordHasher,
+    private readonly transaction: TransactionManager,
   ) {}
 
   async execute(input: BootstrapInitialAdminInput): Promise<void> {
@@ -30,6 +32,8 @@ export class BootstrapInitialAdminUseCase {
       password: passwordHash,
     });
 
-    await this.userRepository.bootstrapInitialAdmin(user);
+    await this.transaction.run(() =>
+      this.userRepository.bootstrapInitialAdmin(user),
+    );
   }
 }

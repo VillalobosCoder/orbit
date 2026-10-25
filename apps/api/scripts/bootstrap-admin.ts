@@ -1,6 +1,7 @@
 import * as z from "zod";
 import { BootstrapInitialAdminUseCase } from "../src/application/user/use-cases/bootstrap-initial-admin.use-case.js";
 import { createDbClient } from "../src/infrastructure/db/client.js";
+import { DbContext } from "../src/infrastructure/db/db-context.js";
 import { DBUserRepository } from "../src/infrastructure/db/repositories/db-user.repository.js";
 import { ScryptPasswordHasher } from "../src/infrastructure/security/scrypt-password-hasher.js";
 
@@ -21,10 +22,12 @@ const config = bootstrapConfigSchema.parse({
 const { db, pool } = createDbClient();
 
 try {
-  const userRepository = new DBUserRepository(db);
+  const dbContext = new DbContext(db);
+  const userRepository = new DBUserRepository(dbContext);
   const useCase = new BootstrapInitialAdminUseCase(
     userRepository,
     new ScryptPasswordHasher(),
+    dbContext,
   );
 
   await useCase.execute(config);

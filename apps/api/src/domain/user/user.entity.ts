@@ -30,9 +30,7 @@ export class User {
 
   static register(input: RegisterUserInput): User {
     return new User({
-      name: input.name.trim(),
-      lastName: input.lastName.trim(),
-      email: Email.create(input.email),
+      ...User.normalizeProfile(input),
       password: input.password,
       createdAt: new Date(),
     });
@@ -47,6 +45,26 @@ export class User {
       password: data.password,
       createdAt: data.createdAt,
     });
+  }
+
+  withProfile(input: {
+    name: string;
+    lastName: string;
+    email: string;
+  }): User {
+    return new User({ ...this.props, ...User.normalizeProfile(input) });
+  }
+
+  private static normalizeProfile(input: {
+    name: string;
+    lastName: string;
+    email: string;
+  }) {
+    return {
+      name: input.name.trim(),
+      lastName: input.lastName.trim(),
+      email: Email.create(input.email),
+    };
   }
 
   get id(): number | undefined {

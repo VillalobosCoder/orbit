@@ -1,6 +1,7 @@
 import { createControllers } from "./src/infrastructure/http/controllers/index.js";
 import { createHttpApp } from "./src/infrastructure/http/app.js";
 import { createDbClient } from "./src/infrastructure/db/client.js";
+import { DbContext } from "./src/infrastructure/db/db-context.js";
 import { DBUserRepository } from "./src/infrastructure/db/repositories/db-user.repository.js";
 import { ScryptPasswordHasher } from "./src/infrastructure/security/scrypt-password-hasher.js";
 import { JwtTokenService } from "./src/infrastructure/security/jwt-token-service.js";
@@ -11,9 +12,10 @@ const hostname = process.env.HOSTNAME!;
 const port = Number(process.env.PORT!);
 
 const { db, pool } = createDbClient();
-const userRepository = new DBUserRepository(db);
-const userPermissionRepository = new DBUserPermissionRepository(db);
-const moduleRepository = new DBModuleRepository(db);
+const dbContext = new DbContext(db);
+const userRepository = new DBUserRepository(dbContext);
+const userPermissionRepository = new DBUserPermissionRepository(dbContext);
+const moduleRepository = new DBModuleRepository(dbContext);
 const passwordHasher = new ScryptPasswordHasher();
 const tokenService = new JwtTokenService();
 const controllers = createControllers({
@@ -22,6 +24,7 @@ const controllers = createControllers({
   tokenService,
   userPermissionRepository,
   moduleRepository,
+  transaction: dbContext,
 });
 const app = createHttpApp(controllers, tokenService, userPermissionRepository);
 

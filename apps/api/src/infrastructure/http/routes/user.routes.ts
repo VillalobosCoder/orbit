@@ -23,6 +23,18 @@ export function UserRoutes(
     makePermissionMiddleware(permissions, "users", "write"),
     controller.create,
   );
+  router.get(
+    "/:id",
+    authenticate,
+    makePermissionMiddleware(permissions, "users", "read"),
+    controller.getById,
+  );
+  router.patch(
+    "/:id",
+    authenticate,
+    makePermissionMiddleware(permissions, "users", "write"),
+    controller.update,
+  );
   router.delete(
     "/:id",
     authenticate,

@@ -1,15 +1,14 @@
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { and, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import { UserRepository } from "../../../application/user/ports/user-repository.port.js";
-import type { UserPermissionAssignment } from "../../../application/user/ports/user-repository.port.js";
 import { User } from "../../../domain/user/user.entity.js";
+import { Email } from "../../../domain/user/value-objects/email.vo.js";
 import { StatusTypeKey, UserStatusKey } from "@orbit/shared";
 import {
   UserAlreadyExistsError,
   InitialAdminAlreadyExistsError,
-  InvalidUserPermissionError,
   UserNotFoundError,
 } from "../../../domain/user/user.errors.js";
+import type { DbContext } from "../db-context.js";
 import { users } from "../schema/users.js";
 import { statuses } from "../schema/statuses.js";
 import { modules } from "../schema/modules.js";
@@ -29,7 +28,11 @@ function isEmailUniqueViolation(error: unknown): boolean {
 }
 
 export class DBUserRepository implements UserRepository {
-  constructor(private readonly db: NodePgDatabase) {}
+  constructor(private readonly context: DbContext) {}
+
+  private get db() {
+    return this.context.db;
+  }
 
   private async getStatusId(statusKey: string): Promise<number> {
     const [status] = await this.db
@@ -50,61 +53,24 @@ export class DBUserRepository implements UserRepository {
     return status.id;
   }
 
-  async save(
-    user: User,
-    permissions: UserPermissionAssignment[],
-    createdByUserId: number,
-  ): Promise<void> {
+  async save(user: User, createdByUserId: number): Promise<number> {
     const data = user.toPrimitives();
     const activeStatusId = await this.getStatusId(UserStatusKey.ACTIVE);
 
     try {
-      await this.db.transaction(async (tx) => {
-        const moduleRows =
-          permissions.length === 0
-            ? []
-            : await tx
-                .select({ id: modules.id, key: modules.key })
-                .from(modules)
-                .where(
-                  inArray(
-                    modules.key,
-                    permissions.map((permission) => permission.module),
-                  ),
-                );
-        const modulesByKey = new Map(
-          moduleRows.map((module) => [module.key, module.id]),
-        );
+      const [createdUser] = await this.db
+        .insert(users)
+        .values({
+          name: data.name,
+          lastName: data.lastName,
+          email: data.email,
+          password: data.password,
+          statusId: activeStatusId,
+          createdByUserId,
+        })
+        .returning({ id: users.id });
 
-        for (const permission of permissions) {
-          if (!modulesByKey.has(permission.module)) {
-            throw new InvalidUserPermissionError(permission.module);
-          }
-        }
-
-        const [createdUser] = await tx
-          .insert(users)
-          .values({
-            name: data.name,
-            lastName: data.lastName,
-            email: data.email,
-            password: data.password,
-            statusId: activeStatusId,
-          })
-          .returning({ id: users.id });
-
-        if (permissions.length > 0) {
-          await tx.insert(userPermissions).values(
-            permissions.map((permission) => ({
-              userId: createdUser.id,
-              moduleId: modulesByKey.get(permission.module)!,
-              canRead: permission.canRead,
-              canWrite: permission.canWrite,
-              createdByUserId,
-            })),
-          );
-        }
-      });
+      return createdUser.id;
     } catch (error) {
       if (isEmailUniqueViolation(error)) {
         throw new UserAlreadyExistsError(data.email);
@@ -118,58 +84,54 @@ export class DBUserRepository implements UserRepository {
     const data = user.toPrimitives();
 
     try {
-      await this.db.transaction(async (tx) => {
-        await tx.execute(sql`SELECT pg_advisory_xact_lock(804219731)`);
+      await this.db.execute(sql`SELECT pg_advisory_xact_lock(804219731)`);
 
-        const [userCount] = await tx
-          .select({ count: sql<number>`count(*)::int` })
-          .from(users);
-        if (userCount.count > 0) {
-          throw new InitialAdminAlreadyExistsError();
-        }
+      const [userCount] = await this.db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(users);
+      if (userCount.count > 0) {
+        throw new InitialAdminAlreadyExistsError();
+      }
 
-        const [activeStatus] = await tx
-          .select({ id: statuses.id })
-          .from(statuses)
-          .where(
-            and(
-              eq(statuses.key, UserStatusKey.ACTIVE),
-              eq(statuses.statusTypeKey, StatusTypeKey.USER),
-            ),
-          )
-          .limit(1);
-        if (!activeStatus) {
-          throw new Error("No existe el estado activo de usuario.");
-        }
+      const [activeStatus] = await this.db
+        .select({ id: statuses.id })
+        .from(statuses)
+        .where(
+          and(
+            eq(statuses.key, UserStatusKey.ACTIVE),
+            eq(statuses.statusTypeKey, StatusTypeKey.USER),
+          ),
+        )
+        .limit(1);
+      if (!activeStatus) {
+        throw new Error("No existe el estado activo de usuario.");
+      }
 
-        const moduleRows = await tx
-          .select({ id: modules.id })
-          .from(modules);
-        if (moduleRows.length === 0) {
-          throw new Error("No hay módulos configurados para asignar permisos.");
-        }
+      const moduleRows = await this.db.select({ id: modules.id }).from(modules);
+      if (moduleRows.length === 0) {
+        throw new Error("No hay módulos configurados para asignar permisos.");
+      }
 
-        const [createdUser] = await tx
-          .insert(users)
-          .values({
-            name: data.name,
-            lastName: data.lastName,
-            email: data.email,
-            password: data.password,
-            statusId: activeStatus.id,
-          })
-          .returning({ id: users.id });
+      const [createdUser] = await this.db
+        .insert(users)
+        .values({
+          name: data.name,
+          lastName: data.lastName,
+          email: data.email,
+          password: data.password,
+          statusId: activeStatus.id,
+        })
+        .returning({ id: users.id });
 
-        await tx.insert(userPermissions).values(
-          moduleRows.map((module) => ({
-            userId: createdUser.id,
-            moduleId: module.id,
-            canRead: true,
-            canWrite: true,
-            createdByUserId: createdUser.id,
-          })),
-        );
-      });
+      await this.db.insert(userPermissions).values(
+        moduleRows.map((module) => ({
+          userId: createdUser.id,
+          moduleId: module.id,
+          canRead: true,
+          canWrite: true,
+          createdByUserId: createdUser.id,
+        })),
+      );
     } catch (error) {
       if (isEmailUniqueViolation(error)) {
         throw new UserAlreadyExistsError(data.email);
@@ -186,7 +148,7 @@ export class DBUserRepository implements UserRepository {
       .from(users)
       .where(
         and(
-          eq(users.email, email.trim().toLowerCase()),
+          eq(users.email, Email.create(email).toString()),
           ne(users.statusId, deletedStatusId),
         ),
       )
@@ -220,7 +182,7 @@ export class DBUserRepository implements UserRepository {
     return rows.map((row) => User.fromPersistence(row));
   }
 
-  async update(user: User): Promise<void> {
+  async update(user: User, updatedByUserId: number): Promise<void> {
     const { id, ...data } = user.toPrimitives();
     const deletedStatusId = await this.getStatusId(UserStatusKey.DELETED);
 
@@ -231,15 +193,10 @@ export class DBUserRepository implements UserRepository {
           name: data.name,
           lastName: data.lastName,
           email: data.email,
-          password: data.password,
           updatedAt: new Date(),
+          updatedByUserId,
         })
-        .where(
-          and(
-            eq(users.id, id!),
-            ne(users.statusId, deletedStatusId),
-          ),
-        )
+        .where(and(eq(users.id, id!), ne(users.statusId, deletedStatusId)))
         .returning({ id: users.id });
 
       if (!row) {

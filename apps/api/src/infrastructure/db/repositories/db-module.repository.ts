@@ -1,13 +1,17 @@
 import { alias } from "drizzle-orm/pg-core";
 import { asc, eq } from "drizzle-orm";
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { ModuleRepository } from "../../../application/modules/ports/module-repository.port.js";
+import type { DbContext } from "../db-context.js";
 import { modules } from "../schema/modules.js";
 
 const parentModules = alias(modules, "parent_modules");
 
 export class DBModuleRepository implements ModuleRepository {
-  constructor(private readonly db: NodePgDatabase) {}
+  constructor(private readonly context: DbContext) {}
+
+  private get db() {
+    return this.context.db;
+  }
 
   async findAll() {
     const rows = await this.db

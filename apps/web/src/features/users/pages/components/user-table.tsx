@@ -4,7 +4,11 @@ import { useAuth } from "@/context/auth/use-auth";
 import { createColumns } from "../utils/users-table-columns";
 import type { UserDto } from "@orbit/shared";
 
-export default function UserTable() {
+export default function UserTable({
+  onEdit,
+}: {
+  onEdit: (userId: number) => void;
+}) {
   const { data, isLoading, error } = useGetUsers();
   const { user } = useAuth();
   const deleteUser = useDeleteUser();
@@ -19,6 +23,7 @@ export default function UserTable() {
   const columns = createColumns({
     currentUserId: user?.id,
     deletingUserId: deleteUser.isPending ? deleteUser.variables : undefined,
+    onEdit: (targetUser) => onEdit(targetUser.id),
     onDelete,
   });
 

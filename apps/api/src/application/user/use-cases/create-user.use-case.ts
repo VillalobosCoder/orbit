@@ -6,16 +6,12 @@ import {
 } from "../../../domain/user/user.errors.js";
 import { exceedsPasswordByteLimit } from "../../../domain/user/password-policy.js";
 import { PasswordHasher } from "../ports/password-hasher.port.js";
-import {
-  UserRepository,
-  type UserPermissionAssignment,
-} from "../ports/user-repository.port.js";
+import type { SaveUserRequestDto } from "@orbit/shared";
+import { UserRepository } from "../ports/user-repository.port.js";
+import type { UserPermissionRepository } from "../../auth/ports/user-permission-repository.port.js";
+import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
 
-export type CreateUserInput = {
-  name: string;
-  lastName: string;
-  email: string;
-  permissions: UserPermissionAssignment[];
+export type CreateUserInput = SaveUserRequestDto & {
   createdByUserId: number;
 };
 
@@ -29,6 +25,8 @@ export class CreateUserUseCase {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly hasher: PasswordHasher,
+    private readonly permissions: UserPermissionRepository,
+    private readonly transaction: TransactionManager,
   ) {}
 
   async execute(input: CreateUserInput): Promise<CreateUserOutput> {
@@ -55,11 +53,17 @@ export class CreateUserUseCase {
       password: passwordHasher,
     });
 
-    await this.userRepository.save(
-      user,
-      input.permissions,
-      input.createdByUserId,
-    );
+    await this.transaction.run(async () => {
+      const userId = await this.userRepository.save(
+        user,
+        input.createdByUserId,
+      );
+      await this.permissions.replaceForUser(
+        userId,
+        input.permissions ?? [],
+        input.createdByUserId,
+      );
+    });
 
     return { temporaryPassword: password };
   }

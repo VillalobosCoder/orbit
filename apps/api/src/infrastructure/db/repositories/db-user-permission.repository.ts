@@ -1,11 +1,17 @@
-import { and, eq } from "drizzle-orm";
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { and, eq, inArray } from "drizzle-orm";
+import type { UserPermissionDto } from "@orbit/shared";
 import type { UserPermissionRepository } from "../../../application/auth/ports/user-permission-repository.port.js";
+import { InvalidUserPermissionError } from "../../../domain/user/user.errors.js";
+import type { DbContext } from "../db-context.js";
 import { modules } from "../schema/modules.js";
 import { userPermissions } from "../schema/user-permissions.js";
 
 export class DBUserPermissionRepository implements UserPermissionRepository {
-  constructor(private readonly db: NodePgDatabase) {}
+  constructor(private readonly context: DbContext) {}
+
+  private get db() {
+    return this.context.db;
+  }
 
   async findByUserId(userId: number) {
     const rows = await this.db
@@ -20,6 +26,51 @@ export class DBUserPermissionRepository implements UserPermissionRepository {
       .orderBy(modules.sortOrder, modules.id);
 
     return rows;
+  }
+
+  async replaceForUser(
+    userId: number,
+    permissions: UserPermissionDto[],
+    actorUserId: number,
+  ): Promise<void> {
+    const moduleRows =
+      permissions.length === 0
+        ? []
+        : await this.db
+            .select({ id: modules.id, key: modules.key })
+            .from(modules)
+            .where(
+              inArray(
+                modules.key,
+                permissions.map((permission) => permission.module),
+              ),
+            );
+    const modulesByKey = new Map(
+      moduleRows.map((module) => [module.key, module.id]),
+    );
+
+    for (const permission of permissions) {
+      if (!modulesByKey.has(permission.module)) {
+        throw new InvalidUserPermissionError(permission.module);
+      }
+    }
+
+    await this.db
+      .delete(userPermissions)
+      .where(eq(userPermissions.userId, userId));
+
+    if (permissions.length > 0) {
+      await this.db.insert(userPermissions).values(
+        permissions.map((permission) => ({
+          userId,
+          moduleId: modulesByKey.get(permission.module)!,
+          canRead: permission.canRead,
+          canWrite: permission.canWrite,
+          createdByUserId: actorUserId,
+          updatedByUserId: actorUserId,
+        })),
+      );
+    }
   }
 
   async hasPermission(
