@@ -9,6 +9,7 @@ import {
   UserNotFoundError,
 } from "../../../domain/user/user.errors.js";
 import type { DbContext } from "../db-context.js";
+import { findStatusId } from "./find-status-id.js";
 import { users } from "../schema/users.js";
 import { statuses } from "../schema/statuses.js";
 import { modules } from "../schema/modules.js";
@@ -34,23 +35,8 @@ export class DBUserRepository implements UserRepository {
     return this.context.db;
   }
 
-  private async getStatusId(statusKey: string): Promise<number> {
-    const [status] = await this.db
-      .select({ id: statuses.id })
-      .from(statuses)
-      .where(
-        and(
-          eq(statuses.key, statusKey),
-          eq(statuses.statusTypeKey, StatusTypeKey.USER),
-        ),
-      )
-      .limit(1);
-
-    if (!status) {
-      throw new Error(`No existe el estado de usuario "${statusKey}".`);
-    }
-
-    return status.id;
+  private getStatusId(statusKey: string): Promise<number> {
+    return findStatusId(this.db, StatusTypeKey.USER, statusKey);
   }
 
   async save(user: User, createdByUserId: number): Promise<number> {

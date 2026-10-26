@@ -27,6 +27,7 @@ export const modules = pgTable(
 export const INITIAL_MODULES = [
   { key: "home", name: "Home", icon: "House", sortOrder: 0 },
   { key: "users", name: "Users", icon: "Users", sortOrder: 10 },
+  { key: "teams", name: "Teams", icon: "UsersRound", sortOrder: 20 },
 ] as const;
 
 export type ModuleRow = typeof modules.$inferSelect;

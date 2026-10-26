@@ -14,6 +14,13 @@ import { GetUserListUseCase } from "../../../application/user/use-cases/get-user
 import { GetUserUseCase } from "../../../application/user/use-cases/get-user.use-case.js";
 import { UpdateUserUseCase } from "../../../application/user/use-cases/update-user.use-case.js";
 import { ModuleController } from "./module.controller.js";
+import type { TeamRepository } from "../../../application/team/ports/team-repository.port.js";
+import { CreateTeamUseCase } from "../../../application/team/use-cases/create-team.use-case.js";
+import { DeleteTeamUseCase } from "../../../application/team/use-cases/delete-team.use-case.js";
+import { GetTeamListUseCase } from "../../../application/team/use-cases/get-team-list.use-case.js";
+import { GetTeamUseCase } from "../../../application/team/use-cases/get-team.use-case.js";
+import { UpdateTeamUseCase } from "../../../application/team/use-cases/update-team.use-case.js";
+import { TeamController } from "./team.controller.js";
 
 export interface ControllerDependencies {
   userRepository: UserRepository;
@@ -22,6 +29,7 @@ export interface ControllerDependencies {
   userPermissionRepository: UserPermissionRepository;
   moduleRepository: ModuleRepository;
   transaction: TransactionManager;
+  teamRepository: TeamRepository;
 }
 
 export function createControllers(dependencies: ControllerDependencies) {
@@ -63,5 +71,12 @@ export function createControllers(dependencies: ControllerDependencies) {
     ),
     auth: new AuthController(login, getCurrentUser),
     modules: new ModuleController(dependencies.moduleRepository),
+    teams: new TeamController(
+      new GetTeamListUseCase(dependencies.teamRepository),
+      new GetTeamUseCase(dependencies.teamRepository),
+      new CreateTeamUseCase(dependencies.teamRepository),
+      new UpdateTeamUseCase(dependencies.teamRepository),
+      new DeleteTeamUseCase(dependencies.teamRepository),
+    ),
   };
 }

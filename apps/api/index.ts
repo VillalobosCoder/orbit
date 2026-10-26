@@ -6,6 +6,7 @@ import { DBUserRepository } from "./src/infrastructure/db/repositories/db-user.r
 import { ScryptPasswordHasher } from "./src/infrastructure/security/scrypt-password-hasher.js";
 import { JwtTokenService } from "./src/infrastructure/security/jwt-token-service.js";
 import { DBUserPermissionRepository } from "./src/infrastructure/db/repositories/db-user-permission.repository.js";
+import { DBTeamRepository } from "./src/infrastructure/db/repositories/db-team.repository.js";
 import { DBModuleRepository } from "./src/infrastructure/db/repositories/db-module.repository.js";
 
 const hostname = process.env.HOSTNAME!;
@@ -16,6 +17,7 @@ const dbContext = new DbContext(db);
 const userRepository = new DBUserRepository(dbContext);
 const userPermissionRepository = new DBUserPermissionRepository(dbContext);
 const moduleRepository = new DBModuleRepository(dbContext);
+const teamRepository = new DBTeamRepository(dbContext);
 const passwordHasher = new ScryptPasswordHasher();
 const tokenService = new JwtTokenService();
 const controllers = createControllers({
@@ -25,6 +27,7 @@ const controllers = createControllers({
   userPermissionRepository,
   moduleRepository,
   transaction: dbContext,
+  teamRepository,
 });
 const app = createHttpApp(controllers, tokenService, userPermissionRepository);
 
