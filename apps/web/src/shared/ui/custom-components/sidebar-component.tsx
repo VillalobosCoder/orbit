@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   ChevronDown,
+  FolderKanban,
   House,
   Orbit,
   UserRound,
@@ -25,15 +26,20 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/auth/use-auth";
 import { useGetModules } from "@/features/modules/api/queries";
+import { useGetProjects } from "@/features/projects/api/queries";
 
 const MODULE_ROUTES: Record<string, string> = {
   home: "/",
   users: "/users",
+  projects: "/projects",
 };
+
+type NavChild = { key: string; name: string; url: string };
 
 const MODULE_ICONS: Record<string, LucideIcon> = {
   House,
   Users: UserRound,
+  FolderKanban,
 };
 
 function isPathActive(pathname: string, url: string) {
@@ -57,6 +63,32 @@ export default function SidebarComponent() {
       .filter((permission) => permission.canRead || permission.canWrite)
       .map((permission) => permission.module) ?? [],
   );
+  const { data: projects = [] } = useGetProjects({
+    enabled: accessibleModuleKeys.has("projects"),
+  });
+  function getChildren(moduleKey: string): NavChild[] {
+    if (moduleKey === "projects") {
+      return projects.map((project) => ({
+        key: `project-${project.id}`,
+        name: `${project.projectKey} · ${project.name}`,
+        url: `/projects/${project.id}`,
+      }));
+    }
+
+    return modules
+      .filter(
+        (child) =>
+          child.parentKey === moduleKey &&
+          accessibleModuleKeys.has(child.key) &&
+          MODULE_ROUTES[child.key] !== undefined,
+      )
+      .map((child) => ({
+        key: child.key,
+        name: child.name,
+        url: MODULE_ROUTES[child.key]!,
+      }));
+  }
+
   const navigationItems = modules
     .filter(
       (module) =>
@@ -66,12 +98,7 @@ export default function SidebarComponent() {
     )
     .map((module) => ({
       module,
-      children: modules.filter(
-        (child) =>
-          child.parentKey === module.key &&
-          accessibleModuleKeys.has(child.key) &&
-          MODULE_ROUTES[child.key] !== undefined,
-      ),
+      children: getChildren(module.key),
     }));
 
   return (
@@ -99,7 +126,7 @@ export default function SidebarComponent() {
                 const url = MODULE_ROUTES[module.key]!;
                 const Icon = MODULE_ICONS[module.icon ?? ""] ?? House;
                 const hasActiveChild = children.some((child) =>
-                  isPathActive(pathname, MODULE_ROUTES[child.key]!),
+                  isPathActive(pathname, child.url),
                 );
                 const isActive =
                   isPathActive(pathname, url) || hasActiveChild;
@@ -139,25 +166,21 @@ export default function SidebarComponent() {
                         )}
                         {state === "expanded" && isExpanded && (
                           <SidebarMenuSub>
-                            {children.map((child) => {
-                              const childUrl = MODULE_ROUTES[child.key]!;
-
-                              return (
-                                <SidebarMenuSubItem key={child.key}>
-                                  <SidebarMenuSubButton
-                                    render={
-                                      <NavLink
-                                        to={childUrl}
-                                        end={childUrl === "/"}
-                                      />
-                                    }
-                                    isActive={isPathActive(pathname, childUrl)}
-                                  >
-                                    <span>{child.name}</span>
-                                  </SidebarMenuSubButton>
-                                </SidebarMenuSubItem>
-                              );
-                            })}
+                            {children.map((child) => (
+                              <SidebarMenuSubItem key={child.key}>
+                                <SidebarMenuSubButton
+                                  render={
+                                    <NavLink
+                                      to={child.url}
+                                      end={child.url === "/"}
+                                    />
+                                  }
+                                  isActive={isPathActive(pathname, child.url)}
+                                >
+                                  <span>{child.name}</span>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
                           </SidebarMenuSub>
                         )}
                       </>

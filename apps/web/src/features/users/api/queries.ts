@@ -1,4 +1,9 @@
-import { handleMutationError, HttpMethod, injectQuery } from "@/api/config";
+import {
+  handleMutationError,
+  HttpMethod,
+  injectQuery,
+  requireData,
+} from "@/api/config";
 import { queryClient } from "@/api/tanstack-query-config";
 import { USERS } from "@/api/uris";
 import {
@@ -14,7 +19,10 @@ export function useGetUsers() {
   return useQuery({
     queryKey: [USERS],
     queryFn: () =>
-      injectQuery([USERS], { method: HttpMethod.GET }) as Promise<UserDto[]>,
+      requireData(
+        injectQuery<UserDto[]>([USERS], { method: HttpMethod.GET }),
+        "La API no devolvió los usuarios.",
+      ),
   });
 }
 
@@ -22,17 +30,13 @@ export function useGetUser(id: number | null) {
   return useQuery({
     queryKey: [USERS, id],
     enabled: id !== null,
-    queryFn: async () => {
-      const user = await injectQuery<UserDetailDto>([USERS, `/${id}`], {
-        method: HttpMethod.GET,
-      });
-
-      if (!user) {
-        throw new Error("La API no devolvió el usuario.");
-      }
-
-      return user;
-    },
+    queryFn: () =>
+      requireData(
+        injectQuery<UserDetailDto>([USERS, `/${id}`], {
+          method: HttpMethod.GET,
+        }),
+        "La API no devolvió el usuario.",
+      ),
   });
 }
 

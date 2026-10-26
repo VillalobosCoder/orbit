@@ -117,6 +117,20 @@ export async function injectQuery<T = unknown>(
 }
 
 
+/** Para consultas GET: una respuesta vacía se trata como error, no como `null`. */
+export async function requireData<T>(
+  request: Promise<T | null>,
+  message: string,
+): Promise<T> {
+  const data = await request;
+
+  if (!data) {
+    throw new Error(message);
+  }
+
+  return data;
+}
+
 export function handleMutationError(error: unknown) {
   const apiError = error as ApiError;
   if (apiError.message) {
