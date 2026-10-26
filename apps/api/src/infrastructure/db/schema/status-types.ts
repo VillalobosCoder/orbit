@@ -11,7 +11,6 @@ export const statusTypes = pgTable("status_types", {
 
 export const INITIAL_STATUS_TYPES = [
   { key: StatusTypeKey.USER, name: "User" },
-  { key: StatusTypeKey.TEAM, name: "Team" },
   { key: StatusTypeKey.PROJECT, name: "Project" },
   { key: StatusTypeKey.ISSUE, name: "Issue" },
 ] as const;

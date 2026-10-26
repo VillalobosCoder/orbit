@@ -1,14 +1,12 @@
 import {
   AnyPgColumn,
   integer,
-  foreignKey,
   pgTable,
   unique,
   varchar,
 } from "drizzle-orm/pg-core";
 import { auditColumns } from "./audit-columns.js";
 import { statuses } from "./statuses.js";
-import { teams } from "./teams.js";
 import { users } from "./users.js";
 
 export const projects = pgTable(
@@ -21,7 +19,6 @@ export const projects = pgTable(
     statusId: integer("status_id")
       .notNull()
       .references(() => statuses.id),
-    teamId: integer("team_id"),
     projectKey: varchar("project_key", { length: 10 }).notNull(),
     name: varchar({ length: 100 }).notNull(),
     description: varchar({ length: 1000 }),
@@ -33,11 +30,6 @@ export const projects = pgTable(
       table.ownerUserId,
       table.projectKey,
     ),
-    foreignKey({
-      name: "projects_owner_team_fk",
-      columns: [table.ownerUserId, table.teamId],
-      foreignColumns: [teams.ownerUserId, teams.id],
-    }),
   ],
 );
 

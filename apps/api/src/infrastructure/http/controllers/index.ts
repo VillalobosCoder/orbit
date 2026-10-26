@@ -14,13 +14,18 @@ import { GetUserListUseCase } from "../../../application/user/use-cases/get-user
 import { GetUserUseCase } from "../../../application/user/use-cases/get-user.use-case.js";
 import { UpdateUserUseCase } from "../../../application/user/use-cases/update-user.use-case.js";
 import { ModuleController } from "./module.controller.js";
-import type { TeamRepository } from "../../../application/team/ports/team-repository.port.js";
-import { CreateTeamUseCase } from "../../../application/team/use-cases/create-team.use-case.js";
-import { DeleteTeamUseCase } from "../../../application/team/use-cases/delete-team.use-case.js";
-import { GetTeamListUseCase } from "../../../application/team/use-cases/get-team-list.use-case.js";
-import { GetTeamUseCase } from "../../../application/team/use-cases/get-team.use-case.js";
-import { UpdateTeamUseCase } from "../../../application/team/use-cases/update-team.use-case.js";
-import { TeamController } from "./team.controller.js";
+import type { ProjectMemberRepository } from "../../../application/project/ports/project-member-repository.port.js";
+import type { ProjectRepository } from "../../../application/project/ports/project-repository.port.js";
+import { AddProjectMemberUseCase } from "../../../application/project/use-cases/add-project-member.use-case.js";
+import { CreateProjectUseCase } from "../../../application/project/use-cases/create-project.use-case.js";
+import { DeleteProjectUseCase } from "../../../application/project/use-cases/delete-project.use-case.js";
+import { GetAvailableUsersUseCase } from "../../../application/project/use-cases/get-available-users.use-case.js";
+import { GetProjectListUseCase } from "../../../application/project/use-cases/get-project-list.use-case.js";
+import { GetProjectMembersUseCase } from "../../../application/project/use-cases/get-project-members.use-case.js";
+import { GetProjectUseCase } from "../../../application/project/use-cases/get-project.use-case.js";
+import { RemoveProjectMemberUseCase } from "../../../application/project/use-cases/remove-project-member.use-case.js";
+import { UpdateProjectUseCase } from "../../../application/project/use-cases/update-project.use-case.js";
+import { ProjectController } from "./project.controller.js";
 
 export interface ControllerDependencies {
   userRepository: UserRepository;
@@ -29,7 +34,8 @@ export interface ControllerDependencies {
   userPermissionRepository: UserPermissionRepository;
   moduleRepository: ModuleRepository;
   transaction: TransactionManager;
-  teamRepository: TeamRepository;
+  projectRepository: ProjectRepository;
+  projectMemberRepository: ProjectMemberRepository;
 }
 
 export function createControllers(dependencies: ControllerDependencies) {
@@ -71,12 +77,33 @@ export function createControllers(dependencies: ControllerDependencies) {
     ),
     auth: new AuthController(login, getCurrentUser),
     modules: new ModuleController(dependencies.moduleRepository),
-    teams: new TeamController(
-      new GetTeamListUseCase(dependencies.teamRepository),
-      new GetTeamUseCase(dependencies.teamRepository),
-      new CreateTeamUseCase(dependencies.teamRepository),
-      new UpdateTeamUseCase(dependencies.teamRepository),
-      new DeleteTeamUseCase(dependencies.teamRepository),
+    projects: new ProjectController(
+      new GetProjectListUseCase(dependencies.projectRepository),
+      new GetProjectUseCase(dependencies.projectRepository),
+      new CreateProjectUseCase(
+        dependencies.projectRepository,
+        dependencies.projectMemberRepository,
+        dependencies.transaction,
+      ),
+      new UpdateProjectUseCase(dependencies.projectRepository),
+      new DeleteProjectUseCase(dependencies.projectRepository),
+      new GetProjectMembersUseCase(
+        dependencies.projectRepository,
+        dependencies.projectMemberRepository,
+      ),
+      new GetAvailableUsersUseCase(
+        dependencies.projectRepository,
+        dependencies.projectMemberRepository,
+      ),
+      new AddProjectMemberUseCase(
+        dependencies.projectRepository,
+        dependencies.projectMemberRepository,
+        dependencies.userRepository,
+      ),
+      new RemoveProjectMemberUseCase(
+        dependencies.projectRepository,
+        dependencies.projectMemberRepository,
+      ),
     ),
   };
 }

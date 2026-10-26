@@ -9,7 +9,6 @@ import {
   IssueStatusKey,
   ProjectStatusKey,
   StatusTypeKey,
-  TeamStatusKey,
   UserStatusKey,
 } from "@orbit/shared";
 import { auditColumns } from "./audit-columns.js";
@@ -51,21 +50,6 @@ export const INITIAL_STATUSES = [
   {
     key: UserStatusKey.DELETED,
     statusTypeKey: StatusTypeKey.USER,
-    name: "Deleted",
-  },
-  {
-    key: TeamStatusKey.ACTIVE,
-    statusTypeKey: StatusTypeKey.TEAM,
-    name: "Active",
-  },
-  {
-    key: TeamStatusKey.ARCHIVED,
-    statusTypeKey: StatusTypeKey.TEAM,
-    name: "Archived",
-  },
-  {
-    key: TeamStatusKey.DELETED,
-    statusTypeKey: StatusTypeKey.TEAM,
     name: "Deleted",
   },
   {

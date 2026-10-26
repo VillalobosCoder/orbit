@@ -1,6 +1,5 @@
 export const StatusTypeKey = {
   USER: "USER",
-  TEAM: "TEAM",
   PROJECT: "PROJECT",
   ISSUE: "ISSUE",
 } as const;
@@ -15,14 +14,6 @@ export const UserStatusKey = {
 } as const;
 export type UserStatusKey =
   (typeof UserStatusKey)[keyof typeof UserStatusKey];
-
-export const TeamStatusKey = {
-  ACTIVE: "TEAM_ACTIVE",
-  ARCHIVED: "TEAM_ARCHIVED",
-  DELETED: "TEAM_DELETED",
-} as const;
-export type TeamStatusKey =
-  (typeof TeamStatusKey)[keyof typeof TeamStatusKey];
 
 export const ProjectStatusKey = {
   ACTIVE: "PROJECT_ACTIVE",
