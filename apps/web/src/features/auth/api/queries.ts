@@ -2,7 +2,7 @@ import { handleMutationError, HttpMethod, injectQuery } from "@/api/config";
 import { AUTH, LOGIN, LOGOUT } from "@/api/uris";
 import { useAuth } from "@/context/auth/use-auth";
 import type { LoginRequestDto, LoginResponseDto } from "@orbit/shared";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function useLogin() {
   const { login } = useAuth();
@@ -27,10 +27,16 @@ export function useLogin() {
 
 export function useLogout() {
   const { logout } = useAuth();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: () =>
       injectQuery<null>([AUTH, LOGOUT], { method: HttpMethod.POST }),
-    onSuccess: logout,
+    onSuccess: () => {
+      queryClient.removeQueries({
+        predicate: (query) => query.queryKey[0] !== AUTH,
+      });
+      logout();
+    },
   });
 }

@@ -4,6 +4,7 @@ import {
   ChevronDown,
   FolderKanban,
   House,
+  LogOut,
   Orbit,
   UserRound,
   type LucideIcon,
@@ -12,6 +13,7 @@ import {
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -25,6 +27,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/auth/use-auth";
+import { useLogout } from "@/features/auth/api/queries";
 import { useGetModules } from "@/features/modules/api/queries";
 import { useGetProjects } from "@/features/projects/api/queries";
 
@@ -54,6 +57,7 @@ export default function SidebarComponent() {
   const { pathname } = useLocation();
   const { state } = useSidebar();
   const { user } = useAuth();
+  const logoutMutation = useLogout();
   const { data: modules = [] } = useGetModules();
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {},
@@ -192,6 +196,22 @@ export default function SidebarComponent() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Cerrar sesión"
+              disabled={logoutMutation.isPending}
+              onClick={() => logoutMutation.mutate()}
+            >
+              <LogOut />
+              <span>
+                {logoutMutation.isPending ? "Cerrando sesión..." : "Cerrar sesión"}
+              </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }
