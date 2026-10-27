@@ -1,5 +1,5 @@
 import { useState, type DragEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { usePermission } from "@/context/auth/use-permission";
@@ -10,6 +10,7 @@ import {
   useGetIssueOptions,
   useMoveIssue,
 } from "../../api/queries";
+import BoardColumnsDialog from "./board-columns-dialog";
 import IssueFormDialog from "./issue-form-dialog";
 
 type DropTarget = { columnId: number; beforeIssueId: number | null };
@@ -22,6 +23,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
   const moveIssue = useMoveIssue();
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
+  const [isEditingColumns, setIsEditingColumns] = useState(false);
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
 
@@ -29,7 +31,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
   if (board.isError) return <p role="alert">{board.error.message}</p>;
   if (!board.data) return null;
 
-  const { columns, issues } = board.data;
+  const { columns, issues, activeSprint } = board.data;
   const issuesIn = (columnId: number, withoutDragged = false) =>
     issues
       .filter(
@@ -103,6 +105,21 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
   return (
     <section>
       <h2>Tablero</h2>
+      <p className="text-sm text-muted-foreground">
+        {activeSprint
+          ? `Sprint activo: ${activeSprint.name}${activeSprint.endDate ? ` · hasta ${activeSprint.endDate}` : ""}`
+          : "Sin sprint activo: se muestran los issues del backlog."}{" "}
+        <NavLink to={`/projects/${project.id}/planning`}>Planificación</NavLink>
+      </p>
+      {canWrite && (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setIsEditingColumns(true)}
+        >
+          Columnas
+        </Button>
+      )}
       {canWrite && (
         <Button
           type="button"
@@ -174,8 +191,17 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
           options={options.data}
           columns={columns}
           issues={issues}
+          sprints={activeSprint ? [activeSprint] : []}
+          defaultSprintId={activeSprint?.id ?? null}
           members={members.data}
           onClose={() => setIsCreating(false)}
+        />
+      )}
+      {isEditingColumns && (
+        <BoardColumnsDialog
+          project={project}
+          columns={columns}
+          onClose={() => setIsEditingColumns(false)}
         />
       )}
     </section>

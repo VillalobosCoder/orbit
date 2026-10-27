@@ -16,12 +16,17 @@ import {
   useGetProject,
   useGetProjectMembers,
 } from "@/features/projects/api/queries";
-import { BoardColumnCategory, type IssueDto } from "@orbit/shared";
+import {
+  BoardColumnCategory,
+  SprintStatus,
+  type IssueDto,
+} from "@orbit/shared";
 import {
   useDeleteIssue,
   useGetBoard,
   useGetIssueOptions,
 } from "../../api/queries";
+import { useGetPlanning } from "@/features/sprints/api/queries";
 import IssueFormDialog from "./issue-form-dialog";
 
 type DialogState = {
@@ -40,6 +45,7 @@ export default function IssueDetailDialog() {
   const board = useGetBoard(projectId);
   const options = useGetIssueOptions(projectId);
   const members = useGetProjectMembers(projectId);
+  const planning = useGetPlanning(projectId);
   const deleteIssue = useDeleteIssue();
   const [dialog, setDialog] = useState<DialogState>(null);
   const close = () => navigate(`/projects/${projectId}`);
@@ -83,6 +89,8 @@ export default function IssueDetailDialog() {
   }
 
   const column = columns.find((item) => item.id === issue.columnId);
+  const sprints = planning.data?.sprints ?? [];
+  const sprint = sprints.find((item) => item.id === issue.sprintId);
   const parent = issues.find((item) => item.id === issue.parentId);
   const subtasks = issues
     .filter((item) => item.parentId === issue.id)
@@ -169,6 +177,8 @@ export default function IssueDetailDialog() {
       <dl>
         <dt>Estado</dt>
         <dd>{column?.name ?? "—"}</dd>
+        <dt>Sprint</dt>
+        <dd>{sprint?.name ?? "Backlog"}</dd>
         <dt>Tipo</dt>
         <dd>{typeName(issue) ?? "—"}</dd>
         <dt>Prioridad</dt>
@@ -245,6 +255,9 @@ export default function IssueDetailDialog() {
           options={options.data}
           columns={columns}
           issues={issues}
+          sprints={sprints.filter(
+            (item) => item.status !== SprintStatus.CLOSED,
+          )}
           members={members.data}
           issue={dialog.issue}
           defaults={dialog.defaults}

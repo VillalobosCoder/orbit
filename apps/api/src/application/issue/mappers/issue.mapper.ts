@@ -13,6 +13,7 @@ export function toIssueDto(issue: Issue, projectKey: string): IssueDto {
     priorityId: issue.priorityId,
     difficultyId: issue.difficultyId,
     parentId: issue.parentId,
+    sprintId: issue.sprintId,
     columnId: issue.columnId,
     boardPosition: issue.boardPosition,
     reporterId: issue.reporterId,

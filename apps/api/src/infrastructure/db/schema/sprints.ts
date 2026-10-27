@@ -4,8 +4,10 @@ import {
   integer,
   pgTable,
   unique,
+  uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { auditColumns } from "./audit-columns.js";
 import { projects } from "./projects.js";
 import { users } from "./users.js";
@@ -27,6 +29,10 @@ export const sprints = pgTable(
   (table) => [
     unique("sprints_project_id_id_unique").on(table.projectId, table.id),
     unique("sprints_project_id_name_unique").on(table.projectId, table.name),
+    // A lo sumo un sprint activo por proyecto, incluso con peticiones simultáneas.
+    uniqueIndex("sprints_one_active_per_project")
+      .on(table.projectId)
+      .where(sql`${table.status} = 'active'`),
   ],
 );
 

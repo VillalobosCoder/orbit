@@ -6,6 +6,7 @@ import ModuleLayout from "@/shared/ui/layouts/module-loyout";
 import NotFoundPage from "./not-found";
 import HomePage from "@/features/home/pages/home";
 import UsersPage from "@/features/users/pages/users";
+import PlanningPage from "@/features/sprints/pages/planning";
 import IssueDetailDialog from "@/features/issues/pages/components/issue-detail-dialog";
 import ProjectDetailPage from "@/features/projects/pages/project-detail";
 import { PermissionGuard } from "./permission-guard";
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
             element: <PermissionGuard module="projects" />,
             children: [
               { index: true, element: <Navigate to="/" replace /> },
+              { path: ":id/planning", element: <PlanningPage /> },
               {
                 path: ":id",
                 element: <ProjectDetailPage />,

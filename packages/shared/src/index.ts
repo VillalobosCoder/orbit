@@ -2,11 +2,14 @@ export * from "./dto/api/api.dto.js"
 export * from "./enums/status.enum.js";
 export * from "./enums/board-column.enum.js";
 export * from "./enums/issue-type.enum.js";
+export * from "./enums/sprint.enum.js";
 export * from "./dto/auth/auth.dto.js";
 export * from "./dto/users/users.dto.js";
 export * from "./dto/modules/modules.dto.js";
 export * from "./dto/projects/projects.dto.js";
 export * from "./dto/issues/issues.dto.js";
 export * from "./dto/comments/comments.dto.js";
+export * from "./dto/sprints/sprints.dto.js";
+export * from "./dto/board/board-columns.dto.js";
 export * from "./messages/http-messages.js";
 export * from "./utils/board-position.js";

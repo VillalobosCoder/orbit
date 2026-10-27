@@ -1,19 +1,23 @@
-import { and, asc, eq, inArray, max, ne } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, max, ne } from "drizzle-orm";
 import {
+  BoardColumnCategory,
   IssueStatusKey,
   StatusTypeKey,
   type IssueRequestDto,
-  type ProjectIdRequestDto,
 } from "@orbit/shared";
 import type {
   DeleteIssueCommand,
+  FindIssuesQuery,
   FindLastBoardPositionQuery,
   IssueRepository,
+  ReleaseFromSprintCommand,
   ReplaceAssigneesCommand,
+  SetChildrenSprintCommand,
 } from "../../../application/issue/ports/issue-repository.port.js";
 import { Issue } from "../../../domain/issue/issue.entity.js";
 import { IssueNotFoundError } from "../../../domain/issue/issue.errors.js";
 import type { DbContext } from "../db-context.js";
+import { boardColumns } from "../schema/board-columns.js";
 import { issueAssignees } from "../schema/issue-assignees.js";
 import { issues } from "../schema/issues.js";
 import { findStatusId } from "./find-status-id.js";
@@ -63,6 +67,7 @@ export class DBIssueRepository implements IssueRepository {
       priorityId: row.priorityId,
       difficultyId: row.difficultyId,
       parentId: row.parentId,
+      sprintId: row.sprintId,
       columnId: row.columnId,
       reporterId: row.reporterId,
       title: row.title,
@@ -86,6 +91,7 @@ export class DBIssueRepository implements IssueRepository {
         priorityId: issue.priorityId,
         difficultyId: issue.difficultyId,
         parentId: issue.parentId,
+        sprintId: issue.sprintId,
         reporterId: issue.reporterId,
         title: issue.title,
         description: issue.description,
@@ -98,12 +104,22 @@ export class DBIssueRepository implements IssueRepository {
     return created.id;
   }
 
-  async findAllByProject({ id }: ProjectIdRequestDto): Promise<Issue[]> {
+  async findAllByProject({ id, sprintId }: FindIssuesQuery): Promise<Issue[]> {
     const deletedStatusId = await this.getStatusId(IssueStatusKey.DELETED);
     const rows = await this.db
       .select()
       .from(issues)
-      .where(and(eq(issues.projectId, id), ne(issues.statusId, deletedStatusId)))
+      .where(
+        and(
+          eq(issues.projectId, id),
+          ne(issues.statusId, deletedStatusId),
+          sprintId === undefined
+            ? undefined
+            : sprintId === null
+              ? isNull(issues.sprintId)
+              : eq(issues.sprintId, sprintId),
+        ),
+      )
       .orderBy(asc(issues.columnId), asc(issues.boardPosition), asc(issues.id));
     const assignees = await this.findAssigneeIds(rows.map((row) => row.id));
 
@@ -179,6 +195,7 @@ export class DBIssueRepository implements IssueRepository {
         priorityId: issue.priorityId,
         difficultyId: issue.difficultyId,
         parentId: issue.parentId,
+        sprintId: issue.sprintId,
         title: issue.title,
         description: issue.description,
         boardPosition: issue.boardPosition,
@@ -256,6 +273,51 @@ export class DBIssueRepository implements IssueRepository {
           eq(issues.projectId, id),
           eq(issues.parentId, issueId),
           ne(issues.statusId, deletedStatusId),
+        ),
+      );
+  }
+
+  async setChildrenSprint({
+    id,
+    issueId,
+    sprintId,
+    actorUserId,
+  }: SetChildrenSprintCommand): Promise<void> {
+    await this.db
+      .update(issues)
+      .set({ sprintId, updatedAt: new Date(), updatedByUserId: actorUserId })
+      .where(and(eq(issues.projectId, id), eq(issues.parentId, issueId)));
+  }
+
+  async releaseFromSprint({
+    id,
+    sprintId,
+    actorUserId,
+    onlyUnfinished,
+  }: ReleaseFromSprintCommand): Promise<void> {
+    const unfinishedColumnIds = this.db
+      .select({ id: boardColumns.id })
+      .from(boardColumns)
+      .where(
+        and(
+          eq(boardColumns.projectId, id),
+          ne(boardColumns.category, BoardColumnCategory.DONE),
+        ),
+      );
+
+    // Incluye issues borrados: si no, la FK impediría eliminar el sprint.
+    await this.db
+      .update(issues)
+      .set({
+        sprintId: null,
+        updatedAt: new Date(),
+        updatedByUserId: actorUserId,
+      })
+      .where(
+        and(
+          eq(issues.projectId, id),
+          eq(issues.sprintId, sprintId),
+          onlyUnfinished ? inArray(issues.columnId, unfinishedColumnIds) : undefined,
         ),
       );
   }

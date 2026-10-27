@@ -1,4 +1,8 @@
-import type { IssueRequestDto, ProjectIdRequestDto } from "@orbit/shared";
+import type {
+  IssueRequestDto,
+  ProjectIdRequestDto,
+  SprintRequestDto,
+} from "@orbit/shared";
 import type { Issue } from "../../../domain/issue/issue.entity.js";
 
 export type ReplaceAssigneesCommand = {
@@ -15,9 +19,25 @@ export type DeleteIssueCommand = IssueRequestDto & {
   actorUserId: number;
 };
 
+export type FindIssuesQuery = ProjectIdRequestDto & {
+  /** Sin este campo, todos; con un id, los de ese sprint; con `null`, los del backlog. */
+  sprintId?: number | null;
+};
+
+export type SetChildrenSprintCommand = IssueRequestDto & {
+  sprintId: number | null;
+  actorUserId: number;
+};
+
+export type ReleaseFromSprintCommand = SprintRequestDto & {
+  actorUserId: number;
+  /** Solo los que no están en una columna `done`. */
+  onlyUnfinished: boolean;
+};
+
 export interface IssueRepository {
   save(issue: Issue, actorUserId: number): Promise<number>;
-  findAllByProject(query: ProjectIdRequestDto): Promise<Issue[]>;
+  findAllByProject(query: FindIssuesQuery): Promise<Issue[]>;
   findById(query: IssueRequestDto): Promise<Issue | null>;
   hasChildren(query: IssueRequestDto): Promise<boolean>;
   findLastBoardPosition(
@@ -26,4 +46,6 @@ export interface IssueRepository {
   update(issue: Issue, actorUserId: number): Promise<void>;
   replaceAssignees(command: ReplaceAssigneesCommand): Promise<void>;
   delete(command: DeleteIssueCommand): Promise<void>;
+  setChildrenSprint(command: SetChildrenSprintCommand): Promise<void>;
+  releaseFromSprint(command: ReleaseFromSprintCommand): Promise<void>;
 }

@@ -42,6 +42,21 @@ import { DeleteCommentUseCase } from "../../../application/comment/use-cases/del
 import { GetCommentsUseCase } from "../../../application/comment/use-cases/get-comments.use-case.js";
 import { UpdateCommentUseCase } from "../../../application/comment/use-cases/update-comment.use-case.js";
 import { CommentController } from "./comment.controller.js";
+import type { SprintRepository } from "../../../application/sprint/ports/sprint-repository.port.js";
+import { AssignIssueSprintUseCase } from "../../../application/sprint/use-cases/assign-issue-sprint.use-case.js";
+import { CloseSprintUseCase } from "../../../application/sprint/use-cases/close-sprint.use-case.js";
+import { CreateSprintUseCase } from "../../../application/sprint/use-cases/create-sprint.use-case.js";
+import { DeleteSprintUseCase } from "../../../application/sprint/use-cases/delete-sprint.use-case.js";
+import { GetPlanningUseCase } from "../../../application/sprint/use-cases/get-planning.use-case.js";
+import { StartSprintUseCase } from "../../../application/sprint/use-cases/start-sprint.use-case.js";
+import { UpdateSprintUseCase } from "../../../application/sprint/use-cases/update-sprint.use-case.js";
+import { SprintController } from "./sprint.controller.js";
+import type { BoardColumnRepository } from "../../../application/board-column/ports/board-column-repository.port.js";
+import { CreateBoardColumnUseCase } from "../../../application/board-column/use-cases/create-board-column.use-case.js";
+import { DeleteBoardColumnUseCase } from "../../../application/board-column/use-cases/delete-board-column.use-case.js";
+import { ReorderBoardColumnsUseCase } from "../../../application/board-column/use-cases/reorder-board-columns.use-case.js";
+import { UpdateBoardColumnUseCase } from "../../../application/board-column/use-cases/update-board-column.use-case.js";
+import { BoardColumnController } from "./board-column.controller.js";
 
 export interface ControllerDependencies {
   userRepository: UserRepository;
@@ -55,6 +70,8 @@ export interface ControllerDependencies {
   issueRepository: IssueRepository;
   issueCatalogRepository: IssueCatalogRepository;
   commentRepository: CommentRepository;
+  sprintRepository: SprintRepository;
+  boardColumnRepository: BoardColumnRepository;
 }
 
 export function createControllers(dependencies: ControllerDependencies) {
@@ -128,6 +145,7 @@ export function createControllers(dependencies: ControllerDependencies) {
     issues: new IssueController(
       new GetBoardUseCase(
         dependencies.projectRepository,
+        dependencies.sprintRepository,
         dependencies.issueRepository,
         dependencies.issueCatalogRepository,
       ),
@@ -137,6 +155,7 @@ export function createControllers(dependencies: ControllerDependencies) {
       ),
       new CreateIssueUseCase(
         dependencies.projectRepository,
+        dependencies.sprintRepository,
         dependencies.projectMemberRepository,
         dependencies.issueRepository,
         dependencies.issueCatalogRepository,
@@ -148,6 +167,7 @@ export function createControllers(dependencies: ControllerDependencies) {
       ),
       new UpdateIssueUseCase(
         dependencies.projectRepository,
+        dependencies.sprintRepository,
         dependencies.projectMemberRepository,
         dependencies.issueRepository,
         dependencies.issueCatalogRepository,
@@ -182,6 +202,64 @@ export function createControllers(dependencies: ControllerDependencies) {
       new DeleteCommentUseCase(
         dependencies.projectRepository,
         dependencies.commentRepository,
+      ),
+    ),
+    sprints: new SprintController(
+      new GetPlanningUseCase(
+        dependencies.projectRepository,
+        dependencies.sprintRepository,
+        dependencies.issueRepository,
+        dependencies.issueCatalogRepository,
+      ),
+      new CreateSprintUseCase(
+        dependencies.projectRepository,
+        dependencies.sprintRepository,
+      ),
+      new UpdateSprintUseCase(
+        dependencies.projectRepository,
+        dependencies.sprintRepository,
+      ),
+      new DeleteSprintUseCase(
+        dependencies.projectRepository,
+        dependencies.sprintRepository,
+        dependencies.issueRepository,
+        dependencies.transaction,
+      ),
+      new StartSprintUseCase(
+        dependencies.projectRepository,
+        dependencies.sprintRepository,
+      ),
+      new CloseSprintUseCase(
+        dependencies.projectRepository,
+        dependencies.sprintRepository,
+        dependencies.issueRepository,
+        dependencies.transaction,
+      ),
+      new AssignIssueSprintUseCase(
+        dependencies.projectRepository,
+        dependencies.sprintRepository,
+        dependencies.issueRepository,
+        dependencies.transaction,
+      ),
+    ),
+    boardColumns: new BoardColumnController(
+      new CreateBoardColumnUseCase(
+        dependencies.projectRepository,
+        dependencies.boardColumnRepository,
+      ),
+      new UpdateBoardColumnUseCase(
+        dependencies.projectRepository,
+        dependencies.boardColumnRepository,
+      ),
+      new ReorderBoardColumnsUseCase(
+        dependencies.projectRepository,
+        dependencies.boardColumnRepository,
+        dependencies.transaction,
+      ),
+      new DeleteBoardColumnUseCase(
+        dependencies.projectRepository,
+        dependencies.boardColumnRepository,
+        dependencies.transaction,
       ),
     ),
   };

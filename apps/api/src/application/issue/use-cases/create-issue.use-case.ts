@@ -9,6 +9,7 @@ import { Issue } from "../../../domain/issue/issue.entity.js";
 import { InvalidIssueReferenceError } from "../../../domain/issue/issue.errors.js";
 import type { ProjectMemberRepository } from "../../project/ports/project-member-repository.port.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
+import type { SprintRepository } from "../../sprint/ports/sprint-repository.port.js";
 import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
 import { toIssueDto } from "../mappers/issue.mapper.js";
 import type { IssueCatalogRepository } from "../ports/issue-catalog-repository.port.js";
@@ -29,6 +30,7 @@ export type CreateIssueInput = SaveIssueRequestDto &
 export class CreateIssueUseCase {
   constructor(
     private readonly projects: ProjectRepository,
+    private readonly sprints: SprintRepository,
     private readonly members: ProjectMemberRepository,
     private readonly issues: IssueRepository,
     private readonly catalog: IssueCatalogRepository,
@@ -61,6 +63,19 @@ export class CreateIssueUseCase {
         : null;
 
     assertParent({ type, types, parentId: input.parentId, parent });
+
+    // Las subtareas siguen el sprint de su padre; el resto elige el suyo.
+    const sprintId = type.isSubtask ? parent!.sprintId : (input.sprintId ?? null);
+
+    if (!type.isSubtask && sprintId !== null) {
+      const sprint = await this.sprints.findById({ id: input.id, sprintId });
+
+      if (!sprint) {
+        throw new InvalidIssueReferenceError("El sprint");
+      }
+
+      sprint.assertAcceptsIssues();
+    }
     assertPriority(priorities, input.priorityId);
     assertDifficulty(difficulties, input.difficultyId);
     const assigneeIds = normalizeAssignees(members, input.assigneeIds ?? []);
@@ -84,6 +99,7 @@ export class CreateIssueUseCase {
         projectId: input.id,
         issueNumber,
         columnId: column.id,
+        sprintId,
         reporterId: input.actorUserId,
         boardPosition: positionAfter(lastPosition),
         assigneeIds,

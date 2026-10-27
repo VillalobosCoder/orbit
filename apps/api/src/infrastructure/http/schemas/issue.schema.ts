@@ -9,6 +9,7 @@ export const saveIssueSchema = z.object({
   priorityId: id.nullish(),
   difficultyId: id.nullish(),
   parentId: id.nullish(),
+  sprintId: id.nullish(),
   columnId: id.optional(),
   assigneeIds: z.array(id).max(50).optional(),
 });

@@ -15,6 +15,7 @@ export type IssuePrimitives = {
   priorityId: number | null;
   difficultyId: number | null;
   parentId: number | null;
+  sprintId: number | null;
   columnId: number;
   reporterId: number;
   title: string;
@@ -30,6 +31,7 @@ export type RegisterIssueInput = IssueDetails & {
   projectId: number;
   issueNumber: number;
   columnId: number;
+  sprintId: number | null;
   reporterId: number;
   boardPosition: number;
   assigneeIds: number[];
@@ -44,6 +46,7 @@ export class Issue {
       projectId: input.projectId,
       issueNumber: input.issueNumber,
       columnId: input.columnId,
+      sprintId: input.sprintId,
       reporterId: input.reporterId,
       boardPosition: input.boardPosition,
       assigneeIds: input.assigneeIds,
@@ -69,6 +72,10 @@ export class Issue {
 
   withDetails(input: IssueDetails): Issue {
     return new Issue({ ...this.props, ...Issue.normalizeDetails(input) });
+  }
+
+  withSprint(sprintId: number | null): Issue {
+    return new Issue({ ...this.props, sprintId });
   }
 
   withAssignees(assigneeIds: number[]): Issue {
@@ -118,6 +125,10 @@ export class Issue {
 
   get parentId(): number | null {
     return this.props.parentId;
+  }
+
+  get sprintId(): number | null {
+    return this.props.sprintId;
   }
 
   get columnId(): number {

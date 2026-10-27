@@ -21,6 +21,7 @@ import {
   type ProjectDto,
   type ProjectMemberDto,
   type SaveIssueRequestDto,
+  type SprintDto,
 } from "@orbit/shared";
 
 interface IssueFormDialogProps {
@@ -28,6 +29,10 @@ interface IssueFormDialogProps {
   options: IssueOptionsDto;
   columns: BoardColumnDto[];
   issues: IssueDto[];
+  /** Sprints a los que se puede asignar (planeados o activo). */
+  sprints: SprintDto[];
+  /** Sprint preseleccionado al crear; nulo es el backlog. */
+  defaultSprintId?: number | null;
   members: ProjectMemberDto[];
   /** Sin `issue` el diálogo crea un issue; con `issue` lo edita. */
   issue?: IssueDto;
@@ -41,6 +46,8 @@ export default function IssueFormDialog({
   options,
   columns,
   issues,
+  sprints,
+  defaultSprintId = null,
   members,
   issue,
   defaults,
@@ -82,6 +89,7 @@ export default function IssueFormDialog({
     const priorityId = formData.get("priorityId");
     const difficultyId = formData.get("difficultyId");
     const columnId = formData.get("columnId");
+    const sprintId = formData.get("sprintId");
 
     if (
       typeof title !== "string" ||
@@ -102,6 +110,8 @@ export default function IssueFormDialog({
       priorityId: priorityId ? Number(priorityId) : null,
       difficultyId: difficultyId ? Number(difficultyId) : null,
       columnId: Number(columnId),
+      // Las subtareas siguen el sprint de su padre.
+      sprintId: isSubtask ? undefined : sprintId ? Number(sprintId) : null,
       assigneeIds,
     };
 
@@ -228,6 +238,25 @@ export default function IssueFormDialog({
                 ))}
               </select>
             </Field>
+            {!isSubtask && (
+              <Field>
+                <Label htmlFor="sprintId">Sprint</Label>
+                <select
+                  id="sprintId"
+                  name="sprintId"
+                  defaultValue={
+                    isEditing ? (issue.sprintId ?? "") : (defaultSprintId ?? "")
+                  }
+                >
+                  <option value="">Backlog</option>
+                  {sprints.map((sprint) => (
+                    <option key={sprint.id} value={sprint.id}>
+                      {sprint.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
             <Field>
               <Label htmlFor="difficultyId">Dificultad</Label>
               <select
