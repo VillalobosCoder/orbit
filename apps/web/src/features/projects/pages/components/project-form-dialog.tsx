@@ -21,11 +21,14 @@ import type { ProjectDto, UpdateProjectRequestDto } from "@orbit/shared";
 interface ProjectFormDialogProps {
   project?: ProjectDto;
   onClose: () => void;
+  /** Se llama con el proyecto recién creado, antes de cerrar. */
+  onCreated?: (project: ProjectDto) => void;
 }
 
 export default function ProjectFormDialog({
   project,
   onClose,
+  onCreated,
 }: ProjectFormDialogProps) {
   const isEditing = project !== undefined;
   const createProject = useCreateProject();
@@ -53,7 +56,15 @@ export default function ProjectFormDialog({
     if (isEditing) {
       updateProject.mutate({ id: project.id, ...input }, { onSuccess: onClose });
     } else {
-      createProject.mutate({ ...input, projectKey }, { onSuccess: onClose });
+      createProject.mutate(
+        { ...input, projectKey },
+        {
+          onSuccess: (created) => {
+            if (created) onCreated?.(created);
+            onClose();
+          },
+        },
+      );
     }
   }
 

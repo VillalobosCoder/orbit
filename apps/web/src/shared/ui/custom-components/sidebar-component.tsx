@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronDown,
   FolderKanban,
   House,
   LogOut,
   Orbit,
+  Plus,
   UserRound,
   type LucideIcon,
 } from "lucide-react";
@@ -27,9 +28,11 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/auth/use-auth";
+import { usePermission } from "@/context/auth/use-permission";
 import { useLogout } from "@/features/auth/api/queries";
 import { useGetModules } from "@/features/modules/api/queries";
 import { useGetProjects } from "@/features/projects/api/queries";
+import ProjectFormDialog from "@/features/projects/pages/components/project-form-dialog";
 
 const MODULE_ROUTES: Record<string, string> = {
   home: "/",
@@ -55,8 +58,11 @@ function isPathActive(pathname: string, url: string) {
 
 export default function SidebarComponent() {
   const { pathname } = useLocation();
-  const { state } = useSidebar();
+  const navigate = useNavigate();
+  const { state, setOpen } = useSidebar();
   const { user } = useAuth();
+  const { canWrite: canWriteProjects } = usePermission("projects");
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
   const logoutMutation = useLogout();
   const { data: modules = [] } = useGetModules();
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
@@ -136,17 +142,42 @@ export default function SidebarComponent() {
                   isPathActive(pathname, url) || hasActiveChild;
                 const isExpanded =
                   expandedItems[module.key] ?? hasActiveChild;
+                // Proyectos no tiene pantalla propia: el módulo solo despliega la lista.
+                const isProjects = module.key === "projects";
+                const toggleExpanded = () => {
+                  if (state === "collapsed") setOpen(true);
+                  setExpandedItems((current) => ({
+                    ...current,
+                    [module.key]: state === "collapsed" ? true : !isExpanded,
+                  }));
+                };
 
                 return (
                   <SidebarMenuItem key={module.key}>
                     <SidebarMenuButton
-                      render={<NavLink to={url} end={url === "/"} />}
+                      render={
+                        isProjects ? undefined : (
+                          <NavLink to={url} end={url === "/"} />
+                        )
+                      }
+                      onClick={isProjects ? toggleExpanded : undefined}
                       isActive={isActive}
                       tooltip={module.name}
                     >
                       <Icon />
                       <span>{module.name}</span>
                     </SidebarMenuButton>
+
+                    {isProjects && canWriteProjects && state === "expanded" && (
+                      <button
+                        type="button"
+                        className="absolute right-8 top-1.5 flex size-6 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        aria-label="Nuevo proyecto"
+                        onClick={() => setIsCreatingProject(true)}
+                      >
+                        <Plus className="size-4" />
+                      </button>
+                    )}
 
                     {children.length > 0 && (
                       <>
@@ -212,6 +243,13 @@ export default function SidebarComponent() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+
+      {isCreatingProject && (
+        <ProjectFormDialog
+          onClose={() => setIsCreatingProject(false)}
+          onCreated={(project) => navigate(`/projects/${project.id}`)}
+        />
+      )}
     </Sidebar>
   );
 }

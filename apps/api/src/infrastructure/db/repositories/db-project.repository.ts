@@ -1,5 +1,9 @@
-import { and, asc, eq, ne } from "drizzle-orm";
-import { ProjectStatusKey, StatusTypeKey } from "@orbit/shared";
+import { and, asc, eq, ne, sql } from "drizzle-orm";
+import {
+  ProjectStatusKey,
+  StatusTypeKey,
+  type ProjectIdRequestDto,
+} from "@orbit/shared";
 import type {
   DeleteProjectCommand,
   FindProjectForMemberQuery,
@@ -124,6 +128,20 @@ export class DBProjectRepository implements ProjectRepository {
     if (!row) {
       throw new ProjectNotFoundError(project.id!);
     }
+  }
+
+  async nextIssueNumber({ id }: ProjectIdRequestDto): Promise<number> {
+    const [row] = await this.db
+      .update(projects)
+      .set({ issueCounter: sql`${projects.issueCounter} + 1` })
+      .where(eq(projects.id, id))
+      .returning({ issueNumber: projects.issueCounter });
+
+    if (!row) {
+      throw new ProjectNotFoundError(id);
+    }
+
+    return row.issueNumber;
   }
 
   async delete({ id, actorUserId }: DeleteProjectCommand): Promise<void> {

@@ -1,6 +1,5 @@
 import type { ProjectMemberRequestDto } from "@orbit/shared";
-import { CannotRemoveProjectOwnerError } from "../../../domain/project/project.errors.js";
-import { findProjectForMember } from "../find-project-for-member.js";
+import { CannotRemoveProjectOwnerError, ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { ProjectMemberRepository } from "../ports/project-member-repository.port.js";
 import type { ProjectRepository } from "../ports/project-repository.port.js";
 
@@ -15,7 +14,15 @@ export class RemoveProjectMemberUseCase {
   ) {}
 
   async execute(input: RemoveProjectMemberInput): Promise<void> {
-    const project = await findProjectForMember(this.projects, input);
+    const project = await this.projects.findByIdForMember({
+      id: input.id,
+      userId: input.actorUserId,
+    });
+
+    if (!project) {
+      throw new ProjectNotFoundError(input.id);
+    }
+
     project.assertOwnedBy(input.actorUserId);
 
     if (input.userId === project.ownerUserId) {

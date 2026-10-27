@@ -15,4 +15,5 @@ export interface ProjectRepository {
   findByIdForMember(query: FindProjectForMemberQuery): Promise<Project | null>;
   update(project: Project, actorUserId: number): Promise<void>;
   delete(command: DeleteProjectCommand): Promise<void>;
+  nextIssueNumber(query: ProjectIdRequestDto): Promise<number>;
 }

@@ -1,15 +1,23 @@
-import type { ProjectDto } from "@orbit/shared";
-import { findProjectForMember } from "../find-project-for-member.js";
+import type { ProjectDto, ProjectIdRequestDto } from "@orbit/shared";
 import { toProjectDto } from "../mappers/project.mapper.js";
 import type { ProjectRepository } from "../ports/project-repository.port.js";
-import type { ProjectActorInput } from "../project.types.js";
+import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 
-export type GetProjectInput = ProjectActorInput;
+export type GetProjectInput = ProjectIdRequestDto & { actorUserId: number };
 
 export class GetProjectUseCase {
   constructor(private readonly projects: ProjectRepository) {}
 
   async execute(input: GetProjectInput): Promise<ProjectDto> {
-    return toProjectDto(await findProjectForMember(this.projects, input));
+    const project = await this.projects.findByIdForMember({
+      id: input.id,
+      userId: input.actorUserId,
+    });
+
+    if (!project) {
+      throw new ProjectNotFoundError(input.id);
+    }
+
+    return toProjectDto(project);
   }
 }

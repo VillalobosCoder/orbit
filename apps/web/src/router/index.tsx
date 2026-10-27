@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { PrivateGuard, PublicGuard } from "@/router/guards.tsx";
 import Login from "@/features/auth/pages/login/login";
 import AuthLayout from "@/features/auth/pages/auth-layout";
@@ -7,7 +7,6 @@ import NotFoundPage from "./not-found";
 import HomePage from "@/features/home/pages/home";
 import UsersPage from "@/features/users/pages/users";
 import ProjectDetailPage from "@/features/projects/pages/project-detail";
-import ProjectsPage from "@/features/projects/pages/projects";
 import { PermissionGuard } from "./permission-guard";
 
 export const router = createBrowserRouter([
@@ -40,7 +39,7 @@ export const router = createBrowserRouter([
             path: "projects",
             element: <PermissionGuard module="projects" />,
             children: [
-              { index: true, element: <ProjectsPage /> },
+              { index: true, element: <Navigate to="/" replace /> },
               { path: ":id", element: <ProjectDetailPage /> },
             ],
           },

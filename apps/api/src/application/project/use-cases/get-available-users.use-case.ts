@@ -1,10 +1,10 @@
-import type { ProjectMemberDto } from "@orbit/shared";
-import { findProjectForMember } from "../find-project-for-member.js";
+import type { ProjectMemberDto, ProjectIdRequestDto } from "@orbit/shared";
 import type { ProjectMemberRepository } from "../ports/project-member-repository.port.js";
 import type { ProjectRepository } from "../ports/project-repository.port.js";
-import type { ProjectActorInput } from "../project.types.js";
+import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 
-export type GetAvailableUsersInput = ProjectActorInput;
+export type GetAvailableUsersInput = ProjectIdRequestDto &
+  { actorUserId: number };
 
 export class GetAvailableUsersUseCase {
   constructor(
@@ -13,7 +13,15 @@ export class GetAvailableUsersUseCase {
   ) {}
 
   async execute(input: GetAvailableUsersInput): Promise<ProjectMemberDto[]> {
-    const project = await findProjectForMember(this.projects, input);
+    const project = await this.projects.findByIdForMember({
+      id: input.id,
+      userId: input.actorUserId,
+    });
+
+    if (!project) {
+      throw new ProjectNotFoundError(input.id);
+    }
+
     project.assertOwnedBy(input.actorUserId);
 
     return this.members.findCandidates({ id: input.id });
