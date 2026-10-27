@@ -8,3 +8,4 @@ export * from "./dto/modules/modules.dto.js";
 export * from "./dto/projects/projects.dto.js";
 export * from "./dto/issues/issues.dto.js";
 export * from "./messages/http-messages.js";
+export * from "./utils/board-position.js";

@@ -4,6 +4,7 @@ import {
   DEFAULT_ISSUE_TYPES,
   type BoardColumnCategory,
   type BoardColumnDto,
+  type DifficultyDto,
   type IssueTypeDto,
   type PriorityDto,
   type ProjectIdRequestDto,
@@ -14,6 +15,7 @@ import type {
 } from "../../../application/issue/ports/issue-catalog-repository.port.js";
 import type { DbContext } from "../db-context.js";
 import { boardColumns } from "../schema/board-columns.js";
+import { difficulties } from "../schema/difficulties.js";
 import { issueTypes } from "../schema/issue-types.js";
 import { priorities } from "../schema/priorities.js";
 
@@ -70,6 +72,17 @@ export class DBIssueCatalogRepository implements IssueCatalogRepository {
       .orderBy(asc(priorities.level), asc(priorities.id));
   }
 
+  findDifficulties(): Promise<DifficultyDto[]> {
+    return this.db
+      .select({
+        id: difficulties.id,
+        name: difficulties.name,
+        level: difficulties.level,
+      })
+      .from(difficulties)
+      .orderBy(asc(difficulties.level), asc(difficulties.id));
+  }
+
   async seedDefaults({
     id,
     actorUserId,
@@ -88,6 +101,7 @@ export class DBIssueCatalogRepository implements IssueCatalogRepository {
         projectId: id,
         name: type.name,
         icon: type.icon,
+        isSubtask: type.isSubtask,
         createdByUserId: actorUserId,
       })),
     );

@@ -154,6 +154,7 @@ export function createControllers(dependencies: ControllerDependencies) {
       new DeleteIssueUseCase(
         dependencies.projectRepository,
         dependencies.issueRepository,
+        dependencies.transaction,
       ),
     ),
   };

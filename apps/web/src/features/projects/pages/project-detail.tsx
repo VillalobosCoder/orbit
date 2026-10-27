@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth/use-auth";
 import { usePermission } from "@/context/auth/use-permission";
 import { useGetProject } from "../api/queries";
+import IssueBoard from "@/features/issues/pages/components/issue-board";
 import ProjectFormDialog from "./components/project-form-dialog";
 import ProjectMembers from "./components/project-members";
 
@@ -43,6 +44,7 @@ export default function ProjectDetailPage() {
           onClose={() => setIsEditing(false)}
         />
       )}
+      <IssueBoard project={project} />
       <ProjectMembers
         project={project}
         canManage={canWrite && project.ownerUserId === user?.id}

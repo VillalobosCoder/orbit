@@ -1,12 +1,11 @@
 import type { NextFunction, Response } from "express";
 import type {
   BoardDto,
-  CreateIssueRequestDto,
   IssueDto,
   IssueOptionsDto,
   IssueRequestDto,
   MoveIssueRequestDto,
-  UpdateIssueRequestDto,
+  SaveIssueRequestDto,
 } from "@orbit/shared";
 import type { CreateIssueUseCase } from "../../../application/issue/use-cases/create-issue.use-case.js";
 import type { DeleteIssueUseCase } from "../../../application/issue/use-cases/delete-issue.use-case.js";
@@ -17,10 +16,9 @@ import type { MoveIssueUseCase } from "../../../application/issue/use-cases/move
 import type { UpdateIssueUseCase } from "../../../application/issue/use-cases/update-issue.use-case.js";
 import type { AuthedRequest } from "../middleware/auth.middleware.js";
 import {
-  createIssueSchema,
   issueParamSchema,
   moveIssueSchema,
-  updateIssueSchema,
+  saveIssueSchema,
 } from "../schemas/issue.schema.js";
 import { projectIdParamSchema } from "../schemas/project.schema.js";
 
@@ -78,7 +76,7 @@ export class IssueController {
   ): Promise<void> => {
     try {
       const { id } = projectIdParamSchema.parse(req.params);
-      const input: CreateIssueRequestDto = createIssueSchema.parse(req.body);
+      const input: SaveIssueRequestDto = saveIssueSchema.parse(req.body);
       const response: IssueDto = await this.createIssueUseCase.execute({
         ...input,
         id,
@@ -119,7 +117,7 @@ export class IssueController {
       const { id, issueId }: IssueRequestDto = issueParamSchema.parse(
         req.params,
       );
-      const input: UpdateIssueRequestDto = updateIssueSchema.parse(req.body);
+      const input: SaveIssueRequestDto = saveIssueSchema.parse(req.body);
       await this.updateIssueUseCase.execute({
         ...input,
         id,

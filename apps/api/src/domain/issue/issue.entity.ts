@@ -3,6 +3,8 @@ export type IssueDetails = {
   description?: string | null;
   typeId: number;
   priorityId?: number | null;
+  difficultyId?: number | null;
+  parentId?: number | null;
 };
 
 export type IssuePrimitives = {
@@ -11,6 +13,8 @@ export type IssuePrimitives = {
   issueNumber: number;
   typeId: number;
   priorityId: number | null;
+  difficultyId: number | null;
+  parentId: number | null;
   columnId: number;
   reporterId: number;
   title: string;
@@ -58,6 +62,8 @@ export class Issue {
       description: input.description?.trim() || null,
       typeId: input.typeId,
       priorityId: input.priorityId ?? null,
+      difficultyId: input.difficultyId ?? null,
+      parentId: input.parentId ?? null,
     };
   }
 
@@ -104,6 +110,14 @@ export class Issue {
 
   get priorityId(): number | null {
     return this.props.priorityId;
+  }
+
+  get difficultyId(): number | null {
+    return this.props.difficultyId;
+  }
+
+  get parentId(): number | null {
+    return this.props.parentId;
   }
 
   get columnId(): number {

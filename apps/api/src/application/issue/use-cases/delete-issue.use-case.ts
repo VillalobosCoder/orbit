@@ -1,4 +1,5 @@
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
+import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
 import type { IssueRepository } from "../ports/issue-repository.port.js";
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { IssueRequestDto } from "@orbit/shared";
@@ -9,6 +10,7 @@ export class DeleteIssueUseCase {
   constructor(
     private readonly projects: ProjectRepository,
     private readonly issues: IssueRepository,
+    private readonly transaction: TransactionManager,
   ) {}
 
   async execute(input: DeleteIssueInput): Promise<void> {
@@ -21,6 +23,6 @@ export class DeleteIssueUseCase {
       throw new ProjectNotFoundError(input.id);
     }
 
-    await this.issues.delete(input);
+    await this.transaction.run(() => this.issues.delete(input));
   }
 }

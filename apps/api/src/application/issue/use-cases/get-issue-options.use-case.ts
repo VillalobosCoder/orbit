@@ -22,11 +22,12 @@ export class GetIssueOptionsUseCase {
       throw new ProjectNotFoundError(input.id);
     }
 
-    const [issueTypes, priorities] = await Promise.all([
+    const [issueTypes, priorities, difficulties] = await Promise.all([
       this.catalog.findIssueTypes({ id: input.id }),
       this.catalog.findPriorities({ id: input.id }),
+      this.catalog.findDifficulties(),
     ]);
 
-    return { issueTypes, priorities };
+    return { issueTypes, priorities, difficulties };
   }
 }

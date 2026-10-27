@@ -24,6 +24,12 @@ export type PriorityDto = {
   color: string | null;
 };
 
+export type DifficultyDto = {
+  id: number;
+  name: string;
+  level: number;
+};
+
 export type IssueDto = {
   id: number;
   projectId: number;
@@ -33,6 +39,8 @@ export type IssueDto = {
   description: string | null;
   typeId: number;
   priorityId: number | null;
+  difficultyId: number | null;
+  parentId: number | null;
   columnId: number;
   boardPosition: number;
   reporterId: number;
@@ -48,22 +56,22 @@ export type BoardDto = {
 export type IssueOptionsDto = {
   issueTypes: IssueTypeDto[];
   priorities: PriorityDto[];
+  difficulties: DifficultyDto[];
 };
 
 export type IssueRequestDto = ProjectIdRequestDto & {
   issueId: number;
 };
 
-export type UpdateIssueRequestDto = {
+export type SaveIssueRequestDto = {
   title: string;
   description?: string | null;
   typeId: number;
   priorityId?: number | null;
-  assigneeIds?: number[];
-};
-
-export type CreateIssueRequestDto = UpdateIssueRequestDto & {
+  difficultyId?: number | null;
+  parentId?: number | null;
   columnId?: number;
+  assigneeIds?: number[];
 };
 
 export type MoveIssueRequestDto = {

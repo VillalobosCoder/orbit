@@ -1,5 +1,9 @@
-import { BoardColumnCategory, type MoveIssueRequestDto, type IssueRequestDto } from "@orbit/shared";
-import { computeBoardPosition } from "../utils/board-position.js";
+import {
+  BoardColumnCategory,
+  computeBoardPosition,
+  type IssueRequestDto,
+  type MoveIssueRequestDto,
+} from "@orbit/shared";
 import { InvalidIssueReferenceError, IssueNotFoundError } from "../../../domain/issue/issue.errors.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { IssueCatalogRepository } from "../ports/issue-catalog-repository.port.js";

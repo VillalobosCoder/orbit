@@ -16,6 +16,14 @@ export class InvalidIssueReferenceError extends DomainError {
   }
 }
 
+export class InvalidIssueParentError extends DomainError {
+  readonly statusCode = 400;
+
+  constructor(message: string) {
+    super(message);
+  }
+}
+
 export class InvalidIssueAssigneeError extends DomainError {
   readonly statusCode = 400;
 

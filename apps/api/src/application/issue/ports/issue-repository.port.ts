@@ -19,6 +19,7 @@ export interface IssueRepository {
   save(issue: Issue, actorUserId: number): Promise<number>;
   findAllByProject(query: ProjectIdRequestDto): Promise<Issue[]>;
   findById(query: IssueRequestDto): Promise<Issue | null>;
+  hasChildren(query: IssueRequestDto): Promise<boolean>;
   findLastBoardPosition(
     query: FindLastBoardPositionQuery,
   ): Promise<number | null>;

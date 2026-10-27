@@ -61,6 +61,8 @@ export class DBIssueRepository implements IssueRepository {
       issueNumber: row.issueNumber,
       typeId: row.typeId,
       priorityId: row.priorityId,
+      difficultyId: row.difficultyId,
+      parentId: row.parentId,
       columnId: row.columnId,
       reporterId: row.reporterId,
       title: row.title,
@@ -82,6 +84,8 @@ export class DBIssueRepository implements IssueRepository {
         typeId: issue.typeId,
         columnId: issue.columnId,
         priorityId: issue.priorityId,
+        difficultyId: issue.difficultyId,
+        parentId: issue.parentId,
         reporterId: issue.reporterId,
         title: issue.title,
         description: issue.description,
@@ -129,6 +133,23 @@ export class DBIssueRepository implements IssueRepository {
     return this.toEntity(row, assignees.get(row.id) ?? []);
   }
 
+  async hasChildren({ id, issueId }: IssueRequestDto): Promise<boolean> {
+    const deletedStatusId = await this.getStatusId(IssueStatusKey.DELETED);
+    const [row] = await this.db
+      .select({ id: issues.id })
+      .from(issues)
+      .where(
+        and(
+          eq(issues.projectId, id),
+          eq(issues.parentId, issueId),
+          ne(issues.statusId, deletedStatusId),
+        ),
+      )
+      .limit(1);
+
+    return row !== undefined;
+  }
+
   async findLastBoardPosition({
     id,
     columnId,
@@ -156,6 +177,8 @@ export class DBIssueRepository implements IssueRepository {
         typeId: issue.typeId,
         columnId: issue.columnId,
         priorityId: issue.priorityId,
+        difficultyId: issue.difficultyId,
+        parentId: issue.parentId,
         title: issue.title,
         description: issue.description,
         boardPosition: issue.boardPosition,
@@ -219,5 +242,21 @@ export class DBIssueRepository implements IssueRepository {
     if (!row) {
       throw new IssueNotFoundError(issueId);
     }
+
+    // Las subtareas no tienen sentido sin su padre.
+    await this.db
+      .update(issues)
+      .set({
+        statusId: deletedStatusId,
+        updatedAt: new Date(),
+        updatedByUserId: actorUserId,
+      })
+      .where(
+        and(
+          eq(issues.projectId, id),
+          eq(issues.parentId, issueId),
+          ne(issues.statusId, deletedStatusId),
+        ),
+      );
   }
 }

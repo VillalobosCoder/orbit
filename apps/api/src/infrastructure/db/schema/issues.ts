@@ -11,6 +11,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { auditColumns } from "./audit-columns.js";
 import { boardColumns } from "./board-columns.js";
+import { difficulties } from "./difficulties.js";
 import { issueTypes } from "./issue-types.js";
 import { priorities } from "./priorities.js";
 import { projects } from "./projects.js";
@@ -38,6 +39,7 @@ export const issues = pgTable(
       .references(() => boardColumns.id),
     sprintId: integer("sprint_id").references(() => sprints.id),
     priorityId: integer("priority_id").references(() => priorities.id),
+    difficultyId: integer("difficulty_id").references(() => difficulties.id),
     reporterId: integer("reporter_id")
       .notNull()
       .references(() => users.id),

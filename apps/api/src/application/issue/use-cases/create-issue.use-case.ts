@@ -1,10 +1,10 @@
 import {
   BoardColumnCategory,
-  type CreateIssueRequestDto,
+  positionAfter,
   type IssueDto,
   type ProjectIdRequestDto,
+  type SaveIssueRequestDto,
 } from "@orbit/shared";
-import { positionAfter } from "../utils/board-position.js";
 import { Issue } from "../../../domain/issue/issue.entity.js";
 import { InvalidIssueReferenceError } from "../../../domain/issue/issue.errors.js";
 import type { ProjectMemberRepository } from "../../project/ports/project-member-repository.port.js";
@@ -14,14 +14,16 @@ import { toIssueDto } from "../mappers/issue.mapper.js";
 import type { IssueCatalogRepository } from "../ports/issue-catalog-repository.port.js";
 import type { IssueRepository } from "../ports/issue-repository.port.js";
 import {
-  assertIssueType,
+  assertDifficulty,
+  assertParent,
   assertPriority,
   findColumn,
+  findIssueType,
   normalizeAssignees,
 } from "../utils/validate-issue-references.js";
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 
-export type CreateIssueInput = CreateIssueRequestDto &
+export type CreateIssueInput = SaveIssueRequestDto &
   ProjectIdRequestDto & { actorUserId: number };
 
 export class CreateIssueUseCase {
@@ -43,15 +45,24 @@ export class CreateIssueUseCase {
       throw new ProjectNotFoundError(input.id);
     }
 
-    const [columns, types, priorities, members] = await Promise.all([
+    const [columns, types, priorities, difficulties, members] =
+      await Promise.all([
       this.catalog.findColumns({ id: input.id }),
       this.catalog.findIssueTypes({ id: input.id }),
       this.catalog.findPriorities({ id: input.id }),
+      this.catalog.findDifficulties(),
       this.members.findMembers({ id: input.id }),
     ]);
 
-    assertIssueType(types, input.typeId);
+    const type = findIssueType(types, input.typeId);
+    const parent =
+      input.parentId != null
+        ? await this.issues.findById({ id: input.id, issueId: input.parentId })
+        : null;
+
+    assertParent({ type, types, parentId: input.parentId, parent });
     assertPriority(priorities, input.priorityId);
+    assertDifficulty(difficulties, input.difficultyId);
     const assigneeIds = normalizeAssignees(members, input.assigneeIds ?? []);
     const column =
       input.columnId !== undefined

@@ -11,6 +11,8 @@ export function toIssueDto(issue: Issue, projectKey: string): IssueDto {
     description: issue.description,
     typeId: issue.typeId,
     priorityId: issue.priorityId,
+    difficultyId: issue.difficultyId,
+    parentId: issue.parentId,
     columnId: issue.columnId,
     boardPosition: issue.boardPosition,
     reporterId: issue.reporterId,
