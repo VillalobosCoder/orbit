@@ -36,6 +36,12 @@ import { GetIssueUseCase } from "../../../application/issue/use-cases/get-issue.
 import { MoveIssueUseCase } from "../../../application/issue/use-cases/move-issue.use-case.js";
 import { UpdateIssueUseCase } from "../../../application/issue/use-cases/update-issue.use-case.js";
 import { IssueController } from "./issue.controller.js";
+import type { CommentRepository } from "../../../application/comment/ports/comment-repository.port.js";
+import { CreateCommentUseCase } from "../../../application/comment/use-cases/create-comment.use-case.js";
+import { DeleteCommentUseCase } from "../../../application/comment/use-cases/delete-comment.use-case.js";
+import { GetCommentsUseCase } from "../../../application/comment/use-cases/get-comments.use-case.js";
+import { UpdateCommentUseCase } from "../../../application/comment/use-cases/update-comment.use-case.js";
+import { CommentController } from "./comment.controller.js";
 
 export interface ControllerDependencies {
   userRepository: UserRepository;
@@ -48,6 +54,7 @@ export interface ControllerDependencies {
   projectMemberRepository: ProjectMemberRepository;
   issueRepository: IssueRepository;
   issueCatalogRepository: IssueCatalogRepository;
+  commentRepository: CommentRepository;
 }
 
 export function createControllers(dependencies: ControllerDependencies) {
@@ -155,6 +162,26 @@ export function createControllers(dependencies: ControllerDependencies) {
         dependencies.projectRepository,
         dependencies.issueRepository,
         dependencies.transaction,
+      ),
+    ),
+    comments: new CommentController(
+      new GetCommentsUseCase(
+        dependencies.projectRepository,
+        dependencies.issueRepository,
+        dependencies.commentRepository,
+      ),
+      new CreateCommentUseCase(
+        dependencies.projectRepository,
+        dependencies.issueRepository,
+        dependencies.commentRepository,
+      ),
+      new UpdateCommentUseCase(
+        dependencies.projectRepository,
+        dependencies.commentRepository,
+      ),
+      new DeleteCommentUseCase(
+        dependencies.projectRepository,
+        dependencies.commentRepository,
       ),
     ),
   };

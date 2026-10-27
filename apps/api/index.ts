@@ -6,6 +6,7 @@ import { DBUserRepository } from "./src/infrastructure/db/repositories/db-user.r
 import { ScryptPasswordHasher } from "./src/infrastructure/security/scrypt-password-hasher.js";
 import { JwtTokenService } from "./src/infrastructure/security/jwt-token-service.js";
 import { DBUserPermissionRepository } from "./src/infrastructure/db/repositories/db-user-permission.repository.js";
+import { DBCommentRepository } from "./src/infrastructure/db/repositories/db-comment.repository.js";
 import { DBIssueCatalogRepository } from "./src/infrastructure/db/repositories/db-issue-catalog.repository.js";
 import { DBIssueRepository } from "./src/infrastructure/db/repositories/db-issue.repository.js";
 import { DBProjectMemberRepository } from "./src/infrastructure/db/repositories/db-project-member.repository.js";
@@ -24,6 +25,7 @@ const projectRepository = new DBProjectRepository(dbContext);
 const projectMemberRepository = new DBProjectMemberRepository(dbContext);
 const issueRepository = new DBIssueRepository(dbContext);
 const issueCatalogRepository = new DBIssueCatalogRepository(dbContext);
+const commentRepository = new DBCommentRepository(dbContext);
 const passwordHasher = new ScryptPasswordHasher();
 const tokenService = new JwtTokenService();
 const controllers = createControllers({
@@ -37,6 +39,7 @@ const controllers = createControllers({
   projectMemberRepository,
   issueRepository,
   issueCatalogRepository,
+  commentRepository,
 });
 const app = createHttpApp(controllers, tokenService, userPermissionRepository);
 

@@ -91,6 +91,17 @@ export function useUpdateIssue() {
   });
 }
 
+export function useDeleteIssue() {
+  return useMutation<unknown, Error, IssueRequestDto>({
+    mutationFn: ({ id, issueId }) =>
+      injectQuery([PROJECTS, `/${id}`, "/issues", `/${issueId}`], {
+        method: HttpMethod.DELETE,
+      }),
+    onSuccess: (_data, { id }) => invalidateBoard(id),
+    onError: handleMutationError,
+  });
+}
+
 type MoveIssueVariables = MoveIssueRequestDto & IssueRequestDto;
 
 function applyMove(board: BoardDto, move: MoveIssueVariables): BoardDto {

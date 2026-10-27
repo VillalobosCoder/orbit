@@ -1,4 +1,5 @@
 import { useState, type DragEvent } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { usePermission } from "@/context/auth/use-permission";
@@ -11,8 +12,6 @@ import {
 } from "../../api/queries";
 import IssueFormDialog from "./issue-form-dialog";
 
-type DialogState = { issue?: IssueDto } | null;
-
 type DropTarget = { columnId: number; beforeIssueId: number | null };
 
 export default function IssueBoard({ project }: { project: ProjectDto }) {
@@ -21,7 +20,8 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
   const options = useGetIssueOptions(project.id);
   const members = useGetProjectMembers(project.id);
   const moveIssue = useMoveIssue();
-  const [dialog, setDialog] = useState<DialogState>(null);
+  const navigate = useNavigate();
+  const [isCreating, setIsCreating] = useState(false);
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
 
@@ -108,7 +108,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
           type="button"
           variant="outline"
           disabled={!options.data || !members.data}
-          onClick={() => setDialog({})}
+          onClick={() => setIsCreating(true)}
         >
           Nuevo issue
         </Button>
@@ -141,7 +141,9 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
                   }}
                   onDragEnd={resetDrag}
                   onDragOver={(event) => handleCardDragOver(event, issue)}
-                  onClick={() => canWrite && setDialog({ issue })}
+                  onClick={() =>
+                    navigate(`/projects/${project.id}/issues/${issue.id}`)
+                  }
                 >
                   <div className="text-xs text-muted-foreground">
                     {issue.issueKey}
@@ -166,15 +168,14 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
           </div>
         ))}
       </div>
-      {dialog && options.data && members.data && (
+      {isCreating && options.data && members.data && (
         <IssueFormDialog
           project={project}
           options={options.data}
           columns={columns}
           issues={issues}
           members={members.data}
-          issue={dialog.issue}
-          onClose={() => setDialog(null)}
+          onClose={() => setIsCreating(false)}
         />
       )}
     </section>

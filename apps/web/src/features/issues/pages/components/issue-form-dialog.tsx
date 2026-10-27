@@ -29,7 +29,10 @@ interface IssueFormDialogProps {
   columns: BoardColumnDto[];
   issues: IssueDto[];
   members: ProjectMemberDto[];
+  /** Sin `issue` el diálogo crea un issue; con `issue` lo edita. */
   issue?: IssueDto;
+  /** Valores iniciales al crear, por ejemplo una subtarea de un issue. */
+  defaults?: { typeId?: number; parentId?: number };
   onClose: () => void;
 }
 
@@ -40,6 +43,7 @@ export default function IssueFormDialog({
   issues,
   members,
   issue,
+  defaults,
   onClose,
 }: IssueFormDialogProps) {
   const isEditing = issue !== undefined;
@@ -47,7 +51,7 @@ export default function IssueFormDialog({
   const updateIssue = useUpdateIssue();
   const mutation = isEditing ? updateIssue : createIssue;
   const [typeId, setTypeId] = useState<number>(
-    issue?.typeId ?? options.issueTypes[0]?.id ?? 0,
+    issue?.typeId ?? defaults?.typeId ?? options.issueTypes[0]?.id ?? 0,
   );
   const isSubtask =
     options.issueTypes.find((type) => type.id === typeId)?.isSubtask ?? false;
@@ -197,7 +201,7 @@ export default function IssueFormDialog({
                 <select
                   id="parentId"
                   name="parentId"
-                  defaultValue={issue?.parentId ?? ""}
+                  defaultValue={issue?.parentId ?? defaults?.parentId ?? ""}
                   required
                 >
                   <option value="">Selecciona un issue</option>

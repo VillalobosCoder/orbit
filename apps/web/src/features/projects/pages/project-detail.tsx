@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { Outlet, useParams } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 
@@ -45,6 +45,7 @@ export default function ProjectDetailPage() {
         />
       )}
       <IssueBoard project={project} />
+      <Outlet />
       <ProjectMembers
         project={project}
         canManage={canWrite && project.ownerUserId === user?.id}
