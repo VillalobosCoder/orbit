@@ -16,7 +16,7 @@ import {
   type ProjectIdRequestDto,
   type SaveIssueRequestDto,
 } from "@orbit/shared";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 
 /** Cada cuánto se vuelve a pedir el tablero mientras está abierto. */
 const BOARD_POLL_INTERVAL_MS = 15_000;
@@ -27,17 +27,29 @@ function invalidateBoard(projectId: number) {
   return queryClient.invalidateQueries({ queryKey: boardKey(projectId) });
 }
 
+function fetchBoard(projectId: number) {
+  return requireData(
+    injectQuery<BoardDto>([PROJECTS, `/${projectId}`, "/board"], {
+      method: HttpMethod.GET,
+    }),
+    "La API no devolvió el tablero.",
+  );
+}
+
+export function useGetBoards(projectIds: number[]) {
+  return useQueries({
+    queries: projectIds.map((projectId) => ({
+      queryKey: boardKey(projectId),
+      queryFn: () => fetchBoard(projectId),
+      staleTime: 30_000,
+    })),
+  });
+}
+
 export function useGetBoard(projectId: number) {
   return useQuery({
     queryKey: boardKey(projectId),
-    queryFn: () =>
-      requireData(
-        injectQuery<BoardDto>([PROJECTS, `/${projectId}`, "/board"], {
-          method: HttpMethod.GET,
-        }),
-        "La API no devolvió el tablero.",
-      ),
-    // Los demás miembros también mueven tarjetas: se revalida con frecuencia.
+    queryFn: () => fetchBoard(projectId),
     staleTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,

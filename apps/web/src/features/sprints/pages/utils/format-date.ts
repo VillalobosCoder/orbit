@@ -28,6 +28,14 @@ export function formatDateRange(start: string | null, end: string | null) {
   }`;
 }
 
+/** Días que faltan para una fecha `YYYY-MM-DD`; negativo si ya pasó. */
+export function daysUntil(date: string) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return Math.round((parseDate(date).getTime() - today.getTime()) / 86_400_000);
+}
+
 /** Días naturales entre dos fechas, ambas incluidas; nulo si falta alguna. */
 export function countDays(start: string | null, end: string | null) {
   if (!start || !end) return null;
