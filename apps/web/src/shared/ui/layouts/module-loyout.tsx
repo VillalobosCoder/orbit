@@ -12,9 +12,8 @@ export default function ModuleLayout() {
       <div className="flex h-svh w-full min-w-0 overflow-hidden bg-background">
         <SidebarComponent />
         <SidebarInset className="min-h-0 min-w-0 bg-transparent">
-          <header className="flex h-12 shrink-0 items-center gap-2 border-b px-3">
-            <SidebarTrigger aria-label="Alternar navegación" />
-            <span className="text-sm font-medium">Inicio</span>
+          <header className="flex h-12 shrink-0 items-center gap-2 border-b px-3 md:hidden">
+            <SidebarTrigger aria-label="Abrir navegación" />
           </header>
           <div className="min-h-0 flex-1 overflow-auto">
             <Outlet />
