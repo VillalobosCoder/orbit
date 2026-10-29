@@ -1,6 +1,8 @@
 import { useState, type SubmitEvent } from "react";
+import { CircleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +14,10 @@ import {
 import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
 import { useCreateIssue, useUpdateIssue } from "@/features/issues/api/queries";
+import { UserAvatarComponent } from "@/shared/ui/custom-components/user-avatar-component";
 import {
   BoardColumnCategory,
   type BoardColumnDto,
@@ -29,14 +34,10 @@ interface IssueFormDialogProps {
   options: IssueOptionsDto;
   columns: BoardColumnDto[];
   issues: IssueDto[];
-  /** Sprints a los que se puede asignar (planeados o activo). */
   sprints: SprintDto[];
-  /** Sprint preseleccionado al crear; nulo es el backlog. */
   defaultSprintId?: number | null;
   members: ProjectMemberDto[];
-  /** Sin `issue` el diálogo crea un issue; con `issue` lo edita. */
   issue?: IssueDto;
-  /** Valores iniciales al crear, por ejemplo una subtarea de un issue. */
   defaults?: { typeId?: number; parentId?: number };
   onClose: () => void;
 }
@@ -110,7 +111,6 @@ export default function IssueFormDialog({
       priorityId: priorityId ? Number(priorityId) : null,
       difficultyId: difficultyId ? Number(difficultyId) : null,
       columnId: Number(columnId),
-      // Las subtareas siguen el sprint de su padre.
       sprintId: isSubtask ? undefined : sprintId ? Number(sprintId) : null,
       assigneeIds,
     };
@@ -135,7 +135,7 @@ export default function IssueFormDialog({
         if (!nextOpen) onClose();
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>
@@ -144,10 +144,10 @@ export default function IssueFormDialog({
             <DialogDescription>
               {isEditing
                 ? "Modifica los datos del issue."
-                : `Se creará en ${project.projectKey}.`}
+                : `Se creará en ${project.projectKey} · ${project.name}.`}
             </DialogDescription>
           </DialogHeader>
-          <FieldGroup className="py-4">
+          <FieldGroup className="py-5">
             <Field>
               <Label htmlFor="title">Título</Label>
               <Input
@@ -160,135 +160,165 @@ export default function IssueFormDialog({
             </Field>
             <Field>
               <Label htmlFor="description">Descripción</Label>
-              <textarea
+              <Textarea
                 id="description"
                 name="description"
                 defaultValue={issue?.description ?? ""}
                 maxLength={20000}
                 rows={4}
-                className="rounded-md border border-border bg-transparent px-3 py-2 text-sm"
               />
             </Field>
-            <Field>
-              <Label htmlFor="columnId">Estado</Label>
-              <select
-                id="columnId"
-                name="columnId"
-                defaultValue={
-                  issue?.columnId ??
-                  columns.find(
-                    (column) => column.category === BoardColumnCategory.TODO,
-                  )?.id
-                }
-                required
-              >
-                {columns.map((column) => (
-                  <option key={column.id} value={column.id}>
-                    {column.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field>
-              <Label htmlFor="typeId">Tipo</Label>
-              <select
-                id="typeId"
-                name="typeId"
-                value={typeId}
-                onChange={(event) => setTypeId(Number(event.currentTarget.value))}
-                required
-              >
-                {options.issueTypes.map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            {isSubtask && (
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field>
-                <Label htmlFor="parentId">Issue padre</Label>
-                <select
-                  id="parentId"
-                  name="parentId"
-                  defaultValue={issue?.parentId ?? defaults?.parentId ?? ""}
+                <Label htmlFor="typeId">Tipo</Label>
+                <NativeSelect
+                  id="typeId"
+                  name="typeId"
+                  value={typeId}
+                  onChange={(event) =>
+                    setTypeId(Number(event.currentTarget.value))
+                  }
                   required
                 >
-                  <option value="">Selecciona un issue</option>
-                  {parentCandidates.map((candidate) => (
-                    <option key={candidate.id} value={candidate.id}>
-                      {candidate.issueKey} · {candidate.title}
+                  {options.issueTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </Field>
-            )}
-            <Field>
-              <Label htmlFor="priorityId">Prioridad</Label>
-              <select
-                id="priorityId"
-                name="priorityId"
-                defaultValue={issue?.priorityId ?? ""}
-              >
-                <option value="">Sin prioridad</option>
-                {options.priorities.map((priority) => (
-                  <option key={priority.id} value={priority.id}>
-                    {priority.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            {!isSubtask && (
               <Field>
-                <Label htmlFor="sprintId">Sprint</Label>
-                <select
-                  id="sprintId"
-                  name="sprintId"
+                <Label htmlFor="columnId">Estado</Label>
+                <NativeSelect
+                  id="columnId"
+                  name="columnId"
                   defaultValue={
-                    isEditing ? (issue.sprintId ?? "") : (defaultSprintId ?? "")
+                    issue?.columnId ??
+                    columns.find(
+                      (column) => column.category === BoardColumnCategory.TODO,
+                    )?.id
                   }
+                  required
                 >
-                  <option value="">Backlog</option>
-                  {sprints.map((sprint) => (
-                    <option key={sprint.id} value={sprint.id}>
-                      {sprint.name}
+                  {columns.map((column) => (
+                    <option key={column.id} value={column.id}>
+                      {column.name}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </Field>
-            )}
-            <Field>
-              <Label htmlFor="difficultyId">Dificultad</Label>
-              <select
-                id="difficultyId"
-                name="difficultyId"
-                defaultValue={issue?.difficultyId ?? ""}
-              >
-                <option value="">Sin estimar</option>
-                {options.difficulties.map((difficulty) => (
-                  <option key={difficulty.id} value={difficulty.id}>
-                    {difficulty.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <fieldset className="max-h-32 space-y-1 overflow-y-auto">
-              <legend className="mb-1 text-sm font-medium">Responsables</legend>
-              {members.map((member) => (
-                <label key={member.id} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={assigneeIds.includes(member.id)}
-                    onChange={(event) =>
-                      toggleAssignee(member.id, event.currentTarget.checked)
+              {isSubtask && (
+                <Field className="sm:col-span-2">
+                  <Label htmlFor="parentId">Issue padre</Label>
+                  <NativeSelect
+                    id="parentId"
+                    name="parentId"
+                    defaultValue={issue?.parentId ?? defaults?.parentId ?? ""}
+                    required
+                  >
+                    <option value="">Selecciona un issue</option>
+                    {parentCandidates.map((candidate) => (
+                      <option key={candidate.id} value={candidate.id}>
+                        {candidate.issueKey} · {candidate.title}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+              <Field>
+                <Label htmlFor="priorityId">Prioridad</Label>
+                <NativeSelect
+                  id="priorityId"
+                  name="priorityId"
+                  defaultValue={issue?.priorityId ?? ""}
+                >
+                  <option value="">Sin prioridad</option>
+                  {options.priorities.map((priority) => (
+                    <option key={priority.id} value={priority.id}>
+                      {priority.name}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </Field>
+              <Field>
+                <Label htmlFor="difficultyId">Dificultad</Label>
+                <NativeSelect
+                  id="difficultyId"
+                  name="difficultyId"
+                  defaultValue={issue?.difficultyId ?? ""}
+                >
+                  <option value="">Sin estimar</option>
+                  {options.difficulties.map((difficulty) => (
+                    <option key={difficulty.id} value={difficulty.id}>
+                      {difficulty.name}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </Field>
+              {!isSubtask && (
+                <Field className="sm:col-span-2">
+                  <Label htmlFor="sprintId">Sprint</Label>
+                  <NativeSelect
+                    id="sprintId"
+                    name="sprintId"
+                    defaultValue={
+                      isEditing
+                        ? (issue.sprintId ?? "")
+                        : (defaultSprintId ?? "")
                     }
-                  />
-                  {member.name} {member.lastName}
-                </label>
-              ))}
+                  >
+                    <option value="">Backlog</option>
+                    {sprints.map((sprint) => (
+                      <option key={sprint.id} value={sprint.id}>
+                        {sprint.name}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </div>
+
+            <fieldset className="flex flex-col gap-2">
+              <legend className="mb-1 text-sm font-medium">
+                Responsables
+                <span className="ml-2 font-normal text-muted-foreground">
+                  {assigneeIds.length} seleccionados
+                </span>
+              </legend>
+              <div className="max-h-48 overflow-y-auto rounded-lg border border-border">
+                {members.map((member) => {
+                  const fullName = `${member.name} ${member.lastName}`;
+
+                  return (
+                    <label
+                      key={member.id}
+                      className="flex cursor-pointer items-center gap-3 border-b border-border px-3 py-2.5 text-sm last:border-b-0 hover:bg-accent/50"
+                    >
+                      <Checkbox
+                        aria-label={fullName}
+                        checked={assigneeIds.includes(member.id)}
+                        onCheckedChange={(checked) =>
+                          toggleAssignee(member.id, checked)
+                        }
+                      />
+                      <UserAvatarComponent
+                        name={fullName}
+                        className="size-6 text-[0.625rem]"
+                      />
+                      <span className="flex-1 truncate">{fullName}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </fieldset>
+
             {mutation.isError && (
-              <p className="text-sm text-destructive" role="alert">
+              <p
+                role="alert"
+                className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+              >
+                <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
                 {mutation.error.message}
               </p>
             )}
