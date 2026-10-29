@@ -6,6 +6,8 @@ import {
   useTable,
 } from "@tanstack/react-table";
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 const features = tableFeatures({});
 
 export type DataTableFeatures = typeof features;
@@ -13,11 +15,17 @@ export type DataTableFeatures = typeof features;
 interface DataTableProps<TData extends RowData> {
   data: TData[];
   columns: ColumnDef<DataTableFeatures, TData, any>[];
+  isLoading?: boolean;
+  emptyMessage?: string;
 }
+
+const SKELETON_ROWS = 5;
 
 export function TableComponent<TData extends RowData>({
   data,
   columns,
+  isLoading = false,
+  emptyMessage = "No hay resultados.",
 }: DataTableProps<TData>) {
   const table = useTable({
     features,
@@ -26,15 +34,15 @@ export function TableComponent<TData extends RowData>({
   });
 
   return (
-    <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
+    <div className="overflow-x-auto rounded-xl border border-border bg-card">
       <table className="w-full border-collapse text-left text-sm">
-        <thead className="bg-gray-50 border-b border-gray-200">
+        <thead className="bg-muted/60">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  className="px-6 py-3 font-semibold text-gray-700"
+                  className="h-11 px-5 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
                 >
                   {header.isPlaceholder
                     ? null
@@ -47,24 +55,37 @@ export function TableComponent<TData extends RowData>({
             </tr>
           ))}
         </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
-          {table.getRowModel().rows.length ? (
+        <tbody>
+          {isLoading ? (
+            Array.from({ length: SKELETON_ROWS }, (_, index) => (
+              <tr key={index} className="border-t border-border">
+                {columns.map((_column, columnIndex) => (
+                  <td key={columnIndex} className="px-5 py-4">
+                    <Skeleton className="h-4 w-3/4" />
+                  </td>
+                ))}
+              </tr>
+            ))
+          ) : table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="hover:bg-gray-50 transition-colors">
+              <tr
+                key={row.id}
+                className="border-t border-border transition-colors hover:bg-accent/50"
+              >
                 {row.getAllCells().map((cell) => (
-                  <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
+                  <td key={cell.id} className="px-5 py-3 whitespace-nowrap">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
               </tr>
             ))
           ) : (
-            <tr>
+            <tr className="border-t border-border">
               <td
                 colSpan={columns.length}
-                className="px-6 py-4 text-center text-gray-500"
+                className="px-5 py-10 text-center text-muted-foreground"
               >
-                No hay resultados.
+                {emptyMessage}
               </td>
             </tr>
           )}

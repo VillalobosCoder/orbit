@@ -1,6 +1,8 @@
 import { useState, type SubmitEvent } from "react";
+import { Check, CircleAlert, Copy } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +14,7 @@ import {
 import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { useGetModules } from "@/features/modules/api/queries";
 import {
   useCreateUser,
@@ -48,16 +51,89 @@ export default function UserFormDialog({
         if (!nextOpen) onClose();
       }}
     >
-      <DialogContent className="sm:max-w-sm">
-        {isEditing && userQuery.isPending && <p>Cargando usuario...</p>}
+      <DialogContent className="sm:max-w-xl">
+        {isEditing && userQuery.isPending && (
+          <p
+            role="status"
+            className="flex items-center gap-2 py-6 text-sm text-muted-foreground"
+          >
+            <Spinner />
+          </p>
+        )}
         {isEditing && userQuery.isError && (
-          <p role="alert">{userQuery.error.message}</p>
+          <ErrorMessage>{userQuery.error.message}</ErrorMessage>
         )}
         {(!isEditing || userQuery.data) && (
           <UserForm user={userQuery.data} isSelf={isSelf} onClose={onClose} />
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ErrorMessage({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      role="alert"
+      className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+    >
+      <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
+      {children}
+    </div>
+  );
+}
+
+function TemporaryPassword({
+  password,
+  onClose,
+}: {
+  password: string;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  async function copyPassword() {
+    try {
+      await navigator.clipboard.writeText(password);
+      setCopied(true);
+    } catch {
+      // Clipboard is unavailable: the password stays selectable in the field.
+    }
+  }
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Usuario creado</DialogTitle>
+        <DialogDescription>
+          Comparte esta contraseña temporal con el usuario. No se volverá a
+          mostrar después de cerrar este diálogo.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="flex flex-col gap-2 rounded-lg border border-warning/40 bg-warning/10 p-4">
+        <Label htmlFor="temporaryPassword" className="text-warning">
+          Contraseña temporal · se muestra una sola vez
+        </Label>
+        <div className="flex gap-2">
+          <Input
+            id="temporaryPassword"
+            value={password}
+            readOnly
+            className="font-mono tracking-wide"
+            onFocus={(event) => event.currentTarget.select()}
+          />
+          <Button type="button" variant="outline" onClick={copyPassword}>
+            {copied ? <Check /> : <Copy />}
+            {copied ? "Copiado" : "Copiar"}
+          </Button>
+        </div>
+      </div>
+      <DialogFooter>
+        <Button type="button" onClick={onClose}>
+          Listo
+        </Button>
+      </DialogFooter>
+    </>
   );
 }
 
@@ -88,14 +164,15 @@ function UserForm({
   const temporaryPassword = createUser.data?.temporaryPassword;
 
   function setFlag(module: string, flag: keyof PermissionFlags, value: boolean) {
-    setPermissions((current) => ({
-      ...current,
-      [module]: {
-        canRead: current[module]?.canRead ?? false,
-        canWrite: current[module]?.canWrite ?? false,
-        [flag]: value,
-      },
-    }));
+    setPermissions((current) => {
+      const previous = current[module] ?? { canRead: false, canWrite: false };
+      const next = { ...previous, [flag]: value };
+
+      if (flag === "canWrite" && value) next.canRead = true;
+      if (flag === "canRead" && !value) next.canWrite = false;
+
+      return { ...current, [module]: next };
+    });
   }
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
@@ -133,66 +210,46 @@ function UserForm({
   }
 
   if (temporaryPassword) {
-    return (
-      <>
-        <DialogHeader>
-          <DialogTitle>Usuario creado</DialogTitle>
-          <DialogDescription>
-            Comparte esta contraseña temporal con el usuario. No se volverá a
-            mostrar después de cerrar este diálogo.
-          </DialogDescription>
-        </DialogHeader>
-        <Field>
-          <Label htmlFor="temporaryPassword">Contraseña temporal</Label>
-          <Input
-            id="temporaryPassword"
-            value={temporaryPassword}
-            readOnly
-            onFocus={(event) => event.currentTarget.select()}
-          />
-        </Field>
-        <DialogFooter>
-          <Button type="button" onClick={onClose}>
-            Listo
-          </Button>
-        </DialogFooter>
-      </>
-    );
+    return <TemporaryPassword password={temporaryPassword} onClose={onClose} />;
   }
 
   return (
     <form onSubmit={handleSubmit}>
       <DialogHeader>
-        <DialogTitle>{isEditing ? "Editar usuario" : "Agregar usuario"}</DialogTitle>
+        <DialogTitle>
+          {isEditing ? "Editar usuario" : "Nuevo usuario"}
+        </DialogTitle>
         <DialogDescription>
           {isEditing
-            ? `Modifica los datos de ${user.name} ${user.lastName}.`
-            : "Ingresa los datos de la persona. El sistema generará una contraseña temporal."}
+            ? `Modifica los datos y permisos de ${user.name} ${user.lastName}.`
+            : "Ingresa los datos de la persona. El sistema generará una contraseña temporal que verás una sola vez."}
         </DialogDescription>
       </DialogHeader>
-      <FieldGroup className="py-4">
-        <Field>
-          <Label htmlFor="name">Nombre</Label>
-          <Input
-            id="name"
-            name="name"
-            defaultValue={user?.name}
-            minLength={2}
-            maxLength={50}
-            required
-          />
-        </Field>
-        <Field>
-          <Label htmlFor="lastName">Apellido</Label>
-          <Input
-            id="lastName"
-            name="lastName"
-            defaultValue={user?.lastName}
-            minLength={2}
-            maxLength={50}
-            required
-          />
-        </Field>
+      <FieldGroup className="py-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field>
+            <Label htmlFor="name">Nombre</Label>
+            <Input
+              id="name"
+              name="name"
+              defaultValue={user?.name}
+              minLength={2}
+              maxLength={50}
+              required
+            />
+          </Field>
+          <Field>
+            <Label htmlFor="lastName">Apellido</Label>
+            <Input
+              id="lastName"
+              name="lastName"
+              defaultValue={user?.lastName}
+              minLength={2}
+              maxLength={50}
+              required
+            />
+          </Field>
+        </div>
         <Field>
           <Label htmlFor="email">Correo electrónico</Label>
           <Input
@@ -205,74 +262,89 @@ function UserForm({
             required
           />
         </Field>
+
         {isSelf ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-muted-foreground">
             No puedes modificar tus propios permisos.
           </p>
         ) : (
-          <fieldset className="max-h-56 space-y-3 overflow-y-auto">
-            <legend className="mb-2 text-sm font-medium">
-              Permisos de acceso
-            </legend>
+          <fieldset className="flex flex-col gap-2">
+            <div className="flex items-baseline justify-between">
+              <legend className="text-sm font-medium">
+                Permisos por módulo
+              </legend>
+              <span className="text-xs text-muted-foreground">
+                Escribir incluye leer
+              </span>
+            </div>
             {modulesQuery.isPending && (
-              <p className="text-sm text-muted-foreground">
+              <p
+                role="status"
+                className="flex items-center gap-2 text-sm text-muted-foreground"
+              >
+                <Spinner />
                 Cargando módulos...
               </p>
             )}
             {modulesQuery.isError && (
-              <p className="text-sm text-destructive" role="alert">
+              <ErrorMessage>
                 No se pudieron cargar los módulos. Intenta de nuevo antes de
                 guardar.
-              </p>
+              </ErrorMessage>
             )}
-            {modulesQuery.data?.map((module) => {
-              const flags = permissions[module.key] ?? {
-                canRead: false,
-                canWrite: false,
-              };
-              const parentName = modulesQuery.data.find(
-                (item) => item.key === module.parentKey,
-              )?.name;
-              const label = parentName
-                ? `${parentName} · ${module.name}`
-                : module.name;
-
-              return (
-                <div
-                  key={module.key}
-                  className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 rounded-md border border-border px-3 py-2"
-                >
-                  <span className="min-w-0 truncate text-sm">{label}</span>
-                  <label className="flex items-center gap-1.5 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={flags.canRead}
-                      onChange={(event) =>
-                        setFlag(module.key, "canRead", event.currentTarget.checked)
-                      }
-                    />
-                    Leer
-                  </label>
-                  <label className="flex items-center gap-1.5 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={flags.canWrite}
-                      onChange={(event) =>
-                        setFlag(module.key, "canWrite", event.currentTarget.checked)
-                      }
-                    />
-                    Escribir
-                  </label>
+            {modulesQuery.data && (
+              <div className="max-h-64 overflow-y-auto rounded-lg border border-border">
+                <div className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] items-center bg-muted/60 px-4 py-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                  <span>Módulo</span>
+                  <span className="text-center">Leer</span>
+                  <span className="text-center">Escribir</span>
                 </div>
-              );
-            })}
+                {modulesQuery.data.map((module) => {
+                  const flags = permissions[module.key] ?? {
+                    canRead: false,
+                    canWrite: false,
+                  };
+                  const parentName = modulesQuery.data.find(
+                    (item) => item.key === module.parentKey,
+                  )?.name;
+                  const label = parentName
+                    ? `${parentName} · ${module.name}`
+                    : module.name;
+
+                  return (
+                    <div
+                      key={module.key}
+                      className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] items-center border-t border-border px-4 py-3"
+                    >
+                      <span className="min-w-0 truncate text-sm font-medium">
+                        {label}
+                      </span>
+                      <span className="flex justify-center">
+                        <Checkbox
+                          aria-label={`${label}: leer`}
+                          checked={flags.canRead}
+                          onCheckedChange={(checked) =>
+                            setFlag(module.key, "canRead", checked)
+                          }
+                        />
+                      </span>
+                      <span className="flex justify-center">
+                        <Checkbox
+                          aria-label={`${label}: escribir`}
+                          checked={flags.canWrite}
+                          onCheckedChange={(checked) =>
+                            setFlag(module.key, "canWrite", checked)
+                          }
+                        />
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </fieldset>
         )}
-        {mutation.isError && (
-          <p className="text-sm text-destructive" role="alert">
-            {mutation.error.message}
-          </p>
-        )}
+        {mutation.isError && <ErrorMessage>{mutation.error.message}</ErrorMessage>}
       </FieldGroup>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>
