@@ -1,4 +1,5 @@
-import type { SubmitEvent } from "react";
+import { useState, type SubmitEvent } from "react";
+import { CircleAlert, Clock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,8 +13,10 @@ import {
 import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useCreateSprint, useUpdateSprint } from "@/features/sprints/api/queries";
 import type { ProjectDto, SaveSprintRequestDto, SprintDto } from "@orbit/shared";
+import { countDays } from "../utils/format-date";
 
 interface SprintFormDialogProps {
   project: ProjectDto;
@@ -31,22 +34,21 @@ export default function SprintFormDialog({
   const createSprint = useCreateSprint();
   const updateSprint = useUpdateSprint();
   const mutation = isEditing ? updateSprint : createSprint;
+  const [startDate, setStartDate] = useState(sprint?.startDate ?? "");
+  const [endDate, setEndDate] = useState(sprint?.endDate ?? "");
+  const hasInvalidRange = Boolean(startDate && endDate && endDate < startDate);
+  const days = hasInvalidRange ? null : countDays(startDate || null, endDate || null);
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (hasInvalidRange) return;
+
     const formData = new FormData(event.currentTarget);
     const name = formData.get("name");
     const goal = formData.get("goal");
-    const startDate = formData.get("startDate");
-    const endDate = formData.get("endDate");
 
-    if (
-      typeof name !== "string" ||
-      typeof goal !== "string" ||
-      typeof startDate !== "string" ||
-      typeof endDate !== "string"
-    ) {
+    if (typeof name !== "string" || typeof goal !== "string") {
       return;
     }
 
@@ -74,7 +76,7 @@ export default function SprintFormDialog({
         if (!nextOpen) onClose();
       }}
     >
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className="sm:max-w-lg">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>
@@ -83,10 +85,10 @@ export default function SprintFormDialog({
             <DialogDescription>
               {isEditing
                 ? `Modifica los datos de ${sprint.name}.`
-                : `Se creará en ${project.projectKey}, sin iniciar.`}
+                : "Nace como «Planeado». Solo puede haber un sprint activo a la vez."}
             </DialogDescription>
           </DialogHeader>
-          <FieldGroup className="py-4">
+          <FieldGroup className="py-5">
             <Field>
               <Label htmlFor="name">Nombre</Label>
               <Input
@@ -98,34 +100,64 @@ export default function SprintFormDialog({
               />
             </Field>
             <Field>
-              <Label htmlFor="goal">Objetivo</Label>
-              <Input
+              <Label htmlFor="goal">
+                Objetivo
+                <span className="font-normal text-muted-foreground">
+                  opcional
+                </span>
+              </Label>
+              <Textarea
                 id="goal"
                 name="goal"
                 defaultValue={sprint?.goal ?? ""}
                 maxLength={1000}
+                rows={3}
               />
             </Field>
-            <Field>
-              <Label htmlFor="startDate">Inicio</Label>
-              <Input
-                id="startDate"
-                name="startDate"
-                type="date"
-                defaultValue={sprint?.startDate ?? ""}
-              />
-            </Field>
-            <Field>
-              <Label htmlFor="endDate">Fin</Label>
-              <Input
-                id="endDate"
-                name="endDate"
-                type="date"
-                defaultValue={sprint?.endDate ?? ""}
-              />
-            </Field>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field>
+                <Label htmlFor="startDate">Inicio</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={startDate}
+                  onChange={(event) => setStartDate(event.currentTarget.value)}
+                />
+              </Field>
+              <Field>
+                <Label htmlFor="endDate">Fin</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  min={startDate || undefined}
+                  aria-invalid={hasInvalidRange || undefined}
+                  onChange={(event) => setEndDate(event.currentTarget.value)}
+                />
+              </Field>
+            </div>
+            {hasInvalidRange ? (
+              <p
+                role="alert"
+                className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+              >
+                <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
+                La fecha de fin no puede ser anterior a la de inicio.
+              </p>
+            ) : (
+              days !== null && (
+                <p className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-muted-foreground">
+                  <Clock className="size-4 shrink-0 text-info" aria-hidden="true" />
+                  Duración: {days} {days === 1 ? "día" : "días"}
+                </p>
+              )
+            )}
             {mutation.isError && (
-              <p className="text-sm text-destructive" role="alert">
+              <p
+                role="alert"
+                className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+              >
+                <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
                 {mutation.error.message}
               </p>
             )}
@@ -134,7 +166,7 @@ export default function SprintFormDialog({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={mutation.isPending}>
+            <Button type="submit" disabled={mutation.isPending || hasInvalidRange}>
               {isEditing
                 ? mutation.isPending
                   ? "Guardando..."
