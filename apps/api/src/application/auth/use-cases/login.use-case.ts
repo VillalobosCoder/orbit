@@ -60,6 +60,7 @@ export class LoginUseCase {
       user: {
         id: user.id!,
         name: user.name,
+        lastName: user.lastName,
         email: user.email.toString(),
         permissions,
         mustChangePassword: user.mustChangePassword,

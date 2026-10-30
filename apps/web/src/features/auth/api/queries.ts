@@ -1,10 +1,11 @@
 import { handleMutationError, HttpMethod, injectQuery } from "@/api/config";
-import { AUTH, LOGIN, LOGOUT, PASSWORD } from "@/api/uris";
+import { AUTH, LOGIN, LOGOUT, ME, PASSWORD } from "@/api/uris";
 import { useAuth } from "@/context/auth/use-auth";
 import type {
   ChangePasswordRequestDto,
   LoginRequestDto,
   LoginResponseDto,
+  UpdateProfileRequestDto,
 } from "@orbit/shared";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -15,6 +16,27 @@ export function useLogin() {
     mutationFn: async (data: LoginRequestDto) => {
       const response = await injectQuery<LoginResponseDto>([AUTH, LOGIN], {
         method: HttpMethod.POST,
+        body: JSON.stringify(data),
+      });
+
+      if (!response) {
+        throw new Error("La API no devolvió los datos de la sesión.");
+      }
+
+      return response;
+    },
+    onSuccess: (response) => login(response),
+    onError: handleMutationError,
+  });
+}
+
+export function useUpdateProfile() {
+  const { login } = useAuth();
+
+  return useMutation({
+    mutationFn: async (data: UpdateProfileRequestDto) => {
+      const response = await injectQuery<LoginResponseDto>([AUTH, ME], {
+        method: HttpMethod.PATCH,
         body: JSON.stringify(data),
       });
 

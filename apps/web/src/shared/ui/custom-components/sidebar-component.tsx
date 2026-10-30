@@ -11,6 +11,7 @@ import {
   Moon,
   Orbit,
   Plus,
+  Settings,
   Sun,
   UserRound,
   type LucideIcon,
@@ -92,6 +93,7 @@ export default function SidebarComponent() {
     isPathActive(pathname, `/projects/${project.id}`),
   );
   const isDark = theme === "dark";
+  const fullName = user ? `${user.name} ${user.lastName}` : "";
 
   const navigationItems = modules.filter(
     (module) =>
@@ -262,10 +264,10 @@ export default function SidebarComponent() {
               className="flex w-full items-center gap-3 rounded-xl border border-sidebar-border p-2 text-left outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring data-popup-open:bg-sidebar-accent group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:p-1"
               aria-label="Menú de cuenta"
             >
-              <UserAvatarComponent name={user.name} />
+              <UserAvatarComponent name={fullName} />
               <span className="min-w-0 flex-1 leading-tight group-data-[collapsible=icon]:hidden">
                 <span className="block truncate text-sm font-medium text-sidebar-foreground">
-                  {user.name}
+                  {fullName}
                 </span>
                 <span className="block truncate text-xs text-sidebar-foreground/60">
                   {user.email}
@@ -280,13 +282,21 @@ export default function SidebarComponent() {
             >
               <DropdownMenuLabel>
                 <span className="block truncate text-sm font-semibold">
-                  {user.name}
+                  {fullName}
                 </span>
                 <span className="block truncate text-xs text-muted-foreground">
                   {user.email}
                 </span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                <UserRound />
+                Mi perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/configuracion")}>
+                <Settings />
+                Configuración
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={toggleTheme}>
                 {isDark ? <Sun /> : <Moon />}
                 {isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}

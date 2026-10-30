@@ -12,9 +12,15 @@ export type UserPermissionDto = {
 export type AuthenticatedUserDto = {
   id: number;
   name: string;
+  lastName: string;
   email: string;
   permissions: UserPermissionDto[];
   mustChangePassword: boolean;
+};
+
+export type UpdateProfileRequestDto = {
+  name: string;
+  lastName: string;
 };
 
 export type ChangePasswordRequestDto = {

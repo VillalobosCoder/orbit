@@ -7,6 +7,7 @@ import type { ModuleRepository } from "../../../application/modules/ports/module
 import { LoginUseCase } from "../../../application/auth/use-cases/login.use-case.js";
 import { GetCurrentUserUseCase } from "../../../application/auth/use-cases/get-current-user.use-case.js";
 import { ChangePasswordUseCase } from "../../../application/auth/use-cases/change-password.use-case.js";
+import { UpdateProfileUseCase } from "../../../application/auth/use-cases/update-profile.use-case.js";
 import { ResetUserPasswordUseCase } from "../../../application/user/use-cases/reset-user-password.use-case.js";
 import { CreateUserUseCase } from "../../../application/user/use-cases/create-user.use-case.js";
 import { DeleteUserUseCase } from "../../../application/user/use-cases/delete-user.use-case.js";
@@ -123,7 +124,12 @@ export function createControllers(dependencies: ControllerDependencies) {
       updateUser,
       resetUserPassword,
     ),
-    auth: new AuthController(login, getCurrentUser, changePassword),
+    auth: new AuthController(
+      login,
+      getCurrentUser,
+      changePassword,
+      new UpdateProfileUseCase(dependencies.userRepository),
+    ),
     modules: new ModuleController(dependencies.moduleRepository),
     projects: new ProjectController(
       new GetProjectListUseCase(dependencies.projectRepository),

@@ -18,6 +18,7 @@ export class GetCurrentUserUseCase {
     return {
       id,
       name: user.name,
+      lastName: user.lastName,
       email: user.email.toString(),
       permissions: await this.permissions.findByUserId(id),
       mustChangePassword: user.mustChangePassword,

@@ -2,6 +2,8 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { PrivateGuard, PublicGuard } from "@/router/guards.tsx";
 import Login from "@/features/auth/pages/login/login";
 import ChangePasswordPage from "@/features/auth/pages/change-password/change-password";
+import ProfilePage from "@/features/profile/pages/profile";
+import SettingsPage from "@/features/settings/pages/settings";
 import AuthLayout from "@/features/auth/pages/auth-layout";
 import ModuleLayout from "@/shared/ui/layouts/module-loyout";
 import NotFoundPage from "./not-found";
@@ -35,6 +37,8 @@ export const router = createBrowserRouter([
       {
         element: <ModuleLayout />,
         children: [
+          { path: "perfil", element: <ProfilePage /> },
+          { path: "configuracion", element: <SettingsPage /> },
           {
             element: <PermissionGuard module="home" />,
             children: [{ index: true, element: <HomePage /> }],

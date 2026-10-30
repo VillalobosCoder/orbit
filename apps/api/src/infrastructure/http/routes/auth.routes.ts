@@ -16,6 +16,7 @@ export function createAuthRoutes(
 
   router.post("/login", loginRateLimit, controller.login);
   router.get("/me", authenticate, controller.me);
+  router.patch("/me", authenticate, controller.updateProfile);
   router.patch(
     "/password",
     authenticate,
