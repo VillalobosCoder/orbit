@@ -5,6 +5,7 @@ import { InvalidUserPermissionError } from "../../../domain/user/user.errors.js"
 import type { DbContext } from "../db-context.js";
 import { modules } from "../schema/modules.js";
 import { userPermissions } from "../schema/user-permissions.js";
+import type { ActorUserId } from "../../../application/shared/actor.js";
 
 export class DBUserPermissionRepository implements UserPermissionRepository {
   constructor(private readonly context: DbContext) {}
@@ -31,7 +32,7 @@ export class DBUserPermissionRepository implements UserPermissionRepository {
   async replaceForUser(
     userId: number,
     permissions: UserPermissionDto[],
-    actorUserId: number,
+    actorUserId: ActorUserId,
   ): Promise<void> {
     const moduleRows =
       permissions.length === 0

@@ -1,4 +1,5 @@
 import type { UserPermissionDto } from "@orbit/shared";
+import type { ActorUserId } from "../../shared/actor.js";
 
 export type PermissionAction = "read" | "write";
 
@@ -7,7 +8,7 @@ export interface UserPermissionRepository {
   replaceForUser(
     userId: number,
     permissions: UserPermissionDto[],
-    actorUserId: number,
+    actorUserId: ActorUserId,
   ): Promise<void>;
   hasPermission(
     userId: number,

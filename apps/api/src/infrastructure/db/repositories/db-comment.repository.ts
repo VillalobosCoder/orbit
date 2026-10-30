@@ -11,6 +11,7 @@ import type { DbContext } from "../db-context.js";
 import { comments } from "../schema/comments.js";
 import { issues } from "../schema/issues.js";
 import { users } from "../schema/users.js";
+import type { ActorUserId } from "../../../application/shared/actor.js";
 
 const commentColumns = {
   id: comments.id,
@@ -59,7 +60,7 @@ export class DBCommentRepository implements CommentRepository {
     );
   }
 
-  async save(comment: Comment, actorUserId: number): Promise<number> {
+  async save(comment: Comment, actorUserId: ActorUserId): Promise<number> {
     const [created] = await this.db
       .insert(comments)
       .values({
@@ -113,7 +114,7 @@ export class DBCommentRepository implements CommentRepository {
     return row ? Comment.fromPersistence(row) : null;
   }
 
-  async update(comment: Comment, actorUserId: number): Promise<void> {
+  async update(comment: Comment, actorUserId: ActorUserId): Promise<void> {
     const [row] = await this.db
       .update(comments)
       .set({

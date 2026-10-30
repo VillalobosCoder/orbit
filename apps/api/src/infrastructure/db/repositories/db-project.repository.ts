@@ -18,6 +18,7 @@ import type { DbContext } from "../db-context.js";
 import { projectMembers } from "../schema/project-members.js";
 import { projects } from "../schema/projects.js";
 import { findStatusId } from "./find-status-id.js";
+import type { ActorUserId } from "../../../application/shared/actor.js";
 
 function isProjectKeyUniqueViolation(error: unknown): boolean {
   if (
@@ -46,7 +47,7 @@ export class DBProjectRepository implements ProjectRepository {
     return findStatusId(this.db, StatusTypeKey.PROJECT, statusKey);
   }
 
-  async save(project: Project, actorUserId: number): Promise<number> {
+  async save(project: Project, actorUserId: ActorUserId): Promise<number> {
     const activeStatusId = await this.getStatusId(ProjectStatusKey.ACTIVE);
 
     try {
@@ -110,7 +111,7 @@ export class DBProjectRepository implements ProjectRepository {
     return row ? Project.fromPersistence(row.project) : null;
   }
 
-  async update(project: Project, actorUserId: number): Promise<void> {
+  async update(project: Project, actorUserId: ActorUserId): Promise<void> {
     const deletedStatusId = await this.getStatusId(ProjectStatusKey.DELETED);
     const [row] = await this.db
       .update(projects)

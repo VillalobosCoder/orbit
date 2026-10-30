@@ -4,7 +4,7 @@ import type {
   SprintRequestDto,
 } from "@orbit/shared";
 import type { Issue } from "../../../domain/issue/issue.entity.js";
-import type { Actor } from "../../shared/actor.js";
+import type { Actor, ActorUserId } from "../../shared/actor.js";
 
 export type ReplaceAssigneesCommand = Actor & {
   issueId: number;
@@ -32,14 +32,14 @@ export type ReleaseFromSprintCommand = SprintRequestDto & Actor & {
 };
 
 export interface IssueRepository {
-  save(issue: Issue, actorUserId: number): Promise<number>;
+  save(issue: Issue, actorUserId: ActorUserId): Promise<number>;
   findAllByProject(query: FindIssuesQuery): Promise<Issue[]>;
   findById(query: IssueRequestDto): Promise<Issue | null>;
   hasChildren(query: IssueRequestDto): Promise<boolean>;
   findLastBoardPosition(
     query: FindLastBoardPositionQuery,
   ): Promise<number | null>;
-  update(issue: Issue, actorUserId: number): Promise<void>;
+  update(issue: Issue, actorUserId: ActorUserId): Promise<void>;
   replaceAssignees(command: ReplaceAssigneesCommand): Promise<void>;
   delete(command: DeleteIssueCommand): Promise<void>;
   setChildrenSprint(command: SetChildrenSprintCommand): Promise<void>;

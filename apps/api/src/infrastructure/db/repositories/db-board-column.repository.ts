@@ -17,6 +17,7 @@ import {
 import type { DbContext } from "../db-context.js";
 import { boardColumns } from "../schema/board-columns.js";
 import { issues } from "../schema/issues.js";
+import type { ActorUserId } from "../../../application/shared/actor.js";
 
 const POSITION_STEP = 1024;
 
@@ -55,7 +56,7 @@ export class DBBoardColumnRepository implements BoardColumnRepository {
     });
   }
 
-  async save(column: BoardColumn, actorUserId: number): Promise<number> {
+  async save(column: BoardColumn, actorUserId: ActorUserId): Promise<number> {
     try {
       const [created] = await this.db
         .insert(boardColumns)
@@ -105,7 +106,7 @@ export class DBBoardColumnRepository implements BoardColumnRepository {
     return row ? this.toEntity(row) : null;
   }
 
-  async update(column: BoardColumn, actorUserId: number): Promise<void> {
+  async update(column: BoardColumn, actorUserId: ActorUserId): Promise<void> {
     try {
       const [row] = await this.db
         .update(boardColumns)

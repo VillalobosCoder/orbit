@@ -1,13 +1,11 @@
-import type { SaveUserRequestDto } from "@orbit/shared";
+import type { SaveUserRequestDto, UserIdRequestDto } from "@orbit/shared";
 import { UserNotFoundError } from "../../../domain/user/user.errors.js";
 import type { UserPermissionRepository } from "../../auth/ports/user-permission-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
 import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
 import type { UserRepository } from "../ports/user-repository.port.js";
 
-export type UpdateUserInput = SaveUserRequestDto & {
-  id: number;
-  updatedByUserId: number;
-};
+export type UpdateUserInput = SaveUserRequestDto & UserIdRequestDto & Actor;
 
 export class UpdateUserUseCase {
   constructor(
@@ -30,14 +28,14 @@ export class UpdateUserUseCase {
           lastName: input.lastName,
           email: input.email,
         }),
-        input.updatedByUserId,
+        input.actorUserId,
       );
 
       if (input.permissions !== undefined) {
         await this.permissions.replaceForUser(
           input.id,
           input.permissions,
-          input.updatedByUserId,
+          input.actorUserId,
         );
       }
     });

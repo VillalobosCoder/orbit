@@ -21,6 +21,7 @@ import { boardColumns } from "../schema/board-columns.js";
 import { issueAssignees } from "../schema/issue-assignees.js";
 import { issues } from "../schema/issues.js";
 import { findStatusId } from "./find-status-id.js";
+import type { ActorUserId } from "../../../application/shared/actor.js";
 
 export class DBIssueRepository implements IssueRepository {
   constructor(private readonly context: DbContext) {}
@@ -78,7 +79,7 @@ export class DBIssueRepository implements IssueRepository {
     });
   }
 
-  async save(issue: Issue, actorUserId: number): Promise<number> {
+  async save(issue: Issue, actorUserId: ActorUserId): Promise<number> {
     const activeStatusId = await this.getStatusId(IssueStatusKey.ACTIVE);
     const [created] = await this.db
       .insert(issues)
@@ -185,7 +186,7 @@ export class DBIssueRepository implements IssueRepository {
     return row?.position ?? null;
   }
 
-  async update(issue: Issue, actorUserId: number): Promise<void> {
+  async update(issue: Issue, actorUserId: ActorUserId): Promise<void> {
     const deletedStatusId = await this.getStatusId(IssueStatusKey.DELETED);
     const [row] = await this.db
       .update(issues)

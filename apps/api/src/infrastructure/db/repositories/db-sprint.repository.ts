@@ -13,6 +13,7 @@ import {
 } from "../../../domain/sprint/sprint.errors.js";
 import type { DbContext } from "../db-context.js";
 import { sprints } from "../schema/sprints.js";
+import type { ActorUserId } from "../../../application/shared/actor.js";
 
 function violatesConstraint(error: unknown, constraint: string): boolean {
   if (
@@ -46,7 +47,7 @@ export class DBSprintRepository implements SprintRepository {
     });
   }
 
-  async save(sprint: Sprint, actorUserId: number): Promise<number> {
+  async save(sprint: Sprint, actorUserId: ActorUserId): Promise<number> {
     try {
       const [created] = await this.db
         .insert(sprints)
@@ -103,7 +104,7 @@ export class DBSprintRepository implements SprintRepository {
     return row ? this.toEntity(row) : null;
   }
 
-  async update(sprint: Sprint, actorUserId: number): Promise<void> {
+  async update(sprint: Sprint, actorUserId: ActorUserId): Promise<void> {
     try {
       const [row] = await this.db
         .update(sprints)

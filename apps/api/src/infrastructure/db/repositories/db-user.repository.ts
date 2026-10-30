@@ -17,6 +17,7 @@ import { users } from "../schema/users.js";
 import { statuses } from "../schema/statuses.js";
 import { modules } from "../schema/modules.js";
 import { userPermissions } from "../schema/user-permissions.js";
+import type { ActorUserId } from "../../../application/shared/actor.js";
 
 function isEmailUniqueViolation(error: unknown): boolean {
   if (
@@ -42,7 +43,7 @@ export class DBUserRepository implements UserRepository {
     return findStatusId(this.db, StatusTypeKey.USER, statusKey);
   }
 
-  async save(user: User, createdByUserId: number): Promise<number> {
+  async save(user: User, actorUserId: ActorUserId): Promise<number> {
     const data = user.toPrimitives();
     const activeStatusId = await this.getStatusId(UserStatusKey.ACTIVE);
 
@@ -56,7 +57,7 @@ export class DBUserRepository implements UserRepository {
           password: data.password,
           mustChangePassword: data.mustChangePassword,
           statusId: activeStatusId,
-          createdByUserId,
+          createdByUserId: actorUserId,
         })
         .returning({ id: users.id });
 
@@ -172,7 +173,7 @@ export class DBUserRepository implements UserRepository {
     return rows.map((row) => User.fromPersistence(row));
   }
 
-  async update(user: User, updatedByUserId: number): Promise<void> {
+  async update(user: User, actorUserId: ActorUserId): Promise<void> {
     const { id, ...data } = user.toPrimitives();
     const deletedStatusId = await this.getStatusId(UserStatusKey.DELETED);
 
@@ -184,7 +185,7 @@ export class DBUserRepository implements UserRepository {
           lastName: data.lastName,
           email: data.email,
           updatedAt: new Date(),
-          updatedByUserId,
+          updatedByUserId: actorUserId,
         })
         .where(and(eq(users.id, id!), ne(users.statusId, deletedStatusId)))
         .returning({ id: users.id });

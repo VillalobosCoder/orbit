@@ -5,11 +5,10 @@ import { PasswordHasher } from "../ports/password-hasher.port.js";
 import type { SaveUserRequestDto } from "@orbit/shared";
 import { UserRepository } from "../ports/user-repository.port.js";
 import type { UserPermissionRepository } from "../../auth/ports/user-permission-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
 import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
 
-export type CreateUserInput = SaveUserRequestDto & {
-  createdByUserId: number;
-};
+export type CreateUserInput = SaveUserRequestDto & Actor;
 
 export type CreateUserOutput = {
   temporaryPassword: string;
@@ -42,12 +41,12 @@ export class CreateUserUseCase {
     await this.transaction.run(async () => {
       const userId = await this.userRepository.save(
         user,
-        input.createdByUserId,
+        input.actorUserId,
       );
       await this.permissions.replaceForUser(
         userId,
         input.permissions ?? [],
-        input.createdByUserId,
+        input.actorUserId,
       );
     });
 

@@ -53,8 +53,8 @@ export class UserController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const createdByUserId = req.auth?.id;
-      if (createdByUserId === undefined) {
+      const actorUserId = req.auth?.id;
+      if (actorUserId === undefined) {
         res.status(401).json({ error: "No autenticado." });
         return;
       }
@@ -62,7 +62,7 @@ export class UserController {
       const input: SaveUserRequestDto = saveSchema.parse(req.body);
       const result = await this.createUserUseCase.execute({
         ...input,
-        createdByUserId,
+        actorUserId,
       });
       const response: CreateUserResponseDto = result;
       res.status(201).json(response);
@@ -91,8 +91,8 @@ export class UserController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const updatedByUserId = req.auth?.id;
-      if (updatedByUserId === undefined) {
+      const actorUserId = req.auth?.id;
+      if (actorUserId === undefined) {
         res.status(401).json({ error: "No autenticado." });
         return;
       }
@@ -100,14 +100,14 @@ export class UserController {
       const { id } = idParamSchema.parse(req.params);
       const input: SaveUserRequestDto = saveSchema.parse(req.body);
 
-      if (id === updatedByUserId && input.permissions !== undefined) {
+      if (id === actorUserId && input.permissions !== undefined) {
         res
           .status(403)
           .json({ error: "No puedes modificar tus propios permisos." });
         return;
       }
 
-      await this.updateUserUseCase.execute({ ...input, id, updatedByUserId });
+      await this.updateUserUseCase.execute({ ...input, id, actorUserId });
       res.status(204).end();
     } catch (error) {
       next(error);
