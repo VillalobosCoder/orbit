@@ -3,8 +3,9 @@ import { CommentNotFoundError } from "../../../domain/comment/comment.errors.js"
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { CommentRepository } from "../ports/comment-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
 
-export type DeleteCommentInput = CommentRequestDto & { actorUserId: number };
+export type DeleteCommentInput = CommentRequestDto & Actor;
 
 export class DeleteCommentUseCase {
   constructor(

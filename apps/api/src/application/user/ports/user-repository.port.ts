@@ -1,4 +1,12 @@
+import type { UserIdRequestDto } from "@orbit/shared";
 import { User } from "../../../domain/user/user.entity.js";
+import type { Actor } from "../../shared/actor.js";
+
+export type SetUserPasswordCommand = UserIdRequestDto &
+  Actor & {
+    passwordHash: string;
+    mustChangePassword: boolean;
+  };
 
 export interface UserRepository {
   save(user: User, createdByUserId: number): Promise<number>;
@@ -8,5 +16,6 @@ export interface UserRepository {
   findAll(): Promise<User[]>;
   update(user: User, updatedByUserId: number): Promise<void>;
   updatePassword(id: number, passwordHash: string): Promise<void>;
+  setPassword(command: SetUserPasswordCommand): Promise<void>;
   delete(id: number): Promise<void>;
 }

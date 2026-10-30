@@ -2,9 +2,9 @@ import type { IssueOptionsDto, ProjectIdRequestDto } from "@orbit/shared";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { IssueCatalogRepository } from "../ports/issue-catalog-repository.port.js";
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
+import type { Actor } from "../../shared/actor.js";
 
-export type GetIssueOptionsInput = ProjectIdRequestDto &
-  { actorUserId: number };
+export type GetIssueOptionsInput = ProjectIdRequestDto & Actor;
 
 export class GetIssueOptionsUseCase {
   constructor(

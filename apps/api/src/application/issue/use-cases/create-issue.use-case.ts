@@ -23,9 +23,10 @@ import {
   normalizeAssignees,
 } from "../utils/validate-issue-references.js";
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
+import type { Actor } from "../../shared/actor.js";
 
 export type CreateIssueInput = SaveIssueRequestDto &
-  ProjectIdRequestDto & { actorUserId: number };
+  ProjectIdRequestDto & Actor;
 
 export class CreateIssueUseCase {
   constructor(

@@ -5,10 +5,9 @@ import type {
   PriorityDto,
   ProjectIdRequestDto,
 } from "@orbit/shared";
+import type { Actor } from "../../shared/actor.js";
 
-export type SeedDefaultCatalogCommand = ProjectIdRequestDto & {
-  actorUserId: number;
-};
+export type SeedDefaultCatalogCommand = ProjectIdRequestDto & Actor;
 
 export interface IssueCatalogRepository {
   findColumns(query: ProjectIdRequestDto): Promise<BoardColumnDto[]>;

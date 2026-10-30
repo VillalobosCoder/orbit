@@ -3,18 +3,17 @@ import type {
   ProjectIdRequestDto,
 } from "@orbit/shared";
 import type { BoardColumn } from "../../../domain/board-column/board-column.entity.js";
+import type { Actor } from "../../shared/actor.js";
 
-export type ReorderColumnsCommand = ProjectIdRequestDto & {
+export type ReorderColumnsCommand = ProjectIdRequestDto & Actor & {
   columnIds: number[];
-  actorUserId: number;
 };
 
-export type MoveColumnIssuesCommand = ProjectIdRequestDto & {
+export type MoveColumnIssuesCommand = ProjectIdRequestDto & Actor & {
   fromColumnId: number;
   toColumnId: number;
   /** La columna de destino tiene categoría `done`. */
   toIsDone: boolean;
-  actorUserId: number;
 };
 
 export interface BoardColumnRepository {

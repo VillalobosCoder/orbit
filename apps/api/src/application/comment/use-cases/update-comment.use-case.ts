@@ -3,9 +3,10 @@ import { CommentNotFoundError } from "../../../domain/comment/comment.errors.js"
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { CommentRepository } from "../ports/comment-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
 
 export type UpdateCommentInput = SaveCommentRequestDto &
-  CommentRequestDto & { actorUserId: number };
+  CommentRequestDto & Actor;
 
 export class UpdateCommentUseCase {
   constructor(

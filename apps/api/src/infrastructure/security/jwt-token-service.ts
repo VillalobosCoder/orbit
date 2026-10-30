@@ -53,6 +53,9 @@ export class JwtTokenService implements TokenService {
       throw new Error("El token no contiene claims válidos.");
     }
 
-    return { sub: payload.sub };
+    return {
+      sub: payload.sub,
+      mustChangePassword: payload.mustChangePassword === true,
+    };
   }
 }

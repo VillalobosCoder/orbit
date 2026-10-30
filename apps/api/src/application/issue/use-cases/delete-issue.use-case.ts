@@ -3,8 +3,9 @@ import type { TransactionManager } from "../../shared/ports/transaction-manager.
 import type { IssueRepository } from "../ports/issue-repository.port.js";
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { IssueRequestDto } from "@orbit/shared";
+import type { Actor } from "../../shared/actor.js";
 
-export type DeleteIssueInput = IssueRequestDto & { actorUserId: number };
+export type DeleteIssueInput = IssueRequestDto & Actor;
 
 export class DeleteIssueUseCase {
   constructor(

@@ -3,10 +3,9 @@ import type {
   ProjectMemberDto,
   ProjectMemberRequestDto,
 } from "@orbit/shared";
+import type { Actor } from "../../shared/actor.js";
 
-export type AddProjectMemberCommand = ProjectMemberRequestDto & {
-  actorUserId: number;
-};
+export type AddProjectMemberCommand = ProjectMemberRequestDto & Actor;
 
 export interface ProjectMemberRepository {
   add(command: AddProjectMemberCommand): Promise<void>;

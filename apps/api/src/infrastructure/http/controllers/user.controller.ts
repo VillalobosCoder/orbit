@@ -1,9 +1,11 @@
 import type { NextFunction, Response } from "express";
 import type {
   CreateUserResponseDto,
+  ResetUserPasswordResponseDto,
   SaveUserRequestDto,
   UserDetailDto,
 } from "@orbit/shared";
+import type { ResetUserPasswordUseCase } from "../../../application/user/use-cases/reset-user-password.use-case.js";
 import { CreateUserUseCase } from "../../../application/user/use-cases/create-user.use-case.js";
 import {
   deleteSchema,
@@ -23,6 +25,7 @@ export class UserController {
     private readonly deleteUserUseCase: DeleteUserUseCase,
     private readonly getUserUseCase: GetUserUseCase,
     private readonly updateUserUseCase: UpdateUserUseCase,
+    private readonly resetUserPasswordUseCase: ResetUserPasswordUseCase,
   ) {}
 
   getAllUsers = async (
@@ -106,6 +109,28 @@ export class UserController {
 
       await this.updateUserUseCase.execute({ ...input, id, updatedByUserId });
       res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  resetPassword = async (
+    req: AuthedRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const actorUserId = req.auth?.id;
+
+      if (actorUserId === undefined) {
+        res.status(401).json({ error: "No autenticado." });
+        return;
+      }
+
+      const { id } = idParamSchema.parse(req.params);
+      const response: ResetUserPasswordResponseDto =
+        await this.resetUserPasswordUseCase.execute({ id, actorUserId });
+      res.status(200).json(response);
     } catch (error) {
       next(error);
     }

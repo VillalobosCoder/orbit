@@ -6,8 +6,9 @@ import type { IssueRepository } from "../../issue/ports/issue-repository.port.js
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import { toSprintDto } from "../mappers/sprint.mapper.js";
 import type { SprintRepository } from "../ports/sprint-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
 
-export type GetPlanningInput = ProjectIdRequestDto & { actorUserId: number };
+export type GetPlanningInput = ProjectIdRequestDto & Actor;
 
 export class GetPlanningUseCase {
   constructor(

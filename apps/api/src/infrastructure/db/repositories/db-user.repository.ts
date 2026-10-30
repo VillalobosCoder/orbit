@@ -1,5 +1,8 @@
 import { and, eq, ne, sql } from "drizzle-orm";
-import { UserRepository } from "../../../application/user/ports/user-repository.port.js";
+import {
+  UserRepository,
+  type SetUserPasswordCommand,
+} from "../../../application/user/ports/user-repository.port.js";
 import { User } from "../../../domain/user/user.entity.js";
 import { Email } from "../../../domain/user/value-objects/email.vo.js";
 import { StatusTypeKey, UserStatusKey } from "@orbit/shared";
@@ -51,6 +54,7 @@ export class DBUserRepository implements UserRepository {
           lastName: data.lastName,
           email: data.email,
           password: data.password,
+          mustChangePassword: data.mustChangePassword,
           statusId: activeStatusId,
           createdByUserId,
         })
@@ -211,6 +215,29 @@ export class DBUserRepository implements UserRepository {
           ne(users.statusId, deletedStatusId),
         ),
       )
+      .returning({ id: users.id });
+
+    if (!row) {
+      throw new UserNotFoundError(id);
+    }
+  }
+
+  async setPassword({
+    id,
+    passwordHash,
+    mustChangePassword,
+    actorUserId,
+  }: SetUserPasswordCommand): Promise<void> {
+    const deletedStatusId = await this.getStatusId(UserStatusKey.DELETED);
+    const [row] = await this.db
+      .update(users)
+      .set({
+        password: passwordHash,
+        mustChangePassword,
+        updatedAt: new Date(),
+        updatedByUserId: actorUserId,
+      })
+      .where(and(eq(users.id, id), ne(users.statusId, deletedStatusId)))
       .returning({ id: users.id });
 
     if (!row) {

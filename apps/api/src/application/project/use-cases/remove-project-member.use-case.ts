@@ -2,10 +2,9 @@ import type { ProjectMemberRequestDto } from "@orbit/shared";
 import { CannotRemoveProjectOwnerError, ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { ProjectMemberRepository } from "../ports/project-member-repository.port.js";
 import type { ProjectRepository } from "../ports/project-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
 
-export type RemoveProjectMemberInput = ProjectMemberRequestDto & {
-  actorUserId: number;
-};
+export type RemoveProjectMemberInput = ProjectMemberRequestDto & Actor;
 
 export class RemoveProjectMemberUseCase {
   constructor(

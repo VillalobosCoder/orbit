@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { PrivateGuard, PublicGuard } from "@/router/guards.tsx";
 import Login from "@/features/auth/pages/login/login";
+import ChangePasswordPage from "@/features/auth/pages/change-password/change-password";
 import AuthLayout from "@/features/auth/pages/auth-layout";
 import ModuleLayout from "@/shared/ui/layouts/module-loyout";
 import NotFoundPage from "./not-found";
@@ -25,6 +26,12 @@ export const router = createBrowserRouter([
     path: "/",
     element: <PrivateGuard />,
     children: [
+      {
+        element: <AuthLayout />,
+        children: [
+          { path: "cambiar-contrasena", element: <ChangePasswordPage /> },
+        ],
+      },
       {
         element: <ModuleLayout />,
         children: [

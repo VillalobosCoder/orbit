@@ -6,9 +6,10 @@ import { BoardColumnNotFoundError } from "../../../domain/board-column/board-col
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { BoardColumnRepository } from "../ports/board-column-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
 
 export type UpdateBoardColumnInput = SaveBoardColumnRequestDto &
-  BoardColumnRequestDto & { actorUserId: number };
+  BoardColumnRequestDto & Actor;
 
 export class UpdateBoardColumnUseCase {
   constructor(

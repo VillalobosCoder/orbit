@@ -8,9 +8,10 @@ import { ProjectNotFoundError } from "../../../domain/project/project.errors.js"
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import { toBoardColumnDto } from "../mappers/board-column.mapper.js";
 import type { BoardColumnRepository } from "../ports/board-column-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
 
 export type CreateBoardColumnInput = CreateBoardColumnRequestDto &
-  ProjectIdRequestDto & { actorUserId: number };
+  ProjectIdRequestDto & Actor;
 
 export class CreateBoardColumnUseCase {
   constructor(

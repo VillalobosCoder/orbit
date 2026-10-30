@@ -6,8 +6,9 @@ import {
 } from "../../../domain/sprint/sprint.errors.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { SprintRepository } from "../ports/sprint-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
 
-export type StartSprintInput = SprintRequestDto & { actorUserId: number };
+export type StartSprintInput = SprintRequestDto & Actor;
 
 export class StartSprintUseCase {
   constructor(

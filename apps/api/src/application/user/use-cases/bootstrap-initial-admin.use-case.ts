@@ -1,6 +1,6 @@
 import { User } from "../../../domain/user/user.entity.js";
 import { PasswordTooLongError } from "../../../domain/user/user.errors.js";
-import { exceedsPasswordByteLimit } from "../../../domain/user/password-policy.js";
+import { Password } from "../../../domain/user/value-objects/password.vo.js";
 import type { PasswordHasher } from "../ports/password-hasher.port.js";
 import type { UserRepository } from "../ports/user-repository.port.js";
 import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
@@ -20,7 +20,7 @@ export class BootstrapInitialAdminUseCase {
   ) {}
 
   async execute(input: BootstrapInitialAdminInput): Promise<void> {
-    if (exceedsPasswordByteLimit(input.password)) {
+    if (Password.exceedsByteLimit(input.password)) {
       throw new PasswordTooLongError();
     }
 

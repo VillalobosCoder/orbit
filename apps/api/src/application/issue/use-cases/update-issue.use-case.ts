@@ -24,9 +24,10 @@ import {
   findIssueType,
   normalizeAssignees,
 } from "../utils/validate-issue-references.js";
+import type { Actor } from "../../shared/actor.js";
 
 export type UpdateIssueInput = SaveIssueRequestDto &
-  IssueRequestDto & { actorUserId: number };
+  IssueRequestDto & Actor;
 
 export class UpdateIssueUseCase {
   constructor(

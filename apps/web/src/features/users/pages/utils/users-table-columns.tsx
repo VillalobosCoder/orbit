@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { KeyRound, Pencil, Trash2 } from "lucide-react";
 import { createColumnHelper } from "@tanstack/react-table";
 import type { UserDto } from "@orbit/shared";
 
@@ -14,6 +14,7 @@ interface UserTableColumnOptions {
   canWrite: boolean;
   onEdit: (user: UserDto) => void;
   onDelete: (user: UserDto) => void;
+  onResetPassword: (user: UserDto) => void;
 }
 
 export function createColumns({
@@ -22,6 +23,7 @@ export function createColumns({
   canWrite,
   onEdit,
   onDelete,
+  onResetPassword,
 }: UserTableColumnOptions) {
   const columns = [
     columnHelper.display({
@@ -72,18 +74,30 @@ export function createColumns({
             </Button>
             {currentUserId !== undefined &&
               row.original.id !== currentUserId && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  className="hover:bg-destructive/10 hover:text-destructive"
-                  aria-label={`Eliminar a ${row.original.name} ${row.original.lastName}`}
-                  title="Eliminar"
-                  disabled={deletingUserId === row.original.id}
-                  onClick={() => onDelete(row.original)}
-                >
-                  <Trash2 />
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Restablecer la contraseña de ${row.original.name} ${row.original.lastName}`}
+                    title="Restablecer contraseña"
+                    onClick={() => onResetPassword(row.original)}
+                  >
+                    <KeyRound />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="hover:bg-destructive/10 hover:text-destructive"
+                    aria-label={`Eliminar a ${row.original.name} ${row.original.lastName}`}
+                    title="Eliminar"
+                    disabled={deletingUserId === row.original.id}
+                    onClick={() => onDelete(row.original)}
+                  >
+                    <Trash2 />
+                  </Button>
+                </>
               )}
           </div>
         ),

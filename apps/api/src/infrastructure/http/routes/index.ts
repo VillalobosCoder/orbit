@@ -17,6 +17,7 @@ import { createIssueRoutes } from "./issue.routes.js";
 import { createSprintRoutes } from "./sprint.routes.js";
 import { createProjectRoutes } from "./project.routes.js";
 import type { UserPermissionRepository } from "../../../application/auth/ports/user-permission-repository.port.js";
+import { requirePasswordChanged } from "../middleware/auth.middleware.js";
 
 export interface RouteControllers {
   auth: AuthController;
@@ -35,33 +36,41 @@ export function createApiRoutes(
   permissions: UserPermissionRepository,
 ) {
   const router = Router();
+  const authenticateReady = requirePasswordChanged(authenticate);
 
   router.use("/auth", createAuthRoutes(controllers.auth, authenticate));
   router.use(
     "/users",
-    UserRoutes(controllers.users, authenticate, permissions),
+    UserRoutes(controllers.users, authenticateReady, permissions),
   );
   router.use(
     "/projects",
-    createProjectRoutes(controllers.projects, authenticate, permissions),
+    createProjectRoutes(controllers.projects, authenticateReady, permissions),
   );
   router.use(
     "/projects/:id/issues/:issueId/comments",
-    createCommentRoutes(controllers.comments, authenticate, permissions),
+    createCommentRoutes(controllers.comments, authenticateReady, permissions),
   );
   router.use(
     "/projects/:id",
-    createIssueRoutes(controllers.issues, authenticate, permissions),
+    createIssueRoutes(controllers.issues, authenticateReady, permissions),
   );
   router.use(
     "/projects/:id",
-    createSprintRoutes(controllers.sprints, authenticate, permissions),
+    createSprintRoutes(controllers.sprints, authenticateReady, permissions),
   );
   router.use(
     "/projects/:id/columns",
-    createBoardColumnRoutes(controllers.boardColumns, authenticate, permissions),
+    createBoardColumnRoutes(
+      controllers.boardColumns,
+      authenticateReady,
+      permissions,
+    ),
   );
-  router.use("/modules", createModuleRoutes(controllers.modules, authenticate));
+  router.use(
+    "/modules",
+    createModuleRoutes(controllers.modules, authenticateReady),
+  );
 
   return router;
 }

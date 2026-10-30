@@ -1,11 +1,17 @@
 import { useState } from "react";
 import type { UserDto } from "@orbit/shared";
 
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useAuth } from "@/context/auth/use-auth";
 import { ConfirmDialogComponent } from "@/shared/ui/custom-components/confirm-dialog-component";
 import { TableComponent } from "@/shared/ui/custom-components/table-component";
-import { useDeleteUser, useGetUsers } from "../../api/queries";
+import {
+  useDeleteUser,
+  useGetUsers,
+  useResetUserPassword,
+} from "../../api/queries";
 import { createColumns } from "../utils/users-table-columns";
+import TemporaryPassword from "./temporary-password";
 
 export default function UserTable({
   canWrite,
@@ -17,7 +23,13 @@ export default function UserTable({
   const { data, isLoading, error } = useGetUsers();
   const { user } = useAuth();
   const deleteUser = useDeleteUser();
+  const resetPassword = useResetUserPassword();
   const [userToDelete, setUserToDelete] = useState<UserDto | null>(null);
+  const [userToReset, setUserToReset] = useState<UserDto | null>(null);
+  const [resetResult, setResetResult] = useState<{
+    user: UserDto;
+    password: string;
+  } | null>(null);
 
   const columns = createColumns({
     currentUserId: user?.id,
@@ -25,6 +37,7 @@ export default function UserTable({
     canWrite,
     onEdit: (targetUser) => onEdit(targetUser.id),
     onDelete: setUserToDelete,
+    onResetPassword: setUserToReset,
   });
 
   if (error) {
@@ -40,6 +53,14 @@ export default function UserTable({
 
   return (
     <>
+      {resetPassword.isError && (
+        <p
+          role="alert"
+          className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+        >
+          {resetPassword.error.message}
+        </p>
+      )}
       <TableComponent
         data={data ?? []}
         columns={columns}
@@ -70,6 +91,53 @@ export default function UserTable({
           });
         }}
       />
+      <ConfirmDialogComponent
+        open={userToReset !== null}
+        title="¿Restablecer la contraseña?"
+        description={
+          <>
+            Se generará una contraseña temporal para{" "}
+            <strong className="font-medium text-foreground">
+              {userToReset?.email}
+            </strong>
+            . La actual dejará de funcionar y la persona deberá cambiarla al
+            volver a entrar.
+          </>
+        }
+        confirmLabel="Restablecer contraseña"
+        pendingLabel="Restableciendo..."
+        isPending={resetPassword.isPending}
+        onClose={() => setUserToReset(null)}
+        onConfirm={() => {
+          if (!userToReset) return;
+          const target = userToReset;
+          resetPassword.mutate(target.id, {
+            onSuccess: (result) => {
+              if (result) {
+                setResetResult({ user: target, password: result.temporaryPassword });
+              }
+            },
+            onSettled: () => setUserToReset(null),
+          });
+        }}
+      />
+      <Dialog
+        open={resetResult !== null}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) setResetResult(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          {resetResult && (
+            <TemporaryPassword
+              title="Contraseña restablecida"
+              description={`Comparte esta contraseña temporal con ${resetResult.user.name} ${resetResult.user.lastName}. No se volverá a mostrar después de cerrar este diálogo.`}
+              password={resetResult.password}
+              onClose={() => setResetResult(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

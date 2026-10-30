@@ -4,10 +4,9 @@ import type { UserRepository } from "../../user/ports/user-repository.port.js";
 import type { ProjectMemberRepository } from "../ports/project-member-repository.port.js";
 import type { ProjectRepository } from "../ports/project-repository.port.js";
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
+import type { Actor } from "../../shared/actor.js";
 
-export type AddProjectMemberInput = ProjectMemberRequestDto & {
-  actorUserId: number;
-};
+export type AddProjectMemberInput = ProjectMemberRequestDto & Actor;
 
 export class AddProjectMemberUseCase {
   constructor(

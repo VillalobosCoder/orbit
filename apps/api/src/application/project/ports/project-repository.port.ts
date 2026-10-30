@@ -1,13 +1,12 @@
 import type { ProjectIdRequestDto } from "@orbit/shared";
 import type { Project } from "../../../domain/project/project.entity.js";
+import type { Actor } from "../../shared/actor.js";
 
 export type FindProjectForMemberQuery = ProjectIdRequestDto & {
   userId: number;
 };
 
-export type DeleteProjectCommand = ProjectIdRequestDto & {
-  actorUserId: number;
-};
+export type DeleteProjectCommand = ProjectIdRequestDto & Actor;
 
 export interface ProjectRepository {
   save(project: Project, actorUserId: number): Promise<number>;

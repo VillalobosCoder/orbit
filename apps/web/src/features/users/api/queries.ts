@@ -5,10 +5,11 @@ import {
   requireData,
 } from "@/api/config";
 import { queryClient } from "@/api/tanstack-query-config";
-import { USERS } from "@/api/uris";
+import { RESET_PASSWORD, USERS } from "@/api/uris";
 import {
   type SaveUserRequestDto,
   type CreateUserResponseDto,
+  type ResetUserPasswordResponseDto,
   type UserDetailDto,
   type UserDto,
 } from "@orbit/shared";
@@ -73,6 +74,17 @@ export function useCreateUser() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [USERS] });
     },
+    onError: handleMutationError,
+  });
+}
+
+export function useResetUserPassword() {
+  return useMutation<ResetUserPasswordResponseDto | null, Error, number>({
+    mutationFn: (id) =>
+      injectQuery<ResetUserPasswordResponseDto>(
+        [USERS, `/${id}`, RESET_PASSWORD],
+        { method: HttpMethod.POST },
+      ),
     onError: handleMutationError,
   });
 }

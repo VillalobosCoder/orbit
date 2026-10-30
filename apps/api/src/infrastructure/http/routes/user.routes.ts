@@ -35,6 +35,12 @@ export function UserRoutes(
     makePermissionMiddleware(permissions, "users", "write"),
     controller.update,
   );
+  router.post(
+    "/:id/reset-password",
+    authenticate,
+    makePermissionMiddleware(permissions, "users", "write"),
+    controller.resetPassword,
+  );
   router.delete(
     "/:id",
     authenticate,

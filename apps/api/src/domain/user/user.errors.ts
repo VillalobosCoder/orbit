@@ -63,3 +63,38 @@ export class InvalidCredentialsError extends DomainError {
     super("Correo o contraseña incorrectos.");
   }
 }
+
+
+export class PasswordPolicyError extends DomainError {
+  readonly statusCode = 400;
+
+  constructor() {
+    super(
+      "La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.",
+    );
+  }
+}
+
+export class IncorrectCurrentPasswordError extends DomainError {
+  readonly statusCode = 400;
+
+  constructor() {
+    super("La contraseña actual no es correcta.");
+  }
+}
+
+export class SamePasswordError extends DomainError {
+  readonly statusCode = 400;
+
+  constructor() {
+    super("La contraseña nueva debe ser distinta de la actual.");
+  }
+}
+
+export class CannotResetOwnPasswordError extends DomainError {
+  readonly statusCode = 403;
+
+  constructor() {
+    super("No puedes restablecer tu propia contraseña; cámbiala desde tu perfil.");
+  }
+}

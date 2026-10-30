@@ -11,9 +11,10 @@ import { ProjectNotFoundError } from "../../../domain/project/project.errors.js"
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
 import type { BoardColumnRepository } from "../ports/board-column-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
 
 export type DeleteBoardColumnInput = DeleteBoardColumnRequestDto &
-  BoardColumnRequestDto & { actorUserId: number };
+  BoardColumnRequestDto & Actor;
 
 export class DeleteBoardColumnUseCase {
   constructor(

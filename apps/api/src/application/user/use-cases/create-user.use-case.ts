@@ -1,10 +1,6 @@
 import { User } from "../../../domain/user/user.entity.js";
-import {
-  PasswordTooLongError,
-  UserAlreadyExistsError,
-  WeakPasswordError,
-} from "../../../domain/user/user.errors.js";
-import { exceedsPasswordByteLimit } from "../../../domain/user/password-policy.js";
+import { UserAlreadyExistsError } from "../../../domain/user/user.errors.js";
+import { Password } from "../../../domain/user/value-objects/password.vo.js";
 import { PasswordHasher } from "../ports/password-hasher.port.js";
 import type { SaveUserRequestDto } from "@orbit/shared";
 import { UserRepository } from "../ports/user-repository.port.js";
@@ -18,8 +14,6 @@ export type CreateUserInput = SaveUserRequestDto & {
 export type CreateUserOutput = {
   temporaryPassword: string;
 };
-
-const TEMPORARY_USER_PASSWORD = "12345678";
 
 export class CreateUserUseCase {
   constructor(
@@ -36,21 +30,13 @@ export class CreateUserUseCase {
       throw new UserAlreadyExistsError(input.email);
     }
 
-    const password = TEMPORARY_USER_PASSWORD;
-    if (password.length < 8) {
-      throw new WeakPasswordError();
-    }
-
-    if (exceedsPasswordByteLimit(password)) {
-      throw new PasswordTooLongError();
-    }
-
-    const passwordHasher = await this.hasher.hash(password);
+    const temporaryPassword = Password.generateTemporary();
     const user = User.register({
       name: input.name,
       lastName: input.lastName,
       email: input.email,
-      password: passwordHasher,
+      password: await this.hasher.hash(temporaryPassword.toString()),
+      mustChangePassword: true,
     });
 
     await this.transaction.run(async () => {
@@ -65,6 +51,6 @@ export class CreateUserUseCase {
       );
     });
 
-    return { temporaryPassword: password };
+    return { temporaryPassword: temporaryPassword.toString() };
   }
 }

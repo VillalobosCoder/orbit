@@ -7,9 +7,10 @@ import { ProjectNotFoundError } from "../../../domain/project/project.errors.js"
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
 import type { BoardColumnRepository } from "../ports/board-column-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
 
 export type ReorderBoardColumnsInput = ReorderBoardColumnsRequestDto &
-  ProjectIdRequestDto & { actorUserId: number };
+  ProjectIdRequestDto & Actor;
 
 export class ReorderBoardColumnsUseCase {
   constructor(

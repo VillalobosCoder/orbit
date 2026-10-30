@@ -20,6 +20,7 @@ export class GetCurrentUserUseCase {
       name: user.name,
       email: user.email.toString(),
       permissions: await this.permissions.findByUserId(id),
+      mustChangePassword: user.mustChangePassword,
     };
   }
 }

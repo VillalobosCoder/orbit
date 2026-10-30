@@ -1,5 +1,9 @@
 import type { UserPermissionDto } from "../auth/auth.dto.js";
 
+export type UserIdRequestDto = {
+  id: number;
+};
+
 export type SaveUserRequestDto = {
   name: string;
   lastName: string;
@@ -10,6 +14,8 @@ export type SaveUserRequestDto = {
 export type CreateUserResponseDto = {
   temporaryPassword: string;
 };
+
+export type ResetUserPasswordResponseDto = CreateUserResponseDto;
 
 export type UserDto = {
   id: number;

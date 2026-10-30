@@ -8,9 +8,10 @@ import { Sprint } from "../../../domain/sprint/sprint.entity.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import { toSprintDto } from "../mappers/sprint.mapper.js";
 import type { SprintRepository } from "../ports/sprint-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
 
 export type CreateSprintInput = SaveSprintRequestDto &
-  ProjectIdRequestDto & { actorUserId: number };
+  ProjectIdRequestDto & Actor;
 
 export class CreateSprintUseCase {
   constructor(

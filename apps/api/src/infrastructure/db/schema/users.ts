@@ -1,5 +1,6 @@
 import {
   AnyPgColumn,
+  boolean,
   integer,
   pgTable,
   varchar,
@@ -15,6 +16,9 @@ export const users = pgTable(
     lastName: varchar({ length: 50 }).notNull(),
     email: varchar({ length: 254 }).notNull().unique(),
     password: varchar("password_hash", { length: 255 }).notNull(),
+    mustChangePassword: boolean("must_change_password")
+      .notNull()
+      .default(false),
     statusId: integer("status_id")
       .notNull()
       .references(() => statuses.id),

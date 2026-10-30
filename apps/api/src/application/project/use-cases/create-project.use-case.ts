@@ -5,10 +5,9 @@ import { toProjectDto } from "../mappers/project.mapper.js";
 import type { IssueCatalogRepository } from "../../issue/ports/issue-catalog-repository.port.js";
 import type { ProjectMemberRepository } from "../ports/project-member-repository.port.js";
 import type { ProjectRepository } from "../ports/project-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
 
-export type CreateProjectInput = CreateProjectRequestDto & {
-  actorUserId: number;
-};
+export type CreateProjectInput = CreateProjectRequestDto & Actor;
 
 export class CreateProjectUseCase {
   constructor(

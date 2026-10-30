@@ -1,5 +1,5 @@
 import { InvalidCredentialsError } from "../../../domain/user/user.errors.js";
-import { exceedsPasswordByteLimit } from "../../../domain/user/password-policy.js";
+import { Password } from "../../../domain/user/value-objects/password.vo.js";
 import { PasswordHasher } from "../../user/ports/password-hasher.port.js";
 import { UserRepository } from "../../user/ports/user-repository.port.js";
 import { TokenService } from "../ports/token-service.port.js";
@@ -25,7 +25,7 @@ export class LoginUseCase {
   ) {}
 
   async execute(input: LoginInput): Promise<LoginOutput> {
-    if (exceedsPasswordByteLimit(input.password)) {
+    if (Password.exceedsByteLimit(input.password)) {
       throw new InvalidCredentialsError();
     }
 
@@ -49,7 +49,10 @@ export class LoginUseCase {
       await this.usersRepository.updatePassword(user.id!, upgradedHash);
     }
 
-    const token = this.tokens.sign({ sub: String(user.id!) });
+    const token = this.tokens.sign({
+      sub: String(user.id!),
+      mustChangePassword: user.mustChangePassword,
+    });
     const permissions = await this.permissions.findByUserId(user.id!);
 
     return {
@@ -59,6 +62,7 @@ export class LoginUseCase {
         name: user.name,
         email: user.email.toString(),
         permissions,
+        mustChangePassword: user.mustChangePassword,
       },
     };
   }

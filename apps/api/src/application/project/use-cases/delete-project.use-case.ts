@@ -1,8 +1,9 @@
 import type { ProjectRepository } from "../ports/project-repository.port.js";
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { ProjectIdRequestDto } from "@orbit/shared";
+import type { Actor } from "../../shared/actor.js";
 
-export type DeleteProjectInput = ProjectIdRequestDto & { actorUserId: number };
+export type DeleteProjectInput = ProjectIdRequestDto & Actor;
 
 export class DeleteProjectUseCase {
   constructor(private readonly projects: ProjectRepository) {}

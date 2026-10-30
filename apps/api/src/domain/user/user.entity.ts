@@ -5,6 +5,7 @@ export type RegisterUserInput = {
   lastName: string;
   email: string;
   password: string;
+  mustChangePassword?: boolean;
 };
 
 export type UserPrimitives = {
@@ -13,6 +14,7 @@ export type UserPrimitives = {
   lastName: string;
   email: string;
   password: string;
+  mustChangePassword: boolean;
   createdAt: Date;
 };
 
@@ -22,6 +24,7 @@ type UserProps = {
   lastName: string;
   email: Email;
   password: string;
+  mustChangePassword: boolean;
   createdAt: Date;
 };
 
@@ -32,6 +35,7 @@ export class User {
     return new User({
       ...User.normalizeProfile(input),
       password: input.password,
+      mustChangePassword: input.mustChangePassword ?? false,
       createdAt: new Date(),
     });
   }
@@ -43,6 +47,7 @@ export class User {
       lastName: data.lastName,
       email: Email.create(data.email),
       password: data.password,
+      mustChangePassword: data.mustChangePassword,
       createdAt: data.createdAt,
     });
   }
@@ -86,7 +91,11 @@ export class User {
   get password(): string {
     return this.props.password;
   }
-  
+
+  get mustChangePassword(): boolean {
+    return this.props.mustChangePassword;
+  }
+
   get createdAt(): Date {
     return this.props.createdAt;
   }
@@ -98,6 +107,7 @@ export class User {
       lastName: this.props.lastName,
       email: this.props.email.toString(),
       password: this.props.password,
+      mustChangePassword: this.props.mustChangePassword,
       createdAt: this.props.createdAt,
     };
   }

@@ -12,9 +12,10 @@ import type { IssueRepository } from "../../issue/ports/issue-repository.port.js
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
 import type { SprintRepository } from "../ports/sprint-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
 
 export type AssignIssueSprintInput = AssignSprintRequestDto &
-  IssueRequestDto & { actorUserId: number };
+  IssueRequestDto & Actor;
 
 export class AssignIssueSprintUseCase {
   constructor(

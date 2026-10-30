@@ -4,6 +4,7 @@ export const LOGIN = '/login';
 export const ME = '/me';
 export const LOGOUT = '/logout';
 export const SESSION = '/session';
+export const PASSWORD = '/password';
 // #endregion
 
 // #region Mains
@@ -15,4 +16,5 @@ export const PROJECTS = '/projects';
 // #region Extensions
 export const MEMBERS = '/members';
 export const AVAILABLE_USERS = '/available-users';
+export const RESET_PASSWORD = '/reset-password';
 // #endregion

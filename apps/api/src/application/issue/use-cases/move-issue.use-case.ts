@@ -10,9 +10,10 @@ import type { IssueCatalogRepository } from "../ports/issue-catalog-repository.p
 import type { IssueRepository } from "../ports/issue-repository.port.js";
 import { findColumn } from "../utils/validate-issue-references.js";
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
+import type { Actor } from "../../shared/actor.js";
 
 export type MoveIssueInput = MoveIssueRequestDto &
-  IssueRequestDto & { actorUserId: number };
+  IssueRequestDto & Actor;
 
 export class MoveIssueUseCase {
   constructor(

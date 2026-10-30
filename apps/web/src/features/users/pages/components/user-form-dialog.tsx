@@ -1,5 +1,5 @@
 import { useState, type SubmitEvent } from "react";
-import { Check, CircleAlert, Copy } from "lucide-react";
+import { CircleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,6 +21,7 @@ import {
   useGetUser,
   useUpdateUser,
 } from "@/features/users/api/queries";
+import TemporaryPassword from "./temporary-password";
 import type {
   SaveUserRequestDto,
   UserDetailDto,
@@ -80,60 +81,6 @@ function ErrorMessage({ children }: { children: React.ReactNode }) {
       <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
       {children}
     </div>
-  );
-}
-
-function TemporaryPassword({
-  password,
-  onClose,
-}: {
-  password: string;
-  onClose: () => void;
-}) {
-  const [copied, setCopied] = useState(false);
-
-  async function copyPassword() {
-    try {
-      await navigator.clipboard.writeText(password);
-      setCopied(true);
-    } catch {
-      // Clipboard is unavailable: the password stays selectable in the field.
-    }
-  }
-
-  return (
-    <>
-      <DialogHeader>
-        <DialogTitle>Usuario creado</DialogTitle>
-        <DialogDescription>
-          Comparte esta contraseña temporal con el usuario. No se volverá a
-          mostrar después de cerrar este diálogo.
-        </DialogDescription>
-      </DialogHeader>
-      <div className="flex flex-col gap-2 rounded-lg border border-warning/40 bg-warning/10 p-4">
-        <Label htmlFor="temporaryPassword" className="text-warning">
-          Contraseña temporal · se muestra una sola vez
-        </Label>
-        <div className="flex gap-2">
-          <Input
-            id="temporaryPassword"
-            value={password}
-            readOnly
-            className="font-mono tracking-wide"
-            onFocus={(event) => event.currentTarget.select()}
-          />
-          <Button type="button" variant="outline" onClick={copyPassword}>
-            {copied ? <Check /> : <Copy />}
-            {copied ? "Copiado" : "Copiar"}
-          </Button>
-        </div>
-      </div>
-      <DialogFooter>
-        <Button type="button" onClick={onClose}>
-          Listo
-        </Button>
-      </DialogFooter>
-    </>
   );
 }
 
@@ -210,7 +157,14 @@ function UserForm({
   }
 
   if (temporaryPassword) {
-    return <TemporaryPassword password={temporaryPassword} onClose={onClose} />;
+    return (
+      <TemporaryPassword
+        title="Usuario creado"
+        description="Comparte esta contraseña temporal con el usuario. No se volverá a mostrar después de cerrar este diálogo."
+        password={temporaryPassword}
+        onClose={onClose}
+      />
+    );
   }
 
   return (

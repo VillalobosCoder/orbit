@@ -6,8 +6,9 @@ import { toIssueDto } from "../mappers/issue.mapper.js";
 import type { IssueCatalogRepository } from "../ports/issue-catalog-repository.port.js";
 import type { IssueRepository } from "../ports/issue-repository.port.js";
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
+import type { Actor } from "../../shared/actor.js";
 
-export type GetBoardInput = ProjectIdRequestDto & { actorUserId: number };
+export type GetBoardInput = ProjectIdRequestDto & Actor;
 
 export class GetBoardUseCase {
   constructor(

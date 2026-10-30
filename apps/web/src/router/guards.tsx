@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 import { Spinner } from "@/components/ui/spinner.tsx";
 import { useAuth } from "@/context/auth/use-auth";
@@ -16,11 +16,17 @@ function GuardLoading() {
   );
 }
 
+export const CHANGE_PASSWORD_PATH = "/cambiar-contrasena";
+
 export function PrivateGuard() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const { pathname } = useLocation();
 
   if (isLoading) return <GuardLoading />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.mustChangePassword && pathname !== CHANGE_PASSWORD_PATH) {
+    return <Navigate to={CHANGE_PASSWORD_PATH} replace />;
+  }
   return <Outlet />;
 }
 

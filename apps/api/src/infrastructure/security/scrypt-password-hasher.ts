@@ -5,7 +5,7 @@ import {
   type ScryptOptions,
 } from "node:crypto";
 import { PasswordTooLongError } from "../../domain/user/user.errors.js";
-import { exceedsPasswordByteLimit } from "../../domain/user/password-policy.js";
+import { Password } from "../../domain/user/value-objects/password.vo.js";
 
 const KEY_LENGTH = 64;
 const SALT_LENGTH = 16;
@@ -119,7 +119,7 @@ function parseStoredHash(storedHash: string): ParsedHash | null {
 
 export class ScryptPasswordHasher {
   async hash(plainPassword: string): Promise<string> {
-    if (exceedsPasswordByteLimit(plainPassword)) {
+    if (Password.exceedsByteLimit(plainPassword)) {
       throw new PasswordTooLongError();
     }
 
@@ -140,7 +140,7 @@ export class ScryptPasswordHasher {
   async compare(plainPassword: string, storedHash: string): Promise<boolean> {
     if (
       typeof storedHash !== "string" ||
-      exceedsPasswordByteLimit(plainPassword)
+      Password.exceedsByteLimit(plainPassword)
     ) {
       return false;
     }

@@ -4,8 +4,9 @@ import { ProjectNotFoundError } from "../../../domain/project/project.errors.js"
 import type { IssueRepository } from "../../issue/ports/issue-repository.port.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { CommentRepository } from "../ports/comment-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
 
-export type GetCommentsInput = IssueRequestDto & { actorUserId: number };
+export type GetCommentsInput = IssueRequestDto & Actor;
 
 export class GetCommentsUseCase {
   constructor(

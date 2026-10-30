@@ -6,6 +6,8 @@ import type { TransactionManager } from "../../../application/shared/ports/trans
 import type { ModuleRepository } from "../../../application/modules/ports/module-repository.port.js";
 import { LoginUseCase } from "../../../application/auth/use-cases/login.use-case.js";
 import { GetCurrentUserUseCase } from "../../../application/auth/use-cases/get-current-user.use-case.js";
+import { ChangePasswordUseCase } from "../../../application/auth/use-cases/change-password.use-case.js";
+import { ResetUserPasswordUseCase } from "../../../application/user/use-cases/reset-user-password.use-case.js";
 import { CreateUserUseCase } from "../../../application/user/use-cases/create-user.use-case.js";
 import { DeleteUserUseCase } from "../../../application/user/use-cases/delete-user.use-case.js";
 import { AuthController } from "./auth.controller.js";
@@ -95,6 +97,15 @@ export function createControllers(dependencies: ControllerDependencies) {
     dependencies.userPermissionRepository,
     dependencies.transaction,
   );
+  const resetUserPassword = new ResetUserPasswordUseCase(
+    dependencies.userRepository,
+    dependencies.passwordHasher,
+  );
+  const changePassword = new ChangePasswordUseCase(
+    dependencies.userRepository,
+    dependencies.passwordHasher,
+    dependencies.tokenService,
+  );
   const getAllUsers = new GetUserListUseCase(dependencies.userRepository);
   const login = new LoginUseCase(
     dependencies.userRepository,
@@ -110,8 +121,9 @@ export function createControllers(dependencies: ControllerDependencies) {
       deleteUser,
       getUser,
       updateUser,
+      resetUserPassword,
     ),
-    auth: new AuthController(login, getCurrentUser),
+    auth: new AuthController(login, getCurrentUser, changePassword),
     modules: new ModuleController(dependencies.moduleRepository),
     projects: new ProjectController(
       new GetProjectListUseCase(dependencies.projectRepository),

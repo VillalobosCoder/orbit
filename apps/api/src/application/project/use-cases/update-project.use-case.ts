@@ -1,9 +1,10 @@
 import type { UpdateProjectRequestDto, ProjectIdRequestDto } from "@orbit/shared";
 import type { ProjectRepository } from "../ports/project-repository.port.js";
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
+import type { Actor } from "../../shared/actor.js";
 
 export type UpdateProjectInput = UpdateProjectRequestDto &
-  ProjectIdRequestDto & { actorUserId: number };
+  ProjectIdRequestDto & Actor;
 
 export class UpdateProjectUseCase {
   constructor(private readonly projects: ProjectRepository) {}

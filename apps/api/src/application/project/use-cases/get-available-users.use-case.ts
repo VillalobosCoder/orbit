@@ -2,9 +2,9 @@ import type { ProjectMemberDto, ProjectIdRequestDto } from "@orbit/shared";
 import type { ProjectMemberRepository } from "../ports/project-member-repository.port.js";
 import type { ProjectRepository } from "../ports/project-repository.port.js";
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
+import type { Actor } from "../../shared/actor.js";
 
-export type GetAvailableUsersInput = ProjectIdRequestDto &
-  { actorUserId: number };
+export type GetAvailableUsersInput = ProjectIdRequestDto & Actor;
 
 export class GetAvailableUsersUseCase {
   constructor(
