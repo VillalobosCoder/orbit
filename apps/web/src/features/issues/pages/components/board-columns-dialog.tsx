@@ -1,19 +1,26 @@
 import { useState, type SubmitEvent } from "react";
+import { ChevronDown, ChevronUp, CircleAlert, Plus } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
+import { ConfirmDialogComponent } from "@/shared/ui/custom-components/confirm-dialog-component";
 import {
   BoardColumnCategory,
   type BoardColumnDto,
   type ProjectDto,
 } from "@orbit/shared";
+import { cn } from "cn";
 import {
   useCreateBoardColumn,
   useDeleteBoardColumn,
@@ -26,6 +33,24 @@ const CATEGORY_LABELS: Record<BoardColumnCategory, string> = {
   [BoardColumnCategory.IN_PROGRESS]: "En curso",
   [BoardColumnCategory.DONE]: "Finalizada",
 };
+
+const CATEGORY_DOT: Record<BoardColumnCategory, string> = {
+  [BoardColumnCategory.TODO]: "bg-muted-foreground",
+  [BoardColumnCategory.IN_PROGRESS]: "bg-primary",
+  [BoardColumnCategory.DONE]: "bg-success",
+};
+
+function ErrorAlert({ children }: { children: string }) {
+  return (
+    <p
+      role="alert"
+      className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+    >
+      <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
+      {children}
+    </p>
+  );
+}
 
 interface BoardColumnsDialogProps {
   project: ProjectDto;
@@ -43,6 +68,8 @@ export default function BoardColumnsDialog({
   const ordered = [...columns].sort(
     (a, b) => a.position - b.position || a.id - b.id,
   );
+  const countIn = (category: BoardColumnCategory) =>
+    ordered.filter((column) => column.category === category).length;
 
   function move(index: number, direction: -1 | 1) {
     const columnIds = ordered.map((column) => column.id);
@@ -89,54 +116,101 @@ export default function BoardColumnsDialog({
         if (!nextOpen) onClose();
       }}
     >
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Columnas del tablero</DialogTitle>
           <DialogDescription>
-            Renombra, reordena o elimina las columnas de {project.projectKey}.
-            La categoría se elige al crearla y no cambia.
+            Cada columna es un estado de {project.projectKey}. Debe quedar al
+            menos una «Por hacer» y una «Finalizada». La categoría se elige al
+            crearla y no cambia.
           </DialogDescription>
         </DialogHeader>
+
         {reorderColumns.isError && (
-          <p role="alert">{reorderColumns.error.message}</p>
+          <ErrorAlert>{reorderColumns.error.message}</ErrorAlert>
         )}
-        <ul className="space-y-2">
+
+        <ul className="flex flex-col gap-3">
           {ordered.map((column, index) => (
             <ColumnRow
               key={column.id}
               project={project}
               column={column}
               others={ordered.filter((other) => other.id !== column.id)}
+              isLastOfCategory={countIn(column.category) <= 1}
               canMoveUp={index > 0}
               canMoveDown={index < ordered.length - 1}
               onMove={(direction) => move(index, direction)}
             />
           ))}
         </ul>
-        <form onSubmit={handleCreate} className="flex flex-wrap items-end gap-2">
-          <Input name="name" placeholder="Nueva columna" maxLength={50} required />
-          <select name="category" defaultValue={BoardColumnCategory.IN_PROGRESS}>
-            {Object.values(BoardColumnCategory).map((category) => (
-              <option key={category} value={category}>
-                {CATEGORY_LABELS[category]}
-              </option>
-            ))}
-          </select>
-          <Input
-            name="wipLimit"
-            type="number"
-            min={1}
-            max={1000}
-            placeholder="Límite"
-            className="w-24"
-          />
-          <Button type="submit" disabled={createColumn.isPending}>
-            {createColumn.isPending ? "Agregando..." : "Agregar"}
-          </Button>
+
+        <form
+          onSubmit={handleCreate}
+          className="flex flex-col gap-3 rounded-xl border border-dashed border-input p-4"
+        >
+          <h3 className="text-sm font-semibold">Agregar columna</h3>
+          <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_11rem_7rem_auto]">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="new-column-name" className="text-muted-foreground">
+                Nombre
+              </Label>
+              <Input
+                id="new-column-name"
+                name="name"
+                placeholder="Ej. En pruebas"
+                maxLength={50}
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="new-column-category" className="text-muted-foreground">
+                Categoría
+              </Label>
+              <NativeSelect
+                id="new-column-category"
+                name="category"
+                defaultValue={BoardColumnCategory.IN_PROGRESS}
+              >
+                {Object.values(BoardColumnCategory).map((category) => (
+                  <option key={category} value={category}>
+                    {CATEGORY_LABELS[category]}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="new-column-limit" className="text-muted-foreground">
+                Límite WIP
+              </Label>
+              <Input
+                id="new-column-limit"
+                name="wipLimit"
+                type="number"
+                min={1}
+                max={1000}
+                placeholder="Opcional"
+              />
+            </div>
+            <Button type="submit" size="lg" disabled={createColumn.isPending}>
+              <Plus />
+              {createColumn.isPending ? "Agregando..." : "Agregar"}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Los nombres son únicos por proyecto. El límite se guarda; aún no se
+            aplica en el tablero.
+          </p>
+          {createColumn.isError && (
+            <ErrorAlert>{createColumn.error.message}</ErrorAlert>
+          )}
         </form>
-        {createColumn.isError && (
-          <p role="alert">{createColumn.error.message}</p>
-        )}
+
+        <DialogFooter>
+          <Button type="button" onClick={onClose}>
+            Listo
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -146,6 +220,7 @@ function ColumnRow({
   project,
   column,
   others,
+  isLastOfCategory,
   canMoveUp,
   canMoveDown,
   onMove,
@@ -153,6 +228,8 @@ function ColumnRow({
   project: ProjectDto;
   column: BoardColumnDto;
   others: BoardColumnDto[];
+  /** La última «Por hacer» o «Finalizada» no se puede eliminar. */
+  isLastOfCategory: boolean;
   canMoveUp: boolean;
   canMoveDown: boolean;
   onMove: (direction: -1 | 1) => void;
@@ -160,6 +237,10 @@ function ColumnRow({
   const updateColumn = useUpdateBoardColumn();
   const deleteColumn = useDeleteBoardColumn();
   const [targetId, setTargetId] = useState<number>(others[0]?.id ?? 0);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const target = others.find((other) => other.id === targetId);
+  const isProtected =
+    column.category !== BoardColumnCategory.IN_PROGRESS && isLastOfCategory;
 
   function handleSave(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -179,91 +260,136 @@ function ColumnRow({
     });
   }
 
-  function handleDelete() {
-    const target = others.find((other) => other.id === targetId);
-
-    if (
-      target &&
-      window.confirm(
-        `¿Eliminar "${column.name}"? Sus issues pasarán a "${target.name}".`,
-      )
-    ) {
-      deleteColumn.mutate({
-        id: project.id,
-        columnId: column.id,
-        moveIssuesToColumnId: target.id,
-      });
-    }
-  }
-
   return (
-    <li className="rounded-md border border-border p-2">
-      <form onSubmit={handleSave} className="flex flex-wrap items-center gap-2">
+    <li className="flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-3.5">
+      <form
+        onSubmit={handleSave}
+        className="grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[auto_auto_minmax(0,1fr)_auto_7rem_auto]"
+      >
+        <span className="flex flex-col gap-0.5">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-xs"
+            disabled={!canMoveUp}
+            aria-label={`Subir ${column.name}`}
+            onClick={() => onMove(-1)}
+          >
+            <ChevronUp />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-xs"
+            disabled={!canMoveDown}
+            aria-label={`Bajar ${column.name}`}
+            onClick={() => onMove(1)}
+          >
+            <ChevronDown />
+          </Button>
+        </span>
+        <span
+          aria-hidden="true"
+          className={cn(
+            "size-2.5 rounded-full",
+            !column.color && CATEGORY_DOT[column.category],
+          )}
+          style={column.color ? { backgroundColor: column.color } : undefined}
+        />
         <Input
           name="name"
+          aria-label="Nombre de la columna"
           defaultValue={column.name}
           maxLength={50}
           required
-          className="w-48"
         />
-        <span className="text-xs text-muted-foreground">
+        <Badge className="max-sm:col-start-3 max-sm:justify-self-start">
           {CATEGORY_LABELS[column.category]}
-        </span>
+        </Badge>
         <Input
           name="wipLimit"
           type="number"
+          aria-label="Límite de trabajo en curso"
           min={1}
           max={1000}
           defaultValue={column.wipLimit ?? ""}
-          placeholder="Límite"
-          className="w-24"
+          placeholder="Sin límite"
+          className="max-sm:col-start-3"
         />
-        <Button type="submit" variant="outline" disabled={updateColumn.isPending}>
-          Guardar
-        </Button>
         <Button
-          type="button"
+          type="submit"
           variant="outline"
-          disabled={!canMoveUp}
-          aria-label={`Subir ${column.name}`}
-          onClick={() => onMove(-1)}
+          className="max-sm:col-start-3 max-sm:justify-self-start"
+          disabled={updateColumn.isPending}
         >
-          ↑
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          disabled={!canMoveDown}
-          aria-label={`Bajar ${column.name}`}
-          onClick={() => onMove(1)}
-        >
-          ↓
+          {updateColumn.isPending ? "Guardando..." : "Guardar"}
         </Button>
       </form>
-      <div className="mt-2 flex items-center gap-2 text-sm">
-        <label htmlFor={`target-${column.id}`}>Al eliminar, mover issues a</label>
-        <select
-          id={`target-${column.id}`}
-          value={targetId}
-          onChange={(event) => setTargetId(Number(event.currentTarget.value))}
-        >
-          {others.map((other) => (
-            <option key={other.id} value={other.id}>
-              {other.name}
-            </option>
-          ))}
-        </select>
-        <Button
-          type="button"
-          variant="destructive"
-          disabled={deleteColumn.isPending}
-          onClick={handleDelete}
-        >
-          Eliminar
-        </Button>
+
+      <div className="flex flex-wrap items-center gap-2.5 pl-1 text-sm text-muted-foreground">
+        {isProtected ? (
+          <p>
+            Es la única columna «{CATEGORY_LABELS[column.category]}»: no se puede
+            eliminar.
+          </p>
+        ) : (
+          <>
+            <label htmlFor={`target-${column.id}`}>
+              Al eliminar, mover issues a
+            </label>
+            <NativeSelect
+              id={`target-${column.id}`}
+              className="h-8 w-44 text-[0.8125rem]"
+              value={targetId}
+              onChange={(event) => setTargetId(Number(event.currentTarget.value))}
+            >
+              {others.map((other) => (
+                <option key={other.id} value={other.id}>
+                  {other.name}
+                </option>
+              ))}
+            </NativeSelect>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={deleteColumn.isPending || !target}
+              onClick={() => setIsConfirming(true)}
+            >
+              Eliminar
+            </Button>
+          </>
+        )}
       </div>
-      {updateColumn.isError && <p role="alert">{updateColumn.error.message}</p>}
-      {deleteColumn.isError && <p role="alert">{deleteColumn.error.message}</p>}
+
+      {updateColumn.isError && (
+        <ErrorAlert>{updateColumn.error.message}</ErrorAlert>
+      )}
+      {deleteColumn.isError && (
+        <ErrorAlert>{deleteColumn.error.message}</ErrorAlert>
+      )}
+
+      <ConfirmDialogComponent
+        open={isConfirming}
+        title={`¿Eliminar «${column.name}»?`}
+        description={`Sus issues pasarán a «${target?.name}».`}
+        confirmLabel="Eliminar columna"
+        pendingLabel="Eliminando..."
+        isPending={deleteColumn.isPending}
+        destructive
+        onClose={() => setIsConfirming(false)}
+        onConfirm={() => {
+          if (!target) return;
+          deleteColumn.mutate(
+            {
+              id: project.id,
+              columnId: column.id,
+              moveIssuesToColumnId: target.id,
+            },
+            { onSettled: () => setIsConfirming(false) },
+          );
+        }}
+      />
     </li>
   );
 }
