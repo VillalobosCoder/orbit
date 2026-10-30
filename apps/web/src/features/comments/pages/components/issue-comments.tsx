@@ -4,8 +4,8 @@ import { CircleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { ConfirmDialogComponent } from "@/shared/ui/custom-components/confirm-dialog-component";
-import { UserAvatarComponent } from "@/shared/ui/custom-components/user-avatar-component";
+import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
+import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
 import type { CommentDto, IssueRequestDto } from "@orbit/shared";
 import {
   useCreateComment,

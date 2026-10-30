@@ -13,7 +13,7 @@ import {
 import type { DifficultyDto, IssueTypeDto, PriorityDto } from "@orbit/shared";
 import { cn } from "cn";
 
-import { UserAvatarComponent } from "@/shared/ui/custom-components/user-avatar-component";
+import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
 
 const TYPE_ICONS: Record<string, { icon: LucideIcon; className: string }> = {
   CheckSquare: { icon: SquareCheckBig, className: "text-type-task" },

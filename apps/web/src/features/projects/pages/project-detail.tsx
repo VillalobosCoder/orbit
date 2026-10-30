@@ -8,7 +8,7 @@ import { useAuth } from "@/context/auth/use-auth";
 import { usePermission } from "@/context/auth/use-permission";
 import IssueBoard from "@/features/issues/pages/components/issue-board";
 import { AssigneeStack } from "@/features/issues/pages/components/issue-visuals";
-import { ConfirmDialogComponent } from "@/shared/ui/custom-components/confirm-dialog-component";
+import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
 import {
   useDeleteProject,
   useGetProject,

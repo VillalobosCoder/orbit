@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { CircleAlert, Eye, EyeOff, Orbit } from "lucide-react";
+import { CircleAlert, Orbit } from "lucide-react";
 import type { LoginRequestDto } from "@orbit/shared";
 
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/context/auth/use-auth";
 import { useLogin } from "@/features/auth/api/queries";
@@ -12,7 +12,6 @@ import { useLogin } from "@/features/auth/api/queries";
 export default function Login() {
   const { isLoading, sessionError } = useAuth();
   const loginMutation = useLogin();
-  const [showPassword, setShowPassword] = useState(false);
 
   const errorMessage =
     loginMutation.error instanceof Error
@@ -80,33 +79,14 @@ export default function Login() {
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="password">Contraseña</FieldLabel>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      name="password"
-                      placeholder="********"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="current-password"
-                      className="pr-11"
-                      aria-invalid={errorMessage ? true : undefined}
-                      required
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      className="absolute top-1/2 right-1.5 -translate-y-1/2"
-                      aria-label={
-                        showPassword
-                          ? "Ocultar contraseña"
-                          : "Mostrar contraseña"
-                      }
-                      aria-pressed={showPassword}
-                      onClick={() => setShowPassword((visible) => !visible)}
-                    >
-                      {showPassword ? <EyeOff /> : <Eye />}
-                    </Button>
-                  </div>
+                  <PasswordInput
+                    id="password"
+                    name="password"
+                    placeholder="********"
+                    autoComplete="current-password"
+                    aria-invalid={errorMessage ? true : undefined}
+                    required
+                  />
                 </Field>
 
                 {errorMessage && (

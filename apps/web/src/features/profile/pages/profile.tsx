@@ -8,8 +8,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/context/auth/use-auth";
 import { useUpdateProfile } from "@/features/auth/api/queries";
 import ChangePasswordForm from "@/features/auth/pages/components/change-password-form";
-import { PageHeaderComponent } from "@/shared/ui/custom-components/page-header-component";
-import { UserAvatarComponent } from "@/shared/ui/custom-components/user-avatar-component";
+import { PageHeaderComponent } from "@/components/ui/page-header-component";
+import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
 
 export default function ProfilePage() {
   const { user } = useAuth();

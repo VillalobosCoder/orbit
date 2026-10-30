@@ -3,8 +3,8 @@ import type { UserDto } from "@orbit/shared";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useAuth } from "@/context/auth/use-auth";
-import { ConfirmDialogComponent } from "@/shared/ui/custom-components/confirm-dialog-component";
-import { TableComponent } from "@/shared/ui/custom-components/table-component";
+import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
+import { TableComponent } from "@/components/ui/table-component";
 import {
   useDeleteUser,
   useGetUsers,

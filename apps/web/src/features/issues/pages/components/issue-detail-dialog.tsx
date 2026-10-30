@@ -18,7 +18,7 @@ import {
   useGetProject,
   useGetProjectMembers,
 } from "@/features/projects/api/queries";
-import { ConfirmDialogComponent } from "@/shared/ui/custom-components/confirm-dialog-component";
+import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
 import {
   BoardColumnCategory,
   SprintStatus,

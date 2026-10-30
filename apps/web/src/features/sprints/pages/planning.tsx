@@ -27,8 +27,8 @@ import {
   useGetProject,
   useGetProjectMembers,
 } from "@/features/projects/api/queries";
-import { ConfirmDialogComponent } from "@/shared/ui/custom-components/confirm-dialog-component";
-import { PageHeaderComponent } from "@/shared/ui/custom-components/page-header-component";
+import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
+import { PageHeaderComponent } from "@/components/ui/page-header-component";
 import {
   useAssignIssueSprint,
   useCloseSprint,

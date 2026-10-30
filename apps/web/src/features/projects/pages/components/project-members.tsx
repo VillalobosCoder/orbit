@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useAuth } from "@/context/auth/use-auth";
-import { ConfirmDialogComponent } from "@/shared/ui/custom-components/confirm-dialog-component";
-import { TableComponent } from "@/shared/ui/custom-components/table-component";
-import type { DataTableFeatures } from "@/shared/ui/custom-components/table-component";
-import { UserAvatarComponent } from "@/shared/ui/custom-components/user-avatar-component";
+import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
+import { TableComponent } from "@/components/ui/table-component";
+import type { DataTableFeatures } from "@/components/ui/table-component";
+import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
 import {
   useAddProjectMember,
   useGetAvailableUsers,

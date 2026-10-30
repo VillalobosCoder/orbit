@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import { ThemeToggleComponent } from "@/shared/ui/custom-components/theme-toggle-component";
+import { ThemeToggleComponent } from "@/components/ui/theme-toggle-component";
 
 export default function AuthLayout() {
   return (

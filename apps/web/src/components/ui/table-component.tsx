@@ -14,7 +14,7 @@ export type DataTableFeatures = typeof features;
 
 interface DataTableProps<TData extends RowData> {
   data: TData[];
-  columns: ColumnDef<DataTableFeatures, TData, any>[];
+  columns: ColumnDef<DataTableFeatures, TData, unknown>[];
   isLoading?: boolean;
   emptyMessage?: string;
 }

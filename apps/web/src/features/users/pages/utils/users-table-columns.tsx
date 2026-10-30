@@ -3,8 +3,8 @@ import { createColumnHelper } from "@tanstack/react-table";
 import type { UserDto } from "@orbit/shared";
 
 import { Button } from "@/components/ui/button";
-import type { DataTableFeatures } from "@/shared/ui/custom-components/table-component";
-import { UserAvatarComponent } from "@/shared/ui/custom-components/user-avatar-component";
+import type { DataTableFeatures } from "@/components/ui/table-component";
+import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
 
 const columnHelper = createColumnHelper<DataTableFeatures, UserDto>();
 

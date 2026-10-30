@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateIssue, useUpdateIssue } from "@/features/issues/api/queries";
-import { UserAvatarComponent } from "@/shared/ui/custom-components/user-avatar-component";
+import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
 import {
   BoardColumnCategory,
   type BoardColumnDto,

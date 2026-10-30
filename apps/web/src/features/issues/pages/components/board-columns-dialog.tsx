@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
-import { ConfirmDialogComponent } from "@/shared/ui/custom-components/confirm-dialog-component";
+import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
 import {
   BoardColumnCategory,
   type BoardColumnDto,

@@ -3,7 +3,7 @@ import { cn } from "cn";
 
 import { useTheme } from "@/context/theme/use-theme";
 import type { Theme } from "@/context/theme/theme-context";
-import { PageHeaderComponent } from "@/shared/ui/custom-components/page-header-component";
+import { PageHeaderComponent } from "@/components/ui/page-header-component";
 
 const THEME_OPTIONS: {
   value: Theme;

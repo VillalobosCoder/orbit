@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth/use-auth";
 import { usePermission } from "@/context/auth/use-permission";
-import { PageHeaderComponent } from "@/shared/ui/custom-components/page-header-component";
+import { PageHeaderComponent } from "@/components/ui/page-header-component";
 import UserFormDialog from "./components/user-form-dialog";
 import UserTable from "./components/user-table";
 

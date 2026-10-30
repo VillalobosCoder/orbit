@@ -48,7 +48,7 @@ import { useLogout } from "@/features/auth/api/queries";
 import { useGetModules } from "@/features/modules/api/queries";
 import { useGetProjects } from "@/features/projects/api/queries";
 import ProjectFormDialog from "@/features/projects/pages/components/project-form-dialog";
-import { UserAvatarComponent } from "./user-avatar-component";
+import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
 
 const MODULE_ROUTES: Record<string, string> = {
   home: "/",
