@@ -97,6 +97,7 @@ interface Person {
   id: number;
   name: string;
   lastName: string;
+  avatarUrl?: string | null;
 }
 
 export function AssigneeStack({
@@ -132,6 +133,7 @@ export function AssigneeStack({
         <UserAvatarComponent
           key={person.id}
           name={`${person.name} ${person.lastName}`}
+          avatarUrl={person.avatarUrl}
           className="-ml-1.5 size-6 text-[0.625rem] ring-2 ring-card first:ml-0"
         />
       ))}

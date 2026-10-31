@@ -304,6 +304,7 @@ export default function IssueFormDialog({
                       />
                       <UserAvatarComponent
                         name={fullName}
+                        avatarUrl={member.avatarUrl}
                         className="size-6 text-[0.625rem]"
                       />
                       <span className="flex-1 truncate">{fullName}</span>

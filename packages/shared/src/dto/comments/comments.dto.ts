@@ -5,6 +5,7 @@ export type CommentDto = {
   issueId: number;
   authorId: number;
   authorName: string;
+  authorAvatarUrl: string | null;
   body: string;
   createdAt: string;
   updatedAt: string;

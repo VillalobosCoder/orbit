@@ -20,7 +20,12 @@ interface IssueCardProps {
   type?: IssueTypeDto;
   priority?: PriorityDto;
   difficulty?: DifficultyDto;
-  assignees: { id: number; name: string; lastName: string }[];
+  assignees: {
+    id: number;
+    name: string;
+    lastName: string;
+    avatarUrl?: string | null;
+  }[];
   parentKey?: string;
   subtasks: { done: number; total: number };
   draggable: boolean;

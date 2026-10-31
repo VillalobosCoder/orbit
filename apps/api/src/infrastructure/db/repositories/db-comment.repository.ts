@@ -11,6 +11,7 @@ import type { DbContext } from "../db-context.js";
 import { comments } from "../schema/comments.js";
 import { issues } from "../schema/issues.js";
 import { users } from "../schema/users.js";
+import { buildAvatarUrl } from "../../../application/user/utils/avatar-url.js";
 import type { ActorUserId } from "../../../application/shared/actor.js";
 
 const commentColumns = {
@@ -19,6 +20,7 @@ const commentColumns = {
   authorId: comments.authorId,
   authorName: users.name,
   authorLastName: users.lastName,
+  authorAvatarFileId: users.avatarFileId,
   body: comments.body,
   createdAt: comments.createdAt,
   updatedAt: comments.updatedAt,
@@ -30,6 +32,7 @@ function toDto(row: {
   authorId: number;
   authorName: string;
   authorLastName: string;
+  authorAvatarFileId: number | null;
   body: string;
   createdAt: Date;
   updatedAt: Date;
@@ -39,6 +42,7 @@ function toDto(row: {
     issueId: row.issueId,
     authorId: row.authorId,
     authorName: `${row.authorName} ${row.authorLastName}`,
+    authorAvatarUrl: buildAvatarUrl(row.authorId, row.authorAvatarFileId),
     body: row.body,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

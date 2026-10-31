@@ -105,7 +105,10 @@ export default function IssueComments({
 
           return (
             <li key={comment.id} className="flex gap-3">
-              <UserAvatarComponent name={comment.authorName} />
+              <UserAvatarComponent
+                name={comment.authorName}
+                avatarUrl={comment.authorAvatarUrl}
+              />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
                   <strong className="font-semibold">
