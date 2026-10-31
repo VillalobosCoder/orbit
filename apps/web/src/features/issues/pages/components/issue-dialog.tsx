@@ -34,6 +34,7 @@ import {
 import {
   BoardColumnCategory,
   ISSUE_DESCRIPTION_MAX_LENGTH,
+  ISSUE_TITLE_MAX_LENGTH,
   SprintStatus,
   type BoardColumnDto,
   type IssueDto,
@@ -304,7 +305,7 @@ export default function IssueDialog({
                 aria-label="Título"
                 placeholder="Título del issue"
                 value={draft.title}
-                maxLength={255}
+                maxLength={ISSUE_TITLE_MAX_LENGTH}
                 autoFocus
                 className="h-11 text-lg font-semibold"
                 onChange={(event) =>

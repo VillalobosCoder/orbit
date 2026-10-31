@@ -8,7 +8,10 @@ import {
   unique,
   varchar,
 } from "drizzle-orm/pg-core";
-import { ISSUE_DESCRIPTION_MAX_LENGTH } from "@orbit/shared";
+import {
+  ISSUE_DESCRIPTION_MAX_LENGTH,
+  ISSUE_TITLE_MAX_LENGTH,
+} from "@orbit/shared";
 import { auditColumns } from "./audit-columns.js";
 import { boardColumns } from "./board-columns.js";
 import { difficulties } from "./difficulties.js";
@@ -43,7 +46,7 @@ export const issues = pgTable(
     reporterId: integer("reporter_id")
       .notNull()
       .references(() => users.id),
-    title: varchar({ length: 255 }).notNull(),
+    title: varchar({ length: ISSUE_TITLE_MAX_LENGTH }).notNull(),
     description: varchar({ length: ISSUE_DESCRIPTION_MAX_LENGTH }),
     startAt: timestamp("start_at", { withTimezone: true }),
     dueAt: timestamp("due_at", { withTimezone: true }),

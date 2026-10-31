@@ -55,7 +55,7 @@ export default function IssueCard({
     <li
       draggable={draggable}
       className={cn(
-        "rounded-xl border border-border bg-card shadow-xs transition-colors hover:border-primary/60",
+        "min-w-0 rounded-xl border border-border bg-card shadow-xs transition-colors hover:border-primary/60",
         draggable && "cursor-grab active:cursor-grabbing",
         isDragging && "opacity-40",
       )}
@@ -66,7 +66,7 @@ export default function IssueCard({
       <button
         type="button"
         onClick={onOpen}
-        className="flex w-full flex-col gap-3 rounded-xl p-3 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex w-full min-w-0 flex-col gap-3 overflow-hidden rounded-xl p-3 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {parentKey && (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -74,7 +74,12 @@ export default function IssueCard({
             Subtarea de {parentKey}
           </span>
         )}
-        <span className="leading-snug font-medium">{issue.title}</span>
+        <span
+          title={issue.title}
+          className="line-clamp-2 leading-snug font-medium [overflow-wrap:anywhere]"
+        >
+          {issue.title}
+        </span>
         <span className="flex items-center gap-2">
           <IssueTypeIcon type={type} />
           <span className="font-mono text-xs text-muted-foreground">

@@ -1,3 +1,5 @@
 export const ISSUE_DESCRIPTION_MAX_LENGTH = 255;
 
 export const COMMENT_MAX_LENGTH = 255;
+
+export const ISSUE_TITLE_MAX_LENGTH = 50;

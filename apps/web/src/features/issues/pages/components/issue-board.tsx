@@ -292,7 +292,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
                     {column.wipLimit !== null && ` / ${column.wipLimit}`}
                   </span>
                 </h3>
-                <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">
+                <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto pr-1">
                   {columnIssues.map((issue) => (
                     <Fragment key={issue.id}>
                       {isDropColumn &&
