@@ -30,6 +30,34 @@ export class ApiRequestError extends Error {
   }
 }
 
+const NETWORK_ERROR_MESSAGE =
+  "No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.";
+const TIMEOUT_ERROR_MESSAGE =
+  "El servidor tardó demasiado en responder. Inténtalo de nuevo en unos minutos.";
+const SERVICE_UNAVAILABLE_MESSAGE =
+  "El servicio no está disponible por el momento. Inténtalo de nuevo más tarde.";
+const UNEXPECTED_ERROR_MESSAGE =
+  "Ocurrió un error inesperado. Inténtalo de nuevo.";
+
+function isTimeoutError(error: unknown) {
+  return (
+    error instanceof DOMException &&
+    (error.name === "TimeoutError" || error.name === "AbortError")
+  );
+}
+
+function describeFailedResponse(status: number) {
+  return status >= 500 ? SERVICE_UNAVAILABLE_MESSAGE : UNEXPECTED_ERROR_MESSAGE;
+}
+
+function parseJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
 function isApiErrorResponse(body: unknown): body is ApiErrorResponseDto {
   return (
     typeof body === "object" &&
@@ -66,32 +94,40 @@ async function requestQuery<T>(
       ).toString()
     : "";
 
-  const response = await fetch(`${baseUrl}/${endpoint}${query}`, {
-    ...options,
-    headers,
-    credentials: options.credentials ?? "include",
-    signal: options.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${baseUrl}/${endpoint}${query}`, {
+      ...options,
+      headers,
+      credentials: options.credentials ?? "include",
+      signal: options.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (error) {
+    if (options.signal?.aborted) {
+      throw error;
+    }
+
+    throw new ApiRequestError(
+      isTimeoutError(error) ? TIMEOUT_ERROR_MESSAGE : NETWORK_ERROR_MESSAGE,
+      0,
+    );
+  }
 
   if (!response.ok) {
     const contentType = response.headers.get("content-type") ?? "";
     const text = await response.text();
 
     if (contentType.includes("application/json") && text) {
-      const body: unknown = JSON.parse(text);
+      const body = parseJson(text);
 
       if (isApiErrorResponse(body)) {
         throw new ApiRequestError(body.error, response.status);
       }
-
-      throw new ApiRequestError(
-        `La API devolvió un error inválido (HTTP ${response.status}).`,
-        response.status,
-      );
     }
 
     throw new ApiRequestError(
-      text || `La solicitud falló (HTTP ${response.status}).`,
+      describeFailedResponse(response.status),
       response.status,
     );
   }

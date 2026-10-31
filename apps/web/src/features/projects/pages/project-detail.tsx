@@ -22,7 +22,13 @@ export default function ProjectDetailPage() {
   const projectId = Number(id);
   const { user } = useAuth();
   const { canWrite } = usePermission("projects");
-  const { data: project, isLoading, error } = useGetProject(projectId);
+  const {
+    data: project,
+    isLoading,
+    error,
+    refetch,
+    isRefetching,
+  } = useGetProject(projectId);
   const members = useGetProjectMembers(projectId);
   const deleteProject = useDeleteProject();
   const navigate = useNavigate();
@@ -41,12 +47,20 @@ export default function ProjectDetailPage() {
   }
   if (error || !project) {
     return (
-      <p
-        role="alert"
-        className="m-6 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-      >
-        {error?.message ?? "Proyecto no encontrado."}
-      </p>
+      <div className="m-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <p role="alert">{error?.message ?? "Proyecto no encontrado."}</p>
+        {error && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isRefetching}
+            onClick={() => void refetch()}
+          >
+            {isRefetching ? "Reintentando..." : "Reintentar"}
+          </Button>
+        )}
+      </div>
     );
   }
 
