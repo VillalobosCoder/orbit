@@ -6,15 +6,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
 import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
-import type { CommentDto, IssueRequestDto } from "@orbit/shared";
+import {
+  COMMENT_MAX_LENGTH,
+  type CommentDto,
+  type IssueRequestDto,
+} from "@orbit/shared";
 import {
   useCreateComment,
   useDeleteComment,
   useGetComments,
   useUpdateComment,
 } from "../../api/queries";
-
-const MAX_LENGTH = 10000;
 
 interface IssueCommentsProps {
   issue: IssueRequestDto;
@@ -153,7 +155,7 @@ export default function IssueComments({
                       name="body"
                       aria-label="Editar comentario"
                       defaultValue={comment.body}
-                      maxLength={MAX_LENGTH}
+                      maxLength={COMMENT_MAX_LENGTH}
                       rows={3}
                       required
                     />
@@ -179,7 +181,7 @@ export default function IssueComments({
                     )}
                   </form>
                 ) : (
-                  <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">
+                  <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere] text-foreground/90">
                     {comment.body}
                   </p>
                 )}
@@ -202,13 +204,13 @@ export default function IssueComments({
               placeholder="Escribe un comentario…"
               value={draft}
               onChange={(event) => setDraft(event.currentTarget.value)}
-              maxLength={MAX_LENGTH}
+              maxLength={COMMENT_MAX_LENGTH}
               rows={2}
               className="min-h-14 resize-none border-0 bg-transparent p-0 focus-visible:ring-0"
             />
             <div className="flex items-center justify-between gap-3">
               <span className="text-xs text-muted-foreground">
-                {draft.length} / {MAX_LENGTH.toLocaleString("es")}
+                {draft.length} / {COMMENT_MAX_LENGTH}
               </span>
               <Button
                 type="submit"

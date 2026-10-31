@@ -2,9 +2,10 @@ import {
   AnyPgColumn,
   integer,
   pgTable,
-  text,
   unique,
+  varchar,
 } from "drizzle-orm/pg-core";
+import { COMMENT_MAX_LENGTH } from "@orbit/shared";
 import { auditColumns } from "./audit-columns.js";
 import { issues } from "./issues.js";
 import { users } from "./users.js";
@@ -19,7 +20,7 @@ export const comments = pgTable(
     authorId: integer("author_id")
       .notNull()
       .references(() => users.id),
-    body: text().notNull(),
+    body: varchar({ length: COMMENT_MAX_LENGTH }).notNull(),
     ...auditColumns((): AnyPgColumn => users.id),
   },
   (table) => [

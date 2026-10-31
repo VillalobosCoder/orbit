@@ -20,7 +20,7 @@ import {
 } from "../../api/queries";
 import BoardColumnsDialog from "./board-columns-dialog";
 import IssueCard from "./issue-card";
-import IssueFormDialog from "./issue-form-dialog";
+import IssueDialog from "./issue-dialog";
 
 type DropTarget = { columnId: number; beforeIssueId: number | null };
 
@@ -346,7 +346,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
       </div>
 
       {isCreating && options.data && members.data && (
-        <IssueFormDialog
+        <IssueDialog
           project={project}
           options={options.data}
           columns={columns}

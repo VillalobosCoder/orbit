@@ -13,5 +13,6 @@ export * from "./dto/comments/comments.dto.js";
 export * from "./dto/sprints/sprints.dto.js";
 export * from "./dto/board/board-columns.dto.js";
 export * from "./constants/avatar.js";
+export * from "./constants/text-limits.js";
 export * from "./messages/http-messages.js";
 export * from "./utils/board-position.js";

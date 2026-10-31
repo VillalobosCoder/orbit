@@ -1,10 +1,11 @@
 import * as z from "zod";
+import { ISSUE_DESCRIPTION_MAX_LENGTH } from "@orbit/shared";
 
 const id = z.number().int().positive();
 
 export const saveIssueSchema = z.object({
   title: z.string().trim().min(1).max(255),
-  description: z.string().trim().max(20000).nullish(),
+  description: z.string().trim().max(ISSUE_DESCRIPTION_MAX_LENGTH).nullish(),
   typeId: id,
   priorityId: id.nullish(),
   difficultyId: id.nullish(),

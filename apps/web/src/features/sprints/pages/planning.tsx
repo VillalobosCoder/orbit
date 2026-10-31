@@ -17,7 +17,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePermission } from "@/context/auth/use-permission";
 import { useGetIssueOptions } from "@/features/issues/api/queries";
-import IssueFormDialog from "@/features/issues/pages/components/issue-form-dialog";
+import IssueDialog from "@/features/issues/pages/components/issue-dialog";
 import {
   AssigneeStack,
   IssueTypeIcon,
@@ -444,7 +444,7 @@ export default function PlanningPage() {
         />
       )}
       {isCreatingIssue && options.data && members.data && (
-        <IssueFormDialog
+        <IssueDialog
           project={project.data}
           options={options.data}
           columns={columns}
