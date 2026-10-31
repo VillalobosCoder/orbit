@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { USER_SORT_FIELDS } from "@orbit/shared";
 
 const permissionsSchema = z
     .array(
@@ -44,4 +45,12 @@ export const idParamSchema = z.object({
 
 export const deleteSchema = z.object({
   id: z.coerce.number().int().positive(),
+});
+
+export const listUsersQuerySchema = z.object({
+  search: z.string().trim().max(100).optional(),
+  sortBy: z.enum(USER_SORT_FIELDS).default("name"),
+  sortDirection: z.enum(["asc", "desc"]).default("asc"),
+  page: z.coerce.number().int().positive().default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(10),
 });

@@ -5,8 +5,9 @@ import {
   tableFeatures,
   useTable,
 } from "@tanstack/react-table";
+import { cn } from "cn";
 
-import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 
 const features = tableFeatures({});
 
@@ -17,21 +18,27 @@ interface DataTableProps<TData extends RowData> {
   columns: ColumnDef<DataTableFeatures, TData, unknown>[];
   isLoading?: boolean;
   emptyMessage?: string;
+  minRows?: number;
 }
 
-const SKELETON_ROWS = 5;
+const ROW_HEIGHT_REM = 4;
 
 export function TableComponent<TData extends RowData>({
   data,
   columns,
   isLoading = false,
-  emptyMessage = "No hay resultados.",
+  emptyMessage = "Sin registros",
+  minRows,
 }: DataTableProps<TData>) {
   const table = useTable({
     features,
     data,
     columns,
   });
+  const rows = table.getRowModel().rows;
+  const showPlaceholder = isLoading || rows.length === 0;
+  const rowHeight = minRows ? "h-16" : undefined;
+  const fillerCount = minRows ? Math.max(0, minRows - rows.length) : 0;
 
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-card">
@@ -56,38 +63,56 @@ export function TableComponent<TData extends RowData>({
           ))}
         </thead>
         <tbody>
-          {isLoading ? (
-            Array.from({ length: SKELETON_ROWS }, (_, index) => (
-              <tr key={index} className="border-t border-border">
-                {columns.map((_column, columnIndex) => (
-                  <td key={columnIndex} className="px-5 py-4">
-                    <Skeleton className="h-4 w-3/4" />
-                  </td>
-                ))}
-              </tr>
-            ))
-          ) : table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map((row) => (
-              <tr
-                key={row.id}
-                className="border-t border-border transition-colors hover:bg-accent/50"
-              >
-                {row.getAllCells().map((cell) => (
-                  <td key={cell.id} className="px-5 py-3 whitespace-nowrap">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))
-          ) : (
-            <tr className="border-t border-border">
+          {showPlaceholder ? (
+            <tr
+              className="border-t border-border"
+              style={
+                minRows
+                  ? { height: `${minRows * ROW_HEIGHT_REM}rem` }
+                  : undefined
+              }
+            >
               <td
                 colSpan={columns.length}
                 className="px-5 py-10 text-center text-muted-foreground"
               >
-                {emptyMessage}
+                {isLoading ? (
+                  <Spinner aria-label="Cargando" className="mx-auto size-6" />
+                ) : (
+                  emptyMessage
+                )}
               </td>
             </tr>
+          ) : (
+            <>
+              {rows.map((row) => (
+                <tr
+                  key={row.id}
+                  className={cn(
+                    "border-t border-border transition-colors hover:bg-accent/50",
+                    rowHeight,
+                  )}
+                >
+                  {row.getAllCells().map((cell) => (
+                    <td key={cell.id} className="px-5 py-3 whitespace-nowrap">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+              {Array.from({ length: fillerCount }, (_, index) => (
+                <tr
+                  key={`filler-${index}`}
+                  aria-hidden="true"
+                  className={cn("border-t border-border", rowHeight)}
+                >
+                  <td colSpan={columns.length} />
+                </tr>
+              ))}
+            </>
           )}
         </tbody>
       </table>

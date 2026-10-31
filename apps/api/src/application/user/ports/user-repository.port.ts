@@ -1,4 +1,4 @@
-import type { UserIdRequestDto } from "@orbit/shared";
+import type { UserIdRequestDto, UserListQueryDto } from "@orbit/shared";
 import { User } from "../../../domain/user/user.entity.js";
 import type { Actor, ActorUserId } from "../../shared/actor.js";
 
@@ -13,12 +13,18 @@ export type SetUserAvatarCommand = UserIdRequestDto &
     avatarFileId: number | null;
   };
 
+export type UserPage = {
+  users: User[];
+  total: number;
+  page: number;
+};
+
 export interface UserRepository {
   save(user: User, actorUserId: ActorUserId): Promise<number>;
   bootstrapInitialAdmin(user: User): Promise<void>;
   findByEmail(email: string): Promise<User | null>;
   findById(id: number): Promise<User | null>;
-  findAll(): Promise<User[]>;
+  findPage(query: UserListQueryDto): Promise<UserPage>;
   update(user: User, actorUserId: ActorUserId): Promise<void>;
   updatePassword(id: number, passwordHash: string): Promise<void>;
   setPassword(command: SetUserPasswordCommand): Promise<void>;

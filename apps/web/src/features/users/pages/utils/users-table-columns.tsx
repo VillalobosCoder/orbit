@@ -1,14 +1,18 @@
 import { KeyRound, Pencil, Trash2 } from "lucide-react";
 import { createColumnHelper } from "@tanstack/react-table";
-import type { UserDto } from "@orbit/shared";
+import type { SortDirection, UserDto, UserSortField } from "@orbit/shared";
 
 import { Button } from "@/components/ui/button";
 import type { DataTableFeatures } from "@/components/ui/table-component";
+import { SortableHeaderComponent } from "@/components/ui/sortable-header-component";
 import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
 
 const columnHelper = createColumnHelper<DataTableFeatures, UserDto>();
 
 interface UserTableColumnOptions {
+  sortBy: UserSortField;
+  sortDirection: SortDirection;
+  onSort: (field: UserSortField) => void;
   currentUserId?: number;
   deletingUserId?: number;
   canWrite: boolean;
@@ -18,6 +22,9 @@ interface UserTableColumnOptions {
 }
 
 export function createColumns({
+  sortBy,
+  sortDirection,
+  onSort,
   currentUserId,
   deletingUserId,
   canWrite,
@@ -28,7 +35,13 @@ export function createColumns({
   const columns = [
     columnHelper.display({
       id: "fullName",
-      header: "Usuario",
+      header: () => (
+        <SortableHeaderComponent
+          label="Usuario"
+          direction={sortBy === "name" ? sortDirection : null}
+          onToggle={() => onSort("name")}
+        />
+      ),
       cell: ({ row }) => {
         const fullName = `${row.original.name} ${row.original.lastName}`;
 
@@ -51,7 +64,13 @@ export function createColumns({
       },
     }),
     columnHelper.accessor("email", {
-      header: "Correo electrónico",
+      header: () => (
+        <SortableHeaderComponent
+          label="Correo electrónico"
+          direction={sortBy === "email" ? sortDirection : null}
+          onToggle={() => onSort("email")}
+        />
+      ),
       cell: ({ getValue }) => (
         <span className="text-muted-foreground">{getValue()}</span>
       ),

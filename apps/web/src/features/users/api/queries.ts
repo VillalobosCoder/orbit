@@ -11,17 +11,25 @@ import {
   type CreateUserResponseDto,
   type ResetUserPasswordResponseDto,
   type UserDetailDto,
-  type UserDto,
+  type UserListQueryDto,
+  type UserListResponseDto,
 } from "@orbit/shared";
 import { authSessionQueryKey } from "@/features/auth/api/auth.api";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 
-export function useGetUsers() {
+export function useGetUsers(query: UserListQueryDto) {
+  const { search, ...rest } = query;
+
   return useQuery({
-    queryKey: [USERS],
+    queryKey: [USERS, "list", query],
+    placeholderData: keepPreviousData,
     queryFn: () =>
       requireData(
-        injectQuery<UserDto[]>([USERS], { method: HttpMethod.GET }),
+        injectQuery<UserListResponseDto>(
+          [USERS],
+          { method: HttpMethod.GET },
+          search ? { ...rest, search } : rest,
+        ),
         "La API no devolvió los usuarios.",
       ),
   });

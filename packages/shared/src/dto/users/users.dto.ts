@@ -1,3 +1,4 @@
+import type { PageDto } from "../api/api.dto.js";
 import type { UserPermissionDto } from "../auth/auth.dto.js";
 
 export type UserIdRequestDto = {
@@ -28,3 +29,19 @@ export type UserDto = {
 export type UserDetailDto = UserDto & {
   permissions: UserPermissionDto[];
 };
+
+export const USER_SORT_FIELDS = ["name", "email"] as const;
+
+export type UserSortField = (typeof USER_SORT_FIELDS)[number];
+
+export type SortDirection = "asc" | "desc";
+
+export type UserListQueryDto = {
+  search?: string;
+  sortBy: UserSortField;
+  sortDirection: SortDirection;
+  page: number;
+  pageSize: number;
+};
+
+export type UserListResponseDto = PageDto<UserDto>;

@@ -4,12 +4,15 @@ import type {
   ResetUserPasswordResponseDto,
   SaveUserRequestDto,
   UserDetailDto,
+  UserListQueryDto,
+  UserListResponseDto,
 } from "@orbit/shared";
 import type { ResetUserPasswordUseCase } from "../../../application/user/use-cases/reset-user-password.use-case.js";
 import { CreateUserUseCase } from "../../../application/user/use-cases/create-user.use-case.js";
 import {
   deleteSchema,
   idParamSchema,
+  listUsersQuerySchema,
   saveSchema,
 } from "../schemas/user.schema.js";
 import { DeleteUserUseCase } from "../../../application/user/use-cases/delete-user.use-case.js";
@@ -42,8 +45,10 @@ export class UserController {
         return;
       }
 
-      const users = await this.getUserListUseCase.execute();
-      res.status(200).json(users);
+      const query: UserListQueryDto = listUsersQuerySchema.parse(req.query);
+      const response: UserListResponseDto =
+        await this.getUserListUseCase.execute(query);
+      res.status(200).json(response);
     } catch (error) {
       next(error);
     }

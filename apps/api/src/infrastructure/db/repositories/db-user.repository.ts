@@ -1,12 +1,17 @@
-import { and, eq, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, ne, or, sql } from "drizzle-orm";
 import {
   UserRepository,
   type SetUserAvatarCommand,
+  type UserPage,
   type SetUserPasswordCommand,
 } from "../../../application/user/ports/user-repository.port.js";
 import { User } from "../../../domain/user/user.entity.js";
 import { Email } from "../../../domain/user/value-objects/email.vo.js";
-import { StatusTypeKey, UserStatusKey } from "@orbit/shared";
+import {
+  StatusTypeKey,
+  UserStatusKey,
+  type UserListQueryDto,
+} from "@orbit/shared";
 import {
   UserAlreadyExistsError,
   InitialAdminAlreadyExistsError,
@@ -31,6 +36,10 @@ function isEmailUniqueViolation(error: unknown): boolean {
   }
 
   return error.code === "23505" && error.constraint === "users_email_unique";
+}
+
+function escapeLikePattern(value: string): string {
+  return value.replace(/[\\%_]/g, "\\$&");
 }
 
 export class DBUserRepository implements UserRepository {
@@ -165,13 +174,53 @@ export class DBUserRepository implements UserRepository {
     return row ? User.fromPersistence(row) : null;
   }
 
-  async findAll(): Promise<User[]> {
+  async findPage({
+    search,
+    sortBy,
+    sortDirection,
+    page,
+    pageSize,
+  }: UserListQueryDto): Promise<UserPage> {
     const deletedStatusId = await this.getStatusId(UserStatusKey.DELETED);
+    const pattern = search ? `%${escapeLikePattern(search)}%` : null;
+    const where = and(
+      ne(users.statusId, deletedStatusId),
+      pattern
+        ? or(
+            ilike(users.name, pattern),
+            ilike(users.lastName, pattern),
+            ilike(users.email, pattern),
+            ilike(sql`${users.name} || ' ' || ${users.lastName}`, pattern),
+          )
+        : undefined,
+    );
+
+    const [{ total }] = await this.db
+      .select({ total: sql<number>`count(*)::int` })
+      .from(users)
+      .where(where);
+
+    const lastPage = Math.max(1, Math.ceil(total / pageSize));
+    const currentPage = Math.min(page, lastPage);
+    const direction = sortDirection === "asc" ? asc : desc;
+    const orderBy =
+      sortBy === "email"
+        ? [direction(users.email), asc(users.id)]
+        : [direction(users.name), direction(users.lastName), asc(users.id)];
+
     const rows = await this.db
       .select()
       .from(users)
-      .where(ne(users.statusId, deletedStatusId));
-    return rows.map((row) => User.fromPersistence(row));
+      .where(where)
+      .orderBy(...orderBy)
+      .limit(pageSize)
+      .offset((currentPage - 1) * pageSize);
+
+    return {
+      users: rows.map((row) => User.fromPersistence(row)),
+      total,
+      page: currentPage,
+    };
   }
 
   async update(user: User, actorUserId: ActorUserId): Promise<void> {

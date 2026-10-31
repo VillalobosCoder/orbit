@@ -1,7 +1,11 @@
 import { useState } from "react";
-import type { UserDto } from "@orbit/shared";
+import { Search } from "lucide-react";
+import type { SortDirection, UserDto, UserSortField } from "@orbit/shared";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { PaginationComponent } from "@/components/ui/pagination-component";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useAuth } from "@/context/auth/use-auth";
 import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
 import { TableComponent } from "@/components/ui/table-component";
@@ -13,6 +17,9 @@ import {
 import { createColumns } from "../utils/users-table-columns";
 import TemporaryPassword from "./temporary-password";
 
+const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
+
 export default function UserTable({
   canWrite,
   onEdit,
@@ -20,7 +27,18 @@ export default function UserTable({
   canWrite: boolean;
   onEdit: (userId: number) => void;
 }) {
-  const { data, isLoading, error } = useGetUsers();
+  const [searchText, setSearchText] = useState("");
+  const [sortBy, setSortBy] = useState<UserSortField>("name");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [page, setPage] = useState(1);
+  const search = useDebouncedValue(searchText.trim(), SEARCH_DEBOUNCE_MS);
+  const { data, isLoading, error } = useGetUsers({
+    search,
+    sortBy,
+    sortDirection,
+    page,
+    pageSize: PAGE_SIZE,
+  });
   const { user } = useAuth();
   const deleteUser = useDeleteUser();
   const resetPassword = useResetUserPassword();
@@ -31,7 +49,22 @@ export default function UserTable({
     password: string;
   } | null>(null);
 
+  function handleSort(field: UserSortField) {
+    setPage(1);
+
+    if (field === sortBy) {
+      setSortDirection((current) => (current === "asc" ? "desc" : "asc"));
+      return;
+    }
+
+    setSortBy(field);
+    setSortDirection("asc");
+  }
+
   const columns = createColumns({
+    sortBy,
+    sortDirection,
+    onSort: handleSort,
     currentUserId: user?.id,
     deletingUserId: deleteUser.isPending ? deleteUser.variables : undefined,
     canWrite,
@@ -40,19 +73,16 @@ export default function UserTable({
     onResetPassword: setUserToReset,
   });
 
-  if (error) {
-    return (
-      <div
-        role="alert"
-        className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-      >
-        {error.message}
-      </div>
-    );
-  }
-
   return (
     <>
+      {error && (
+        <p
+          role="alert"
+          className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+        >
+          {error.message}
+        </p>
+      )}
       {resetPassword.isError && (
         <p
           role="alert"
@@ -61,12 +91,38 @@ export default function UserTable({
           {resetPassword.error.message}
         </p>
       )}
+      <div className="relative max-w-sm">
+        <Search
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+        />
+        <Input
+          type="search"
+          value={searchText}
+          placeholder="Buscar por nombre o correo"
+          aria-label="Buscar usuarios"
+          className="pl-9"
+          onChange={(event) => {
+            setPage(1);
+            setSearchText(event.currentTarget.value);
+          }}
+        />
+      </div>
       <TableComponent
-        data={data ?? []}
+        data={data?.items ?? []}
         columns={columns}
         isLoading={isLoading}
-        emptyMessage="Aún no hay usuarios."
+        minRows={PAGE_SIZE}
+        emptyMessage={search ? "Ningún usuario coincide con la búsqueda." : undefined}
       />
+      {data && (
+        <PaginationComponent
+          page={data.page}
+          pageSize={data.pageSize}
+          total={data.total}
+          onPageChange={setPage}
+        />
+      )}
       <ConfirmDialogComponent
         open={userToDelete !== null}
         title="¿Eliminar usuario?"
