@@ -13,6 +13,8 @@ import { DBIssueCatalogRepository } from "./src/infrastructure/db/repositories/d
 import { DBIssueRepository } from "./src/infrastructure/db/repositories/db-issue.repository.js";
 import { DBProjectMemberRepository } from "./src/infrastructure/db/repositories/db-project-member.repository.js";
 import { DBProjectRepository } from "./src/infrastructure/db/repositories/db-project.repository.js";
+import { DBFileRepository } from "./src/infrastructure/db/repositories/db-file.repository.js";
+import { LocalFileStorage } from "./src/infrastructure/storage/local-file-storage.js";
 import { DBModuleRepository } from "./src/infrastructure/db/repositories/db-module.repository.js";
 
 const hostname = process.env.HOSTNAME!;
@@ -30,6 +32,8 @@ const issueCatalogRepository = new DBIssueCatalogRepository(dbContext);
 const commentRepository = new DBCommentRepository(dbContext);
 const sprintRepository = new DBSprintRepository(dbContext);
 const boardColumnRepository = new DBBoardColumnRepository(dbContext);
+const fileRepository = new DBFileRepository(dbContext);
+const fileStorage = new LocalFileStorage(process.env.STORAGE_DIR ?? "storage");
 const passwordHasher = new ScryptPasswordHasher();
 const tokenService = new JwtTokenService();
 const controllers = createControllers({
@@ -46,6 +50,8 @@ const controllers = createControllers({
   commentRepository,
   sprintRepository,
   boardColumnRepository,
+  fileRepository,
+  fileStorage,
 });
 const app = createHttpApp(controllers, tokenService, userPermissionRepository);
 

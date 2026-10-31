@@ -98,3 +98,27 @@ export class CannotResetOwnPasswordError extends DomainError {
     super("No puedes restablecer tu propia contraseña; cámbiala desde tu perfil.");
   }
 }
+
+export class InvalidAvatarImageError extends DomainError {
+  readonly statusCode = 415;
+
+  constructor() {
+    super("La foto debe ser una imagen PNG, JPG o WebP válida.");
+  }
+}
+
+export class AvatarTooLargeError extends DomainError {
+  readonly statusCode = 413;
+
+  constructor() {
+    super("La foto no puede superar los 2 MB.");
+  }
+}
+
+export class AvatarNotFoundError extends DomainError {
+  readonly statusCode = 404;
+
+  constructor() {
+    super("El usuario no tiene foto de perfil.");
+  }
+}

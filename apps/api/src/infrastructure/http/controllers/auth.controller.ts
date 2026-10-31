@@ -9,6 +9,9 @@ import type { LoginUseCase } from "../../../application/auth/use-cases/login.use
 import type { GetCurrentUserUseCase } from "../../../application/auth/use-cases/get-current-user.use-case.js";
 import type { ChangePasswordUseCase } from "../../../application/auth/use-cases/change-password.use-case.js";
 import type { UpdateProfileUseCase } from "../../../application/auth/use-cases/update-profile.use-case.js";
+import type { UploadAvatarUseCase } from "../../../application/user/use-cases/upload-avatar.use-case.js";
+import type { RemoveAvatarUseCase } from "../../../application/user/use-cases/remove-avatar.use-case.js";
+import { InvalidAvatarImageError } from "../../../domain/user/user.errors.js";
 import {
   changePasswordSchema,
   loginSchema,
@@ -32,6 +35,8 @@ export class AuthController {
     private readonly getCurrentUserUseCase: GetCurrentUserUseCase,
     private readonly changePasswordUseCase: ChangePasswordUseCase,
     private readonly updateProfileUseCase: UpdateProfileUseCase,
+    private readonly uploadAvatarUseCase: UploadAvatarUseCase,
+    private readonly removeAvatarUseCase: RemoveAvatarUseCase,
   ) {}
 
   me = async (
@@ -78,6 +83,69 @@ export class AuthController {
         req.body,
       );
       await this.updateProfileUseCase.execute({ ...input, actorUserId });
+      const user = await this.getCurrentUserUseCase.execute(actorUserId);
+
+      if (!user) {
+        res.status(401).json({ error: "La sesión ya no es válida." });
+        return;
+      }
+
+      const response: LoginResponseDto = { user };
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  uploadAvatar = async (
+    req: AuthedRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const actorUserId = req.auth?.id;
+
+      if (actorUserId === undefined) {
+        res.status(401).json({ error: "No autenticado." });
+        return;
+      }
+
+      if (!Buffer.isBuffer(req.body)) {
+        throw new InvalidAvatarImageError();
+      }
+
+      await this.uploadAvatarUseCase.execute({
+        actorUserId,
+        content: req.body,
+      });
+      const user = await this.getCurrentUserUseCase.execute(actorUserId);
+
+      if (!user) {
+        res.status(401).json({ error: "La sesión ya no es válida." });
+        return;
+      }
+
+      const response: LoginResponseDto = { user };
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  removeAvatar = async (
+    req: AuthedRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const actorUserId = req.auth?.id;
+
+      if (actorUserId === undefined) {
+        res.status(401).json({ error: "No autenticado." });
+        return;
+      }
+
+      await this.removeAvatarUseCase.execute({ actorUserId });
       const user = await this.getCurrentUserUseCase.execute(actorUserId);
 
       if (!user) {

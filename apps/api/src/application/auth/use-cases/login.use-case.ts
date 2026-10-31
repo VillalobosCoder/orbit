@@ -5,6 +5,7 @@ import { UserRepository } from "../../user/ports/user-repository.port.js";
 import { TokenService } from "../ports/token-service.port.js";
 import type { UserPermissionRepository } from "../ports/user-permission-repository.port.js";
 import type { AuthenticatedUserDto } from "@orbit/shared";
+import { buildAvatarUrl } from "../../user/utils/avatar-url.js";
 
 export interface LoginOutput {
   token: string;
@@ -62,6 +63,7 @@ export class LoginUseCase {
         name: user.name,
         lastName: user.lastName,
         email: user.email.toString(),
+        avatarUrl: buildAvatarUrl(user.id!, user.avatarFileId),
         permissions,
         mustChangePassword: user.mustChangePassword,
       },

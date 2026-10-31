@@ -8,6 +8,11 @@ import { LoginUseCase } from "../../../application/auth/use-cases/login.use-case
 import { GetCurrentUserUseCase } from "../../../application/auth/use-cases/get-current-user.use-case.js";
 import { ChangePasswordUseCase } from "../../../application/auth/use-cases/change-password.use-case.js";
 import { UpdateProfileUseCase } from "../../../application/auth/use-cases/update-profile.use-case.js";
+import type { FileRepository } from "../../../application/file/ports/file-repository.port.js";
+import type { FileStorage } from "../../../application/file/ports/file-storage.port.js";
+import { UploadAvatarUseCase } from "../../../application/user/use-cases/upload-avatar.use-case.js";
+import { RemoveAvatarUseCase } from "../../../application/user/use-cases/remove-avatar.use-case.js";
+import { GetAvatarUseCase } from "../../../application/user/use-cases/get-avatar.use-case.js";
 import { ResetUserPasswordUseCase } from "../../../application/user/use-cases/reset-user-password.use-case.js";
 import { CreateUserUseCase } from "../../../application/user/use-cases/create-user.use-case.js";
 import { DeleteUserUseCase } from "../../../application/user/use-cases/delete-user.use-case.js";
@@ -75,6 +80,8 @@ export interface ControllerDependencies {
   commentRepository: CommentRepository;
   sprintRepository: SprintRepository;
   boardColumnRepository: BoardColumnRepository;
+  fileRepository: FileRepository;
+  fileStorage: FileStorage;
 }
 
 export function createControllers(dependencies: ControllerDependencies) {
@@ -123,12 +130,29 @@ export function createControllers(dependencies: ControllerDependencies) {
       getUser,
       updateUser,
       resetUserPassword,
+      new GetAvatarUseCase(
+        dependencies.userRepository,
+        dependencies.fileRepository,
+        dependencies.fileStorage,
+      ),
     ),
     auth: new AuthController(
       login,
       getCurrentUser,
       changePassword,
       new UpdateProfileUseCase(dependencies.userRepository),
+      new UploadAvatarUseCase(
+        dependencies.userRepository,
+        dependencies.fileRepository,
+        dependencies.fileStorage,
+        dependencies.transaction,
+      ),
+      new RemoveAvatarUseCase(
+        dependencies.userRepository,
+        dependencies.fileRepository,
+        dependencies.fileStorage,
+        dependencies.transaction,
+      ),
     ),
     modules: new ModuleController(dependencies.moduleRepository),
     projects: new ProjectController(

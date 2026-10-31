@@ -1,6 +1,7 @@
 import type { AuthenticatedUserDto } from "@orbit/shared";
 import type { UserRepository } from "../../user/ports/user-repository.port.js";
 import type { UserPermissionRepository } from "../ports/user-permission-repository.port.js";
+import { buildAvatarUrl } from "../../user/utils/avatar-url.js";
 
 export class GetCurrentUserUseCase {
   constructor(
@@ -20,6 +21,7 @@ export class GetCurrentUserUseCase {
       name: user.name,
       lastName: user.lastName,
       email: user.email.toString(),
+      avatarUrl: buildAvatarUrl(id, user.avatarFileId),
       permissions: await this.permissions.findByUserId(id),
       mustChangePassword: user.mustChangePassword,
     };

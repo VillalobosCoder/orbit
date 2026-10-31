@@ -8,6 +8,11 @@ export type SetUserPasswordCommand = UserIdRequestDto &
     mustChangePassword: boolean;
   };
 
+export type SetUserAvatarCommand = UserIdRequestDto &
+  Actor & {
+    avatarFileId: number | null;
+  };
+
 export interface UserRepository {
   save(user: User, actorUserId: ActorUserId): Promise<number>;
   bootstrapInitialAdmin(user: User): Promise<void>;
@@ -17,5 +22,6 @@ export interface UserRepository {
   update(user: User, actorUserId: ActorUserId): Promise<void>;
   updatePassword(id: number, passwordHash: string): Promise<void>;
   setPassword(command: SetUserPasswordCommand): Promise<void>;
+  setAvatar(command: SetUserAvatarCommand): Promise<void>;
   delete(id: number): Promise<void>;
 }

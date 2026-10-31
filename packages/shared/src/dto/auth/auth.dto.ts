@@ -14,6 +14,7 @@ export type AuthenticatedUserDto = {
   name: string;
   lastName: string;
   email: string;
+  avatarUrl: string | null;
   permissions: UserPermissionDto[];
   mustChangePassword: boolean;
 };

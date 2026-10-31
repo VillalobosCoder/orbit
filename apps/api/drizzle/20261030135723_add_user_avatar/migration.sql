@@ -1,0 +1,2 @@
+ALTER TABLE "users" ADD COLUMN "avatar_file_id" integer;--> statement-breakpoint
+ALTER TABLE "users" ADD CONSTRAINT "users_avatar_file_id_files_id_fkey" FOREIGN KEY ("avatar_file_id") REFERENCES "files"("id");

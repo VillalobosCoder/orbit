@@ -1,6 +1,7 @@
 import { and, eq, ne, sql } from "drizzle-orm";
 import {
   UserRepository,
+  type SetUserAvatarCommand,
   type SetUserPasswordCommand,
 } from "../../../application/user/ports/user-repository.port.js";
 import { User } from "../../../domain/user/user.entity.js";
@@ -235,6 +236,27 @@ export class DBUserRepository implements UserRepository {
       .set({
         password: passwordHash,
         mustChangePassword,
+        updatedAt: new Date(),
+        updatedByUserId: actorUserId,
+      })
+      .where(and(eq(users.id, id), ne(users.statusId, deletedStatusId)))
+      .returning({ id: users.id });
+
+    if (!row) {
+      throw new UserNotFoundError(id);
+    }
+  }
+
+  async setAvatar({
+    id,
+    avatarFileId,
+    actorUserId,
+  }: SetUserAvatarCommand): Promise<void> {
+    const deletedStatusId = await this.getStatusId(UserStatusKey.DELETED);
+    const [row] = await this.db
+      .update(users)
+      .set({
+        avatarFileId,
         updatedAt: new Date(),
         updatedByUserId: actorUserId,
       })

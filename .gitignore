@@ -30,3 +30,6 @@ lerna-debug.log*
 # Environment variables
 /apps/api/.env
 /apps/web/.env
+
+# Uploaded files
+/apps/api/storage

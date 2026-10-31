@@ -22,6 +22,7 @@ export type UserDto = {
   name: string;
   lastName: string;
   email: string;
+  avatarUrl: string | null;
 };
 
 export type UserDetailDto = UserDto & {

@@ -6,6 +6,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { auditColumns } from "./audit-columns.js";
+import { files } from "./files.js";
 import { statuses } from "./statuses.js";
 
 export const users = pgTable(
@@ -19,6 +20,9 @@ export const users = pgTable(
     mustChangePassword: boolean("must_change_password")
       .notNull()
       .default(false),
+    avatarFileId: integer("avatar_file_id").references(
+      (): AnyPgColumn => files.id,
+    ),
     statusId: integer("status_id")
       .notNull()
       .references(() => statuses.id),

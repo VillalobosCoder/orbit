@@ -12,6 +12,7 @@ import {
 import type { DbContext } from "../db-context.js";
 import { projectMembers } from "../schema/project-members.js";
 import { users } from "../schema/users.js";
+import { buildAvatarUrl } from "../../../application/user/utils/avatar-url.js";
 import { findStatusId } from "./find-status-id.js";
 
 function isMemberUniqueViolation(error: unknown): boolean {
@@ -35,7 +36,17 @@ const userColumns = {
   name: users.name,
   lastName: users.lastName,
   email: users.email,
+  avatarFileId: users.avatarFileId,
 };
+
+type UserColumnsRow = { id: number; avatarFileId: number | null };
+
+function toMemberDto<T extends UserColumnsRow>({
+  avatarFileId,
+  ...row
+}: T): Omit<T, "avatarFileId"> & { avatarUrl: string | null } {
+  return { ...row, avatarUrl: buildAvatarUrl(row.id, avatarFileId) };
+}
 
 export class DBProjectMemberRepository implements ProjectMemberRepository {
   constructor(private readonly context: DbContext) {}
@@ -87,7 +98,7 @@ export class DBProjectMemberRepository implements ProjectMemberRepository {
   async findMembers({ id }: ProjectIdRequestDto): Promise<ProjectMemberDto[]> {
     const deletedStatusId = await this.getDeletedUserStatusId();
 
-    return this.db
+    const rows = await this.db
       .select(userColumns)
       .from(projectMembers)
       .innerJoin(users, eq(users.id, projectMembers.userId))
@@ -98,6 +109,8 @@ export class DBProjectMemberRepository implements ProjectMemberRepository {
         ),
       )
       .orderBy(asc(users.name), asc(users.id));
+
+    return rows.map(toMemberDto);
   }
 
   async findCandidates({
@@ -105,7 +118,7 @@ export class DBProjectMemberRepository implements ProjectMemberRepository {
   }: ProjectIdRequestDto): Promise<ProjectMemberDto[]> {
     const deletedStatusId = await this.getDeletedUserStatusId();
 
-    return this.db
+    const rows = await this.db
       .select(userColumns)
       .from(users)
       .where(
@@ -121,5 +134,7 @@ export class DBProjectMemberRepository implements ProjectMemberRepository {
         ),
       )
       .orderBy(asc(users.name), asc(users.id));
+
+    return rows.map(toMemberDto);
   }
 }

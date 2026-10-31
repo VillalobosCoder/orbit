@@ -15,6 +15,7 @@ export type UserPrimitives = {
   email: string;
   password: string;
   mustChangePassword: boolean;
+  avatarFileId: number | null;
   createdAt: Date;
 };
 
@@ -25,6 +26,7 @@ type UserProps = {
   email: Email;
   password: string;
   mustChangePassword: boolean;
+  avatarFileId: number | null;
   createdAt: Date;
 };
 
@@ -36,6 +38,7 @@ export class User {
       ...User.normalizeProfile(input),
       password: input.password,
       mustChangePassword: input.mustChangePassword ?? false,
+      avatarFileId: null,
       createdAt: new Date(),
     });
   }
@@ -48,6 +51,7 @@ export class User {
       email: Email.create(data.email),
       password: data.password,
       mustChangePassword: data.mustChangePassword,
+      avatarFileId: data.avatarFileId,
       createdAt: data.createdAt,
     });
   }
@@ -96,6 +100,10 @@ export class User {
     return this.props.mustChangePassword;
   }
 
+  get avatarFileId(): number | null {
+    return this.props.avatarFileId;
+  }
+
   get createdAt(): Date {
     return this.props.createdAt;
   }
@@ -108,6 +116,7 @@ export class User {
       email: this.props.email.toString(),
       password: this.props.password,
       mustChangePassword: this.props.mustChangePassword,
+      avatarFileId: this.props.avatarFileId,
       createdAt: this.props.createdAt,
     };
   }

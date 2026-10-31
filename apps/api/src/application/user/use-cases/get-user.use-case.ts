@@ -2,6 +2,7 @@ import type { UserDetailDto } from "@orbit/shared";
 import { UserNotFoundError } from "../../../domain/user/user.errors.js";
 import type { UserPermissionRepository } from "../../auth/ports/user-permission-repository.port.js";
 import type { UserRepository } from "../ports/user-repository.port.js";
+import { buildAvatarUrl } from "../utils/avatar-url.js";
 
 export class GetUserUseCase {
   constructor(
@@ -21,6 +22,7 @@ export class GetUserUseCase {
       name: user.name,
       lastName: user.lastName,
       email: user.email.toString(),
+      avatarUrl: buildAvatarUrl(id, user.avatarFileId),
       permissions: await this.permissions.findByUserId(id),
     };
   }

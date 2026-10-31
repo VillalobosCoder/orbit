@@ -16,6 +16,7 @@ import { DeleteUserUseCase } from "../../../application/user/use-cases/delete-us
 import type { AuthedRequest } from "../middleware/auth.middleware.js";
 import { GetUserUseCase } from "../../../application/user/use-cases/get-user.use-case.js";
 import { UpdateUserUseCase } from "../../../application/user/use-cases/update-user.use-case.js";
+import type { GetAvatarUseCase } from "../../../application/user/use-cases/get-avatar.use-case.js";
 import { GetUserListUseCase } from "../../../application/user/use-cases/get-user-list.use-case.js";
 
 export class UserController {
@@ -26,6 +27,7 @@ export class UserController {
     private readonly getUserUseCase: GetUserUseCase,
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly resetUserPasswordUseCase: ResetUserPasswordUseCase,
+    private readonly getAvatarUseCase: GetAvatarUseCase,
   ) {}
 
   getAllUsers = async (
@@ -42,6 +44,28 @@ export class UserController {
 
       const users = await this.getUserListUseCase.execute();
       res.status(200).json(users);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAvatar = async (
+    req: AuthedRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { id } = idParamSchema.parse(req.params);
+      const { content, mimeType } = await this.getAvatarUseCase.execute({ id });
+
+      res
+        .status(200)
+        .type(mimeType)
+        .set({
+          "Cache-Control": "private, max-age=86400",
+          "X-Content-Type-Options": "nosniff",
+        })
+        .send(content);
     } catch (error) {
       next(error);
     }

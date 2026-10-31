@@ -11,6 +11,8 @@ export function UserRoutes(
 ) {
   const router = Router();
 
+  router.get("/:id/avatar", authenticate, controller.getAvatar);
+
   router.get(
     "/",
     authenticate,
