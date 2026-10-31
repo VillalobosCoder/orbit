@@ -7,6 +7,7 @@ import SettingsPage from "@/features/settings/pages/settings";
 import AuthLayout from "@/features/auth/pages/auth-layout";
 import ModuleLayout from "@/shared/ui/layouts/module-loyout";
 import NotFoundPage from "./not-found";
+import RouteErrorPage from "./route-error";
 import HomePage from "@/features/home/pages/home";
 import UsersPage from "@/features/users/pages/users";
 import PlanningPage from "@/features/sprints/pages/planning";
@@ -17,6 +18,7 @@ import { PermissionGuard } from "./permission-guard";
 export const router = createBrowserRouter([
   {
     element: <PublicGuard />,
+    errorElement: <RouteErrorPage />,
     children: [
       {
         element: <AuthLayout />,
@@ -27,6 +29,7 @@ export const router = createBrowserRouter([
   {
     path: "/",
     element: <PrivateGuard />,
+    errorElement: <RouteErrorPage />,
     children: [
       {
         element: <AuthLayout />,

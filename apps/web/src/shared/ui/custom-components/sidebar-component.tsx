@@ -8,11 +8,9 @@ import {
   FolderKanban,
   House,
   LogOut,
-  Moon,
   Orbit,
   Plus,
   Settings,
-  Sun,
   UserRound,
   type LucideIcon,
 } from "lucide-react";
@@ -43,7 +41,6 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/auth/use-auth";
 import { usePermission } from "@/context/auth/use-permission";
-import { useTheme } from "@/context/theme/use-theme";
 import { useLogout } from "@/features/auth/api/queries";
 import { useGetModules } from "@/features/modules/api/queries";
 import { useGetProjects } from "@/features/projects/api/queries";
@@ -75,7 +72,6 @@ export default function SidebarComponent() {
   const navigate = useNavigate();
   const { state, isMobile } = useSidebar();
   const { user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const { canWrite: canWriteProjects } = usePermission("projects");
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const logoutMutation = useLogout();
@@ -92,7 +88,6 @@ export default function SidebarComponent() {
   const hasActiveProject = projects.some((project) =>
     isPathActive(pathname, `/projects/${project.id}`),
   );
-  const isDark = theme === "dark";
   const fullName = user ? `${user.name} ${user.lastName}` : "";
 
   const navigationItems = modules.filter(
@@ -135,9 +130,8 @@ export default function SidebarComponent() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navegación</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-1">
               {navigationItems.map((module) => {
                 const url = MODULE_ROUTES[module.key]!;
                 const Icon = MODULE_ICONS[module.icon ?? ""] ?? House;
@@ -239,10 +233,10 @@ export default function SidebarComponent() {
                       tooltip={project.name}
                       className="not-group-data-[collapsible=icon]:h-8 not-group-data-[collapsible=icon]:gap-2.5 not-group-data-[collapsible=icon]:rounded-l-none not-group-data-[collapsible=icon]:px-3 not-group-data-[collapsible=icon]:text-[0.8125rem] not-group-data-[collapsible=icon]:data-active:shadow-[inset_2px_0_0_var(--sidebar-primary)] not-group-data-[collapsible=icon]:data-active:before:hidden"
                     >
-                      <span className="w-7 shrink-0 font-mono text-[0.7rem] font-medium text-sidebar-foreground/60 group-data-[collapsible=icon]:w-auto group-data-[collapsible=icon]:text-xs group-data-active/menu-button:text-sidebar-primary">
+                      <span className="shrink-0 font-mono text-[0.7rem] font-medium text-sidebar-foreground/60 group-data-[collapsible=icon]:text-xs group-data-active/menu-button:text-sidebar-primary">
                         {project.projectKey}
                       </span>
-                      <span>{project.name}</span>
+                      <span className="min-w-0 truncate">{project.name}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -296,10 +290,6 @@ export default function SidebarComponent() {
               <DropdownMenuItem onClick={() => navigate("/configuracion")}>
                 <Settings />
                 Configuración
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={toggleTheme}>
-                {isDark ? <Sun /> : <Moon />}
-                {isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
