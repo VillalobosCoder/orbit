@@ -1,5 +1,5 @@
 import { handleMutationError, HttpMethod, injectQuery } from "@/api/config";
-import { AUTH, LOGIN, LOGOUT, ME, PASSWORD } from "@/api/uris";
+import { AUTH, AVATAR, LOGIN, LOGOUT, ME, PASSWORD } from "@/api/uris";
 import { useAuth } from "@/context/auth/use-auth";
 import type {
   ChangePasswordRequestDto,
@@ -38,6 +38,48 @@ export function useUpdateProfile() {
       const response = await injectQuery<LoginResponseDto>([AUTH, ME], {
         method: HttpMethod.PATCH,
         body: JSON.stringify(data),
+      });
+
+      if (!response) {
+        throw new Error("La API no devolvió los datos de la sesión.");
+      }
+
+      return response;
+    },
+    onSuccess: (response) => login(response),
+    onError: handleMutationError,
+  });
+}
+
+export function useUploadAvatar() {
+  const { login } = useAuth();
+
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const response = await injectQuery<LoginResponseDto>([AUTH, ME, AVATAR], {
+        method: HttpMethod.PUT,
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+
+      if (!response) {
+        throw new Error("La API no devolvió los datos de la sesión.");
+      }
+
+      return response;
+    },
+    onSuccess: (response) => login(response),
+    onError: handleMutationError,
+  });
+}
+
+export function useRemoveAvatar() {
+  const { login } = useAuth();
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await injectQuery<LoginResponseDto>([AUTH, ME, AVATAR], {
+        method: HttpMethod.DELETE,
       });
 
       if (!response) {

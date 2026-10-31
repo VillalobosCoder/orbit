@@ -6,6 +6,10 @@ function resolveApiUrl(configuredUrl?: string) {
 
 const AUTH_API_URL = resolveApiUrl(import.meta.env.VITE_AUTH_API_URL);
 
+export function resolveAssetUrl(path: string) {
+  return `${AUTH_API_URL}${path}`;
+}
+
 const REQUEST_TIMEOUT_MS = 15_000;
 
 export const HttpMethod = {

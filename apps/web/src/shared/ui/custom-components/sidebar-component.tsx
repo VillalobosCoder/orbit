@@ -264,7 +264,7 @@ export default function SidebarComponent() {
               className="flex w-full items-center gap-3 rounded-xl border border-sidebar-border p-2 text-left outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring data-popup-open:bg-sidebar-accent group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:p-1"
               aria-label="Menú de cuenta"
             >
-              <UserAvatarComponent name={fullName} />
+              <UserAvatarComponent name={fullName} avatarUrl={user.avatarUrl} />
               <span className="min-w-0 flex-1 leading-tight group-data-[collapsible=icon]:hidden">
                 <span className="block truncate text-sm font-medium text-sidebar-foreground">
                   {fullName}

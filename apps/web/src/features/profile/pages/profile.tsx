@@ -9,7 +9,7 @@ import { useAuth } from "@/context/auth/use-auth";
 import { useUpdateProfile } from "@/features/auth/api/queries";
 import ChangePasswordForm from "@/features/auth/pages/components/change-password-form";
 import { PageHeaderComponent } from "@/components/ui/page-header-component";
-import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
+import ProfilePhoto from "./components/profile-photo";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -44,15 +44,11 @@ export default function ProfilePage() {
         aria-label="Datos personales"
         className="rounded-xl border border-border bg-card p-6"
       >
-        <div className="mb-6 flex items-center gap-4">
-          <UserAvatarComponent name={fullName} className="size-16 text-xl" />
-          <div className="min-w-0">
-            <p className="truncate text-lg font-semibold">{fullName}</p>
-            <p className="truncate text-sm text-muted-foreground">
-              {user.email}
-            </p>
-          </div>
-        </div>
+        <ProfilePhoto
+          fullName={fullName}
+          email={user.email}
+          avatarUrl={user.avatarUrl}
+        />
 
         <form onSubmit={handleSubmit}>
           <FieldGroup>

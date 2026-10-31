@@ -34,7 +34,10 @@ export function createColumns({
 
         return (
           <div className="flex items-center gap-3">
-            <UserAvatarComponent name={fullName} />
+            <UserAvatarComponent
+              name={fullName}
+              avatarUrl={row.original.avatarUrl}
+            />
             <span className="font-medium">
               {fullName}
               {row.original.id === currentUserId && (

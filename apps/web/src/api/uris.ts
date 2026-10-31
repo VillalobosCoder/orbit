@@ -5,6 +5,7 @@ export const ME = '/me';
 export const LOGOUT = '/logout';
 export const SESSION = '/session';
 export const PASSWORD = '/password';
+export const AVATAR = '/avatar';
 // #endregion
 
 // #region Mains
