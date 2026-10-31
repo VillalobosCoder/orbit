@@ -57,7 +57,10 @@ function ColumnDot({ column }: { column: BoardColumnDto }) {
   return (
     <span
       aria-hidden="true"
-      className={cn("size-2 rounded-full", !column.color && CATEGORY_DOT[column.category])}
+      className={cn(
+        "size-2 rounded-full",
+        !column.color && CATEGORY_DOT[column.category],
+      )}
       style={column.color ? { backgroundColor: column.color } : undefined}
     />
   );
@@ -113,11 +116,14 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
   const parentKey = (issue: IssueDto) =>
     issues.find((candidate) => candidate.id === issue.parentId)?.issueKey;
   const subtasksOf = (issue: IssueDto) => {
-    const children = issues.filter((candidate) => candidate.parentId === issue.id);
+    const children = issues.filter(
+      (candidate) => candidate.parentId === issue.id,
+    );
 
     return {
       total: children.length,
-      done: children.filter((child) => doneColumnIds.has(child.columnId)).length,
+      done: children.filter((child) => doneColumnIds.has(child.columnId))
+        .length,
     };
   };
   const assigneesOf = (issue: IssueDto) =>
@@ -130,10 +136,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
     setDropTarget(null);
   }
 
-  function handleCardDragOver(
-    event: DragEvent<HTMLElement>,
-    issue: IssueDto,
-  ) {
+  function handleCardDragOver(event: DragEvent<HTMLElement>, issue: IssueDto) {
     event.preventDefault();
     event.stopPropagation();
 
@@ -142,7 +145,8 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
     const rect = event.currentTarget.getBoundingClientRect();
     const isLowerHalf = event.clientY >= rect.top + rect.height / 2;
     const column = issuesIn(issue.columnId, true);
-    const following = column[column.findIndex((item) => item.id === issue.id) + 1];
+    const following =
+      column[column.findIndex((item) => item.id === issue.id) + 1];
 
     setDropTarget({
       columnId: issue.columnId,
@@ -170,168 +174,175 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
   }
 
   const dropIndicator = (
-    <li
-      aria-hidden="true"
-      className="h-1 shrink-0 rounded-full bg-primary"
-    />
+    <li aria-hidden="true" className="h-1 shrink-0 rounded-full bg-primary" />
   );
 
   return (
-    <section aria-label="Tablero" className="flex flex-col gap-4">
-      <div
-        className={cn(
-          "flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-2.5",
-          activeSprint
-            ? "border-info/40 bg-linear-to-r from-info/12 via-card to-card"
-            : "border-border bg-card",
-        )}
-      >
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          {activeSprint ? (
-            <>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-info/15 px-2.5 py-0.5 text-xs font-medium text-info">
-                <span
-                  className="size-1.5 rounded-full bg-info shadow-[0_0_8px_var(--info)]"
-                  aria-hidden="true"
-                />
-                Sprint activo
-              </span>
-              <strong className="text-[0.9375rem] font-semibold">
-                {activeSprint.name}
-              </strong>
-              {activeSprint.endDate && (
-                <span className="text-muted-foreground">
-                  {describeEndDate(activeSprint.endDate)}
-                </span>
-              )}
-            </>
-          ) : (
-            <span className="text-muted-foreground">
-              Sin sprint activo: se muestran los issues del backlog.
-            </span>
-          )}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            nativeButton={false}
-            render={<NavLink to={`/projects/${project.id}/planning`} />}
-          >
-            Planificación
-          </Button>
-          {canWrite && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsEditingColumns(true)}
-            >
-              <Columns3 />
-              Columnas
-            </Button>
-          )}
-          {canWrite && (
-            <Button
-              type="button"
-              disabled={!options.data || !members.data}
-              onClick={() => setIsCreating(true)}
-            >
-              <Plus />
-              Nuevo issue
-            </Button>
-          )}
-        </div>
-      </div>
-
+    <section
+      aria-label="Tablero"
+      className="flex min-h-0 flex-1 flex-col gap-4"
+    >
       {moveIssue.isError && (
         <p
           role="alert"
-          className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          className="shrink-0 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
         >
           {moveIssue.error.message}
         </p>
       )}
 
-      <div className="flex items-start gap-4 overflow-x-auto pb-2">
-        {columns.map((column) => {
-          const columnIssues = issuesIn(column.id);
-          const isOverLimit =
-            column.wipLimit !== null && columnIssues.length > column.wipLimit;
-          const isDropColumn =
-            draggingId !== null && dropTarget?.columnId === column.id;
-
-          return (
-            <div
-              key={column.id}
-              className={cn(
-                "flex min-h-40 w-72 shrink-0 flex-col gap-2 rounded-xl border bg-muted/40 p-2.5 transition-colors",
-                isDropColumn ? "border-primary bg-primary/5" : "border-border",
-              )}
-              onDragOver={(event) => {
-                event.preventDefault();
-                setDropTarget({ columnId: column.id, beforeIssueId: null });
-              }}
-              onDrop={() => handleDrop(column.id)}
-            >
-              <h3 className="flex items-center gap-2 px-1 pt-0.5 pb-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                <ColumnDot column={column} />
-                {column.name}
-                <span
-                  className={cn(
-                    "rounded-full bg-muted px-2 py-0.5 text-xs font-medium tracking-normal",
-                    isOverLimit && "bg-destructive/15 text-destructive",
-                  )}
-                >
-                  {columnIssues.length}
-                  {column.wipLimit !== null && ` / ${column.wipLimit}`}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card">
+        <div
+          className={cn(
+            "flex shrink-0 flex-wrap items-center justify-between gap-3 border-b px-4 py-3",
+            activeSprint
+              ? "border-info/40 bg-linear-to-r from-info/12 via-card to-card"
+              : "border-border",
+          )}
+        >
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+            {activeSprint ? (
+              <>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-info/15 px-2.5 py-0.5 text-xs font-medium text-info">
+                  <span
+                    className="size-1.5 rounded-full bg-info shadow-[0_0_8px_var(--info)]"
+                    aria-hidden="true"
+                  />
+                  Sprint activo
                 </span>
-              </h3>
-              <ul className="flex flex-col gap-2">
-                {columnIssues.map((issue) => (
-                  <Fragment key={issue.id}>
-                    {isDropColumn &&
-                      dropTarget?.beforeIssueId === issue.id &&
-                      dropIndicator}
-                    <IssueCard
-                      issue={issue}
-                      type={options.data?.issueTypes.find(
-                        (type) => type.id === issue.typeId,
-                      )}
-                      priority={options.data?.priorities.find(
-                        (priority) => priority.id === issue.priorityId,
-                      )}
-                      difficulty={options.data?.difficulties.find(
-                        (difficulty) => difficulty.id === issue.difficultyId,
-                      )}
-                      assignees={assigneesOf(issue)}
-                      parentKey={parentKey(issue)}
-                      subtasks={subtasksOf(issue)}
-                      draggable={canWrite}
-                      isDragging={draggingId === issue.id}
-                      onOpen={() =>
-                        navigate(`/projects/${project.id}/issues/${issue.id}`)
-                      }
-                      onDragStart={(event) => {
-                        event.dataTransfer.effectAllowed = "move";
-                        event.dataTransfer.setData("text/plain", String(issue.id));
-                        setDraggingId(issue.id);
-                      }}
-                      onDragEnd={resetDrag}
-                      onDragOver={(event) => handleCardDragOver(event, issue)}
-                    />
-                  </Fragment>
-                ))}
-                {isDropColumn &&
-                  dropTarget?.beforeIssueId === null &&
-                  dropIndicator}
-                {columnIssues.length === 0 && !isDropColumn && (
-                  <li className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
-                    Sin issues en esta columna
-                  </li>
+                <strong className="text-[0.9375rem] font-semibold">
+                  {activeSprint.name}
+                </strong>
+                {activeSprint.endDate && (
+                  <span className="text-muted-foreground">
+                    {describeEndDate(activeSprint.endDate)}
+                  </span>
                 )}
-              </ul>
-            </div>
-          );
-        })}
+              </>
+            ) : (
+              <span className="text-muted-foreground">
+                Sin sprint activo: se muestran los issues del backlog.
+              </span>
+            )}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              nativeButton={false}
+              render={<NavLink to={`/projects/${project.id}/planning`} />}
+            >
+              Planificación
+            </Button>
+            {canWrite && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEditingColumns(true)}
+              >
+                <Columns3 />
+                Columnas
+              </Button>
+            )}
+            {canWrite && (
+              <Button
+                type="button"
+                disabled={!options.data || !members.data}
+                onClick={() => setIsCreating(true)}
+              >
+                <Plus />
+                Nuevo issue
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <div className="flex min-h-0 flex-1 gap-4 overflow-x-auto p-4">
+          {columns.map((column) => {
+            const columnIssues = issuesIn(column.id);
+            const isOverLimit =
+              column.wipLimit !== null && columnIssues.length > column.wipLimit;
+            const isDropColumn =
+              draggingId !== null && dropTarget?.columnId === column.id;
+
+            return (
+              <div
+                key={column.id}
+                className={cn(
+                  "flex h-full min-h-40 w-72 shrink-0 flex-col gap-2 rounded-xl border bg-muted/40 p-2.5 transition-colors",
+                  isDropColumn
+                    ? "border-primary bg-primary/5"
+                    : "border-border",
+                )}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  setDropTarget({ columnId: column.id, beforeIssueId: null });
+                }}
+                onDrop={() => handleDrop(column.id)}
+              >
+                <h3 className="flex items-center gap-2 px-1 pt-0.5 pb-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                  <ColumnDot column={column} />
+                  {column.name}
+                  <span
+                    className={cn(
+                      "rounded-full bg-muted px-2 py-0.5 text-xs font-medium tracking-normal",
+                      isOverLimit && "bg-destructive/15 text-destructive",
+                    )}
+                  >
+                    {columnIssues.length}
+                    {column.wipLimit !== null && ` / ${column.wipLimit}`}
+                  </span>
+                </h3>
+                <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">
+                  {columnIssues.map((issue) => (
+                    <Fragment key={issue.id}>
+                      {isDropColumn &&
+                        dropTarget?.beforeIssueId === issue.id &&
+                        dropIndicator}
+                      <IssueCard
+                        issue={issue}
+                        type={options.data?.issueTypes.find(
+                          (type) => type.id === issue.typeId,
+                        )}
+                        priority={options.data?.priorities.find(
+                          (priority) => priority.id === issue.priorityId,
+                        )}
+                        difficulty={options.data?.difficulties.find(
+                          (difficulty) => difficulty.id === issue.difficultyId,
+                        )}
+                        assignees={assigneesOf(issue)}
+                        parentKey={parentKey(issue)}
+                        subtasks={subtasksOf(issue)}
+                        draggable={canWrite}
+                        isDragging={draggingId === issue.id}
+                        onOpen={() =>
+                          navigate(`/projects/${project.id}/issues/${issue.id}`)
+                        }
+                        onDragStart={(event) => {
+                          event.dataTransfer.effectAllowed = "move";
+                          event.dataTransfer.setData(
+                            "text/plain",
+                            String(issue.id),
+                          );
+                          setDraggingId(issue.id);
+                        }}
+                        onDragEnd={resetDrag}
+                        onDragOver={(event) => handleCardDragOver(event, issue)}
+                      />
+                    </Fragment>
+                  ))}
+                  {isDropColumn &&
+                    dropTarget?.beforeIssueId === null &&
+                    dropIndicator}
+                  {columnIssues.length === 0 && !isDropColumn && (
+                    <li className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
+                      Sin issues en esta columna
+                    </li>
+                  )}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {isCreating && options.data && members.data && (

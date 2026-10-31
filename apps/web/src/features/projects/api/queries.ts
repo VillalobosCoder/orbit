@@ -115,7 +115,7 @@ export function useAddProjectMember() {
     mutationFn: ({ id, userId }) => {
       const payload: AddProjectMemberRequestDto = { userId };
 
-      return injectQuery([PROJECTS, `/${id}`, AVAILABLE_USERS], {
+      return injectQuery([PROJECTS, `/${id}`, MEMBERS], {
         method: HttpMethod.POST,
         body: JSON.stringify(payload),
       });

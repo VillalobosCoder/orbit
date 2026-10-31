@@ -5,8 +5,8 @@ import type { ProjectDto, ProjectMemberDto } from "@orbit/shared";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { NativeSelect } from "@/components/ui/native-select";
+import { PageHeaderComponent } from "@/components/ui/page-header-component";
+import { UserSelectComponent } from "@/components/ui/user-select-component";
 import { useAuth } from "@/context/auth/use-auth";
 import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
 import { TableComponent } from "@/components/ui/table-component";
@@ -45,7 +45,7 @@ export default function ProjectMembers({
   const availableUsers = useGetAvailableUsers(project.id, { enabled: canManage });
   const addMember = useAddProjectMember();
   const removeMember = useRemoveProjectMember();
-  const [selectedUserId, setSelectedUserId] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [memberToRemove, setMemberToRemove] = useState<ProjectMemberDto | null>(
     null,
   );
@@ -53,11 +53,11 @@ export default function ProjectMembers({
   function handleAdd(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!selectedUserId) return;
+    if (selectedUserId === null) return;
 
     addMember.mutate(
-      { id: project.id, userId: Number(selectedUserId) },
-      { onSuccess: () => setSelectedUserId("") },
+      { id: project.id, userId: selectedUserId },
+      { onSuccess: () => setSelectedUserId(null) },
     );
   }
 
@@ -127,45 +127,36 @@ export default function ProjectMembers({
   return (
     <section
       aria-label="Miembros del proyecto"
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-6"
     >
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <p className="max-w-md text-sm text-muted-foreground">
-          Solo los miembros ven este proyecto.
-          {canManage
-            ? " Tú, como propietario, decides quién entra y quién sale."
-            : " El propietario gestiona quién entra y quién sale."}
-        </p>
+      <PageHeaderComponent
+        title="Miembros"
+        description={`Solo los miembros ven este proyecto. ${
+          canManage
+            ? "Tú, como propietario, decides quién entra y quién sale."
+            : "El propietario gestiona quién entra y quién sale."
+        }`}
+      >
         {canManage && (
-          <form onSubmit={handleAdd} className="flex items-end gap-2">
-            <div className="flex w-72 flex-col gap-1.5">
-              <Label htmlFor="member-select" className="text-muted-foreground">
-                Agregar miembro
-              </Label>
-              <NativeSelect
-                id="member-select"
-                value={selectedUserId}
-                onChange={(event) => setSelectedUserId(event.currentTarget.value)}
-              >
-                <option value="">Selecciona un usuario</option>
-                {availableUsers.data?.map((candidate) => (
-                  <option key={candidate.id} value={candidate.id}>
-                    {candidate.name} {candidate.lastName} ({candidate.email})
-                  </option>
-                ))}
-              </NativeSelect>
-            </div>
+          <form onSubmit={handleAdd} className="flex items-center gap-2">
+            <UserSelectComponent
+              className="w-72"
+              users={availableUsers.data ?? []}
+              value={selectedUserId}
+              onChange={setSelectedUserId}
+              placeholder="Selecciona un usuario"
+              ariaLabel="Agregar miembro"
+            />
             <Button
               type="submit"
-              size="lg"
-              disabled={!selectedUserId || addMember.isPending}
+              disabled={selectedUserId === null || addMember.isPending}
             >
               <UserPlus />
               {addMember.isPending ? "Agregando..." : "Agregar"}
             </Button>
           </form>
         )}
-      </div>
+      </PageHeaderComponent>
 
       {availableUsers.isError && (
         <ErrorAlert>{availableUsers.error.message}</ErrorAlert>

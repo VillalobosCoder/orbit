@@ -52,9 +52,26 @@ export default function ProjectDetailPage() {
 
   const isOwner = project.ownerUserId === user?.id;
 
+  if (view === "members") {
+    return (
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-6">
+        <button
+          type="button"
+          onClick={() => setView("board")}
+          className="inline-flex w-fit cursor-pointer items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-3.5" aria-hidden="true" />
+          <span className="font-mono text-xs">{project.projectKey}</span>
+          {project.name}
+        </button>
+        <ProjectMembers project={project} canManage={canWrite && isOwner} />
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 p-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
+    <div className="mx-auto flex h-full min-h-[40rem] w-full max-w-[1600px] flex-col gap-6 p-6">
+      <header className="flex shrink-0 flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-baseline gap-3">
             <span className="font-mono text-sm font-medium text-info">
@@ -79,7 +96,6 @@ export default function ProjectDetailPage() {
           <Button
             type="button"
             variant="outline"
-            aria-pressed={view === "members"}
             onClick={() => setView("members")}
           >
             <Users />
@@ -151,28 +167,7 @@ export default function ProjectDetailPage() {
           onClose={() => setIsEditing(false)}
         />
       )}
-      {view === "board" ? (
-        <IssueBoard project={project} />
-      ) : (
-        <section className="flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Volver al tablero"
-              onClick={() => setView("board")}
-            >
-              <ArrowLeft />
-            </Button>
-            <h2 className="text-lg font-semibold">Miembros</h2>
-          </div>
-          <ProjectMembers
-            project={project}
-            canManage={canWrite && isOwner}
-          />
-        </section>
-      )}
+      <IssueBoard project={project} />
       <Outlet />
     </div>
   );
