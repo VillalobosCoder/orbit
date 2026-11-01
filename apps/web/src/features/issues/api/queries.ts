@@ -5,7 +5,7 @@ import {
   requireData,
 } from "@/api/config";
 import { POLL_INTERVAL_MS, queryClient } from "@/api/tanstack-query-config";
-import { PROJECTS } from "@/api/uris";
+import { BOARD, ISSUES, ISSUE_OPTIONS, MOVE, PROJECTS } from "@/api/uris";
 import {
   computeBoardPosition,
   type BoardDto,
@@ -26,7 +26,7 @@ function invalidateBoard(projectId: number) {
 
 function fetchBoard(projectId: number) {
   return requireData(
-    injectQuery<BoardDto>([PROJECTS, `/${projectId}`, "/board"], {
+    injectQuery<BoardDto>([PROJECTS, `/${projectId}`, BOARD], {
       method: HttpMethod.GET,
     }),
     "La API no devolvió el tablero.",
@@ -50,7 +50,7 @@ export function useGetIssueOptions(projectId: number) {
     queryFn: () =>
       requireData(
         injectQuery<IssueOptionsDto>(
-          [PROJECTS, `/${projectId}`, "/issue-options"],
+          [PROJECTS, `/${projectId}`, ISSUE_OPTIONS],
           { method: HttpMethod.GET },
         ),
         "La API no devolvió las opciones de issue.",
@@ -65,7 +65,7 @@ export function useCreateIssue() {
     SaveIssueRequestDto & ProjectIdRequestDto
   >({
     mutationFn: ({ id, ...payload }) =>
-      injectQuery<IssueDto>([PROJECTS, `/${id}`, "/issues"], {
+      injectQuery<IssueDto>([PROJECTS, `/${id}`, ISSUES], {
         method: HttpMethod.POST,
         body: JSON.stringify(payload),
       }),
@@ -81,7 +81,7 @@ export function useUpdateIssue() {
     SaveIssueRequestDto & IssueRequestDto
   >({
     mutationFn: ({ id, issueId, ...payload }) =>
-      injectQuery([PROJECTS, `/${id}`, "/issues", `/${issueId}`], {
+      injectQuery([PROJECTS, `/${id}`, ISSUES, `/${issueId}`], {
         method: HttpMethod.PATCH,
         body: JSON.stringify(payload),
       }),
@@ -93,7 +93,7 @@ export function useUpdateIssue() {
 export function useDeleteIssue() {
   return useMutation<unknown, Error, IssueRequestDto>({
     mutationFn: ({ id, issueId }) =>
-      injectQuery([PROJECTS, `/${id}`, "/issues", `/${issueId}`], {
+      injectQuery([PROJECTS, `/${id}`, ISSUES, `/${issueId}`], {
         method: HttpMethod.DELETE,
       }),
     onSuccess: (_data, { id }) => invalidateBoard(id),
@@ -129,7 +129,7 @@ export function useMoveIssue() {
     { previous?: BoardDto }
   >({
     mutationFn: ({ id, issueId, ...payload }) =>
-      injectQuery([PROJECTS, `/${id}`, "/issues", `/${issueId}`, "/move"], {
+      injectQuery([PROJECTS, `/${id}`, ISSUES, `/${issueId}`, MOVE], {
         method: HttpMethod.PATCH,
         body: JSON.stringify(payload),
       }),

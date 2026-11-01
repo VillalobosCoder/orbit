@@ -5,7 +5,7 @@ import {
   requireData,
 } from "@/api/config";
 import { POLL_INTERVAL_MS, queryClient } from "@/api/tanstack-query-config";
-import { PROJECTS } from "@/api/uris";
+import { CLOSE, ISSUES, PLANNING, PROJECTS, SPRINT, SPRINTS, START } from "@/api/uris";
 import type {
   AssignSprintRequestDto,
   IssueRequestDto,
@@ -17,7 +17,6 @@ import type {
 } from "@orbit/shared";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-/** Cada cuánto se vuelve a pedir la planificación mientras está abierta. */
 /** Sprint, tablero e issues dependen unos de otros: se refrescan juntos. */
 function invalidateProject(projectId: number) {
   return queryClient.invalidateQueries({ queryKey: [PROJECTS, projectId] });
@@ -28,7 +27,7 @@ export function useGetPlanning(projectId: number) {
     queryKey: [PROJECTS, projectId, "planning"],
     queryFn: () =>
       requireData(
-        injectQuery<PlanningDto>([PROJECTS, `/${projectId}`, "/planning"], {
+        injectQuery<PlanningDto>([PROJECTS, `/${projectId}`, PLANNING], {
           method: HttpMethod.GET,
         }),
         "La API no devolvió la planificación.",
@@ -47,7 +46,7 @@ export function useCreateSprint() {
     SaveSprintRequestDto & ProjectIdRequestDto
   >({
     mutationFn: ({ id, ...payload }) =>
-      injectQuery<SprintDto>([PROJECTS, `/${id}`, "/sprints"], {
+      injectQuery<SprintDto>([PROJECTS, `/${id}`, SPRINTS], {
         method: HttpMethod.POST,
         body: JSON.stringify(payload),
       }),
@@ -63,7 +62,7 @@ export function useUpdateSprint() {
     SaveSprintRequestDto & SprintRequestDto
   >({
     mutationFn: ({ id, sprintId, ...payload }) =>
-      injectQuery([PROJECTS, `/${id}`, "/sprints", `/${sprintId}`], {
+      injectQuery([PROJECTS, `/${id}`, SPRINTS, `/${sprintId}`], {
         method: HttpMethod.PATCH,
         body: JSON.stringify(payload),
       }),
@@ -75,7 +74,7 @@ export function useUpdateSprint() {
 export function useDeleteSprint() {
   return useMutation<unknown, Error, SprintRequestDto>({
     mutationFn: ({ id, sprintId }) =>
-      injectQuery([PROJECTS, `/${id}`, "/sprints", `/${sprintId}`], {
+      injectQuery([PROJECTS, `/${id}`, SPRINTS, `/${sprintId}`], {
         method: HttpMethod.DELETE,
       }),
     onSuccess: (_data, { id }) => invalidateProject(id),
@@ -86,7 +85,7 @@ export function useDeleteSprint() {
 export function useStartSprint() {
   return useMutation<unknown, Error, SprintRequestDto>({
     mutationFn: ({ id, sprintId }) =>
-      injectQuery([PROJECTS, `/${id}`, "/sprints", `/${sprintId}`, "/start"], {
+      injectQuery([PROJECTS, `/${id}`, SPRINTS, `/${sprintId}`, START], {
         method: HttpMethod.POST,
       }),
     onSuccess: (_data, { id }) => invalidateProject(id),
@@ -97,7 +96,7 @@ export function useStartSprint() {
 export function useCloseSprint() {
   return useMutation<unknown, Error, SprintRequestDto>({
     mutationFn: ({ id, sprintId }) =>
-      injectQuery([PROJECTS, `/${id}`, "/sprints", `/${sprintId}`, "/close"], {
+      injectQuery([PROJECTS, `/${id}`, SPRINTS, `/${sprintId}`, CLOSE], {
         method: HttpMethod.POST,
       }),
     onSuccess: (_data, { id }) => invalidateProject(id),
@@ -112,7 +111,7 @@ export function useAssignIssueSprint() {
     AssignSprintRequestDto & IssueRequestDto
   >({
     mutationFn: ({ id, issueId, sprintId }) =>
-      injectQuery([PROJECTS, `/${id}`, "/issues", `/${issueId}`, "/sprint"], {
+      injectQuery([PROJECTS, `/${id}`, ISSUES, `/${issueId}`, SPRINT], {
         method: HttpMethod.PATCH,
         body: JSON.stringify({ sprintId }),
       }),

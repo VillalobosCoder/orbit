@@ -1,6 +1,6 @@
 import { handleMutationError, HttpMethod, injectQuery } from "@/api/config";
 import { queryClient } from "@/api/tanstack-query-config";
-import { PROJECTS } from "@/api/uris";
+import { COLUMNS, ORDER, PROJECTS } from "@/api/uris";
 import type {
   BoardColumnDto,
   BoardColumnRequestDto,
@@ -23,7 +23,7 @@ export function useCreateBoardColumn() {
     CreateBoardColumnRequestDto & ProjectIdRequestDto
   >({
     mutationFn: ({ id, ...payload }) =>
-      injectQuery<BoardColumnDto>([PROJECTS, `/${id}`, "/columns"], {
+      injectQuery<BoardColumnDto>([PROJECTS, `/${id}`, COLUMNS], {
         method: HttpMethod.POST,
         body: JSON.stringify(payload),
       }),
@@ -39,7 +39,7 @@ export function useUpdateBoardColumn() {
     SaveBoardColumnRequestDto & BoardColumnRequestDto
   >({
     mutationFn: ({ id, columnId, ...payload }) =>
-      injectQuery([PROJECTS, `/${id}`, "/columns", `/${columnId}`], {
+      injectQuery([PROJECTS, `/${id}`, COLUMNS, `/${columnId}`], {
         method: HttpMethod.PATCH,
         body: JSON.stringify(payload),
       }),
@@ -55,7 +55,7 @@ export function useReorderBoardColumns() {
     ReorderBoardColumnsRequestDto & ProjectIdRequestDto
   >({
     mutationFn: ({ id, ...payload }) =>
-      injectQuery([PROJECTS, `/${id}`, "/columns", "/order"], {
+      injectQuery([PROJECTS, `/${id}`, COLUMNS, ORDER], {
         method: HttpMethod.PUT,
         body: JSON.stringify(payload),
       }),
@@ -71,7 +71,7 @@ export function useDeleteBoardColumn() {
     DeleteBoardColumnRequestDto & BoardColumnRequestDto
   >({
     mutationFn: ({ id, columnId, ...payload }) =>
-      injectQuery([PROJECTS, `/${id}`, "/columns", `/${columnId}`], {
+      injectQuery([PROJECTS, `/${id}`, COLUMNS, `/${columnId}`], {
         method: HttpMethod.DELETE,
         body: JSON.stringify(payload),
       }),
@@ -93,7 +93,7 @@ export type ColumnChangePlan = {
 export function useApplyBoardColumnChanges() {
   return useMutation<void, Error, ColumnChangePlan>({
     mutationFn: async (plan) => {
-      const columnsUri = [PROJECTS, `/${plan.projectId}`, "/columns"];
+      const columnsUri = [PROJECTS, `/${plan.projectId}`, COLUMNS];
 
       for (const { columnId, moveIssuesToColumnId } of plan.deletions) {
         const payload: DeleteBoardColumnRequestDto = { moveIssuesToColumnId };
@@ -131,7 +131,7 @@ export function useApplyBoardColumnChanges() {
             typeof entry === "number" ? entry : createdIds.get(entry)!,
           ),
         };
-        await injectQuery([...columnsUri, "/order"], {
+        await injectQuery([...columnsUri, ORDER], {
           method: HttpMethod.PUT,
           body: JSON.stringify(payload),
         });

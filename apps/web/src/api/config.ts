@@ -1,7 +1,8 @@
+import { API_BASE_PATH } from "@/api/uris";
 import { ERROR_500, type ApiError, type ApiErrorResponseDto } from "@orbit/shared";
 
 function resolveApiUrl(configuredUrl?: string) {
-  return import.meta.env.PROD ? "/api" : configuredUrl ?? "/api";
+  return import.meta.env.PROD ? API_BASE_PATH : configuredUrl ?? API_BASE_PATH;
 }
 
 const AUTH_API_URL = resolveApiUrl(import.meta.env.VITE_AUTH_API_URL);

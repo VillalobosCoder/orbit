@@ -5,7 +5,7 @@ import {
   requireData,
 } from "@/api/config";
 import { queryClient } from "@/api/tanstack-query-config";
-import { PROJECTS } from "@/api/uris";
+import { COMMENTS, ISSUES, PROJECTS } from "@/api/uris";
 import type {
   CommentDto,
   CommentRequestDto,
@@ -20,9 +20,9 @@ const commentsKey = ({ id, issueId }: IssueRequestDto) =>
 const commentsPath = ({ id, issueId }: IssueRequestDto) => [
   PROJECTS,
   `/${id}`,
-  "/issues",
+  ISSUES,
   `/${issueId}`,
-  "/comments",
+  COMMENTS,
 ];
 
 function invalidateComments(issue: IssueRequestDto) {
