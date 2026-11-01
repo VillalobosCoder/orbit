@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { RequestHandler } from "express";
 import type { UserPermissionRepository } from "../../../application/auth/ports/user-permission-repository.port.js";
 import type { SprintController } from "../controllers/sprint.controller.js";
+import { ModuleKey } from "@orbit/shared";
 import { makePermissionMiddleware } from "../middleware/permission.middleware.js";
 
 /** Se monta en `/projects/:id`: los sprints heredan el permiso del módulo `projects`. */
@@ -12,7 +13,11 @@ export function createSprintRoutes(
 ) {
   const router = Router({ mergeParams: true });
   const canRead = makePermissionMiddleware(permissions, "projects", "read");
-  const canWrite = makePermissionMiddleware(permissions, "projects", "write");
+  const canWrite = makePermissionMiddleware(
+    permissions,
+    ModuleKey.PROJECT_SPRINTS,
+    "write",
+  );
 
   router.get("/planning", authenticate, canRead, controller.getPlanning);
   router.post("/sprints", authenticate, canWrite, controller.create);

@@ -1,7 +1,10 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { UserPermissionDto } from "@orbit/shared";
 import type { UserPermissionRepository } from "../../../application/auth/ports/user-permission-repository.port.js";
-import { InvalidUserPermissionError } from "../../../domain/user/user.errors.js";
+import {
+  InvalidUserPermissionError,
+  PermissionRequiresParentModuleError,
+} from "../../../domain/user/user.errors.js";
 import type { DbContext } from "../db-context.js";
 import { modules } from "../schema/modules.js";
 import { userPermissions } from "../schema/user-permissions.js";
@@ -34,25 +37,34 @@ export class DBUserPermissionRepository implements UserPermissionRepository {
     permissions: UserPermissionDto[],
     actorUserId: ActorUserId,
   ): Promise<void> {
-    const moduleRows =
-      permissions.length === 0
-        ? []
-        : await this.db
-            .select({ id: modules.id, key: modules.key })
-            .from(modules)
-            .where(
-              inArray(
-                modules.key,
-                permissions.map((permission) => permission.module),
-              ),
-            );
+    const moduleRows = await this.db
+      .select({
+        id: modules.id,
+        key: modules.key,
+        name: modules.name,
+        parentId: modules.parentId,
+      })
+      .from(modules);
     const modulesByKey = new Map(
-      moduleRows.map((module) => [module.key, module.id]),
+      moduleRows.map((module) => [module.key, module]),
+    );
+    const grantedKeys = new Set(
+      permissions
+        .filter((permission) => permission.canRead || permission.canWrite)
+        .map((permission) => permission.module),
     );
 
     for (const permission of permissions) {
-      if (!modulesByKey.has(permission.module)) {
+      const module = modulesByKey.get(permission.module);
+
+      if (!module) {
         throw new InvalidUserPermissionError(permission.module);
+      }
+
+      const parent = moduleRows.find((item) => item.id === module.parentId);
+
+      if (parent && !grantedKeys.has(parent.key)) {
+        throw new PermissionRequiresParentModuleError(module.name, parent.name);
       }
     }
 
@@ -64,7 +76,7 @@ export class DBUserPermissionRepository implements UserPermissionRepository {
       await this.db.insert(userPermissions).values(
         permissions.map((permission) => ({
           userId,
-          moduleId: modulesByKey.get(permission.module)!,
+          moduleId: modulesByKey.get(permission.module)!.id,
           canRead: permission.canRead,
           canWrite: permission.canWrite,
           createdByUserId: actorUserId,

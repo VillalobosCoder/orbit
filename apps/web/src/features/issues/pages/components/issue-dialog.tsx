@@ -34,6 +34,7 @@ import {
 import {
   BoardColumnCategory,
   ISSUE_DESCRIPTION_MAX_LENGTH,
+  ModuleKey,
   ISSUE_TITLE_MAX_LENGTH,
   SprintStatus,
   type BoardColumnDto,
@@ -97,7 +98,12 @@ export default function IssueDialog({
   onClose,
 }: IssueDialogProps) {
   const { user } = useAuth();
-  const { canWrite } = usePermission("projects");
+  const { canWrite } = usePermission(ModuleKey.PROJECTS);
+  const { canWrite: canWriteIssues } = usePermission(ModuleKey.PROJECT_ISSUES);
+  const { canWrite: canMoveIssues } = usePermission(
+    ModuleKey.PROJECT_MOVE_ISSUES,
+  );
+  const { canWrite: canEditSprints } = usePermission(ModuleKey.PROJECT_SPRINTS);
   const createIssue = useCreateIssue();
   const updateIssue = useUpdateIssue();
   const deleteIssue = useDeleteIssue();
@@ -218,7 +224,7 @@ export default function IssueDialog({
     .filter((member) => member !== undefined);
   const subtaskType = options.issueTypes.find((item) => item.isSubtask);
   const canAddSubtask =
-    canWrite &&
+    canWriteIssues &&
     !isEditing &&
     subtaskType !== undefined &&
     parent === undefined &&
@@ -272,7 +278,7 @@ export default function IssueDialog({
                 </Button>
               </div>
             ) : (
-              canWrite && (
+              canWriteIssues && (
                 <div className="flex gap-2">
                   <Button
                     type="button"
@@ -481,7 +487,7 @@ export default function IssueDialog({
           <aside className="h-fit rounded-xl border border-border bg-muted/40 p-4 lg:max-h-full lg:overflow-y-auto">
             <dl className="flex flex-col gap-4">
               <Detail label="Estado">
-                {isEditing ? (
+                {isEditing && (isCreating || canMoveIssues) ? (
                   <NativeSelect
                     aria-label="Estado"
                     className={selectClass}
@@ -636,7 +642,7 @@ export default function IssueDialog({
                 </Detail>
               ) : (
                 <Detail label="Sprint">
-                  {isEditing ? (
+                  {isEditing && (isCreating || canEditSprints) ? (
                     <NativeSelect
                       aria-label="Sprint"
                       className={selectClass}

@@ -122,3 +122,13 @@ export class AvatarNotFoundError extends DomainError {
     super("El usuario no tiene foto de perfil.");
   }
 }
+
+export class PermissionRequiresParentModuleError extends DomainError {
+  readonly statusCode = 400;
+
+  constructor(moduleName: string, parentName: string) {
+    super(
+      `Para dar acceso a «${moduleName}» también se necesita acceso a «${parentName}».`,
+    );
+  }
+}

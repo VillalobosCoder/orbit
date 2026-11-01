@@ -6,6 +6,7 @@ import {
 } from "@orbit/shared";
 import {
   InvalidIssueParentError,
+  IssueActionNotAllowedError,
   InvalidIssueReferenceError,
   IssueNotFoundError,
 } from "../../../domain/issue/issue.errors.js";
@@ -27,7 +28,11 @@ import {
 import type { Actor } from "../../shared/actor.js";
 
 export type UpdateIssueInput = SaveIssueRequestDto &
-  IssueRequestDto & Actor;
+  IssueRequestDto &
+  Actor & {
+    canMoveIssues: boolean;
+    canAssignSprints: boolean;
+  };
 
 export class UpdateIssueUseCase {
   constructor(
@@ -68,6 +73,24 @@ export class UpdateIssueUseCase {
       ]);
 
     const type = findIssueType(types, input.typeId);
+
+    if (
+      !input.canMoveIssues &&
+      input.columnId !== undefined &&
+      input.columnId !== issue.columnId
+    ) {
+      throw new IssueActionNotAllowedError("mover issues entre columnas");
+    }
+
+    if (
+      !input.canAssignSprints &&
+      !type.isSubtask &&
+      input.sprintId !== undefined &&
+      input.sprintId !== issue.sprintId
+    ) {
+      throw new IssueActionNotAllowedError("cambiar el sprint de un issue");
+    }
+
     const parent =
       input.parentId != null
         ? await this.issues.findById({ id: input.id, issueId: input.parentId })

@@ -3,6 +3,7 @@ import { NavLink, useParams } from "react-router-dom";
 import { ArrowLeft, CircleAlert, ListTree, Plus } from "lucide-react";
 import {
   BoardColumnCategory,
+  ModuleKey,
   SprintStatus,
   type IssueDto,
   type IssueOptionsDto,
@@ -63,7 +64,8 @@ function ErrorAlert({ children }: { children: string }) {
 export default function PlanningPage() {
   const params = useParams();
   const projectId = Number(params.id);
-  const { canWrite } = usePermission("projects");
+  const { canWrite: canEditSprints } = usePermission(ModuleKey.PROJECT_SPRINTS);
+  const { canWrite: canWriteIssues } = usePermission(ModuleKey.PROJECT_ISSUES);
   const project = useGetProject(projectId);
   const planning = useGetPlanning(projectId);
   const options = useGetIssueOptions(projectId);
@@ -172,7 +174,7 @@ export default function PlanningPage() {
         <span className="flex w-20 shrink-0">
           <AssigneeStack people={assignees} />
         </span>
-        {canWrite && (
+        {canEditSprints && (
           <NativeSelect
             aria-label={`Mover ${issue.issueKey} a`}
             wrapperClassName="w-40 shrink-0"
@@ -233,21 +235,25 @@ export default function PlanningPage() {
           title="Planificación"
           description="Organiza los issues en sprints y mantén el backlog al día."
         >
-          {canWrite && (
-            <>
-              <Button type="button" variant="outline" onClick={() => setSprintDialog({})}>
-                <Plus />
-                Nuevo sprint
-              </Button>
-              <Button
-                type="button"
-                disabled={!options.data || !members.data}
-                onClick={() => setIsCreatingIssue(true)}
-              >
-                <Plus />
-                Nuevo issue
-              </Button>
-            </>
+          {canEditSprints && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSprintDialog({})}
+            >
+              <Plus />
+              Nuevo sprint
+            </Button>
+          )}
+          {canWriteIssues && (
+            <Button
+              type="button"
+              disabled={!options.data || !members.data}
+              onClick={() => setIsCreatingIssue(true)}
+            >
+              <Plus />
+              Nuevo issue
+            </Button>
           )}
         </PageHeaderComponent>
       </div>
@@ -322,7 +328,7 @@ export default function PlanningPage() {
                     </div>
                   </div>
                 )}
-                {canWrite && (
+                {canEditSprints && (
                   <div className="flex flex-wrap gap-2">
                     {sprint.status === SprintStatus.PLANNED && (
                       <Button

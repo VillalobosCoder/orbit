@@ -31,3 +31,11 @@ export class InvalidIssueAssigneeError extends DomainError {
     super(`El usuario ${userId} no es miembro del proyecto.`);
   }
 }
+
+export class IssueActionNotAllowedError extends DomainError {
+  readonly statusCode = 403;
+
+  constructor(action: string) {
+    super(`No tienes permiso para ${action}.`);
+  }
+}

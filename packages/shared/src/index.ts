@@ -3,6 +3,7 @@ export * from "./enums/status.enum.js";
 export * from "./enums/board-column.enum.js";
 export * from "./enums/issue-type.enum.js";
 export * from "./enums/sprint.enum.js";
+export * from "./enums/module.enum.js";
 export * from "./dto/auth/auth.dto.js";
 export * from "./dto/users/users.dto.js";
 export * from "./dto/files/files.dto.js";

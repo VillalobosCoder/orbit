@@ -1,12 +1,14 @@
 import type { NextFunction, Response } from "express";
-import type {
-  BoardDto,
-  IssueDto,
-  IssueOptionsDto,
-  IssueRequestDto,
-  MoveIssueRequestDto,
-  SaveIssueRequestDto,
+import {
+  ModuleKey,
+  type BoardDto,
+  type IssueDto,
+  type IssueOptionsDto,
+  type IssueRequestDto,
+  type MoveIssueRequestDto,
+  type SaveIssueRequestDto,
 } from "@orbit/shared";
+import type { UserPermissionRepository } from "../../../application/auth/ports/user-permission-repository.port.js";
 import type { CreateIssueUseCase } from "../../../application/issue/use-cases/create-issue.use-case.js";
 import type { DeleteIssueUseCase } from "../../../application/issue/use-cases/delete-issue.use-case.js";
 import type { GetBoardUseCase } from "../../../application/issue/use-cases/get-board.use-case.js";
@@ -31,6 +33,7 @@ export class IssueController {
     private readonly updateIssueUseCase: UpdateIssueUseCase,
     private readonly moveIssueUseCase: MoveIssueUseCase,
     private readonly deleteIssueUseCase: DeleteIssueUseCase,
+    private readonly permissions: UserPermissionRepository,
   ) {}
 
   getBoard = async (
@@ -118,11 +121,26 @@ export class IssueController {
         req.params,
       );
       const input: SaveIssueRequestDto = saveIssueSchema.parse(req.body);
+      const actorUserId = req.auth!.id;
+      const [canMoveIssues, canAssignSprints] = await Promise.all([
+        this.permissions.hasPermission(
+          actorUserId,
+          ModuleKey.PROJECT_MOVE_ISSUES,
+          "write",
+        ),
+        this.permissions.hasPermission(
+          actorUserId,
+          ModuleKey.PROJECT_SPRINTS,
+          "write",
+        ),
+      ]);
       await this.updateIssueUseCase.execute({
         ...input,
         id,
         issueId,
-        actorUserId: req.auth!.id,
+        actorUserId,
+        canMoveIssues,
+        canAssignSprints,
       });
       res.status(204).end();
     } catch (error) {

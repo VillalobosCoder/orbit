@@ -15,6 +15,7 @@ import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { cn } from "cn";
 import { useGetModules } from "@/features/modules/api/queries";
 import {
   useCreateUser,
@@ -118,7 +119,17 @@ function UserForm({
       if (flag === "canWrite" && value) next.canRead = true;
       if (flag === "canRead" && !value) next.canWrite = false;
 
-      return { ...current, [module]: next };
+      const updated = { ...current, [module]: next };
+
+      if (!next.canRead && !next.canWrite) {
+        modulesQuery.data
+          ?.filter((item) => item.parentKey === module)
+          .forEach((child) => {
+            updated[child.key] = { canRead: false, canWrite: false };
+          });
+      }
+
+      return updated;
     });
   }
 
@@ -247,7 +258,7 @@ function UserForm({
               </ErrorMessage>
             )}
             {modulesQuery.data && (
-              <div className="max-h-64 overflow-y-auto rounded-lg border border-border">
+              <div className="max-h-80 overflow-y-auto rounded-lg border border-border">
                 <div className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] items-center bg-muted/60 px-4 py-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                   <span>Módulo</span>
                   <span className="text-center">Leer</span>
@@ -258,34 +269,52 @@ function UserForm({
                     canRead: false,
                     canWrite: false,
                   };
-                  const parentName = modulesQuery.data.find(
-                    (item) => item.key === module.parentKey,
-                  )?.name;
-                  const label = parentName
-                    ? `${parentName} · ${module.name}`
-                    : module.name;
+                  const isChild = module.parentKey !== null;
+                  const parentFlags = isChild
+                    ? permissions[module.parentKey!]
+                    : undefined;
+                  const parentGranted = Boolean(
+                    parentFlags?.canRead || parentFlags?.canWrite,
+                  );
+                  const label = module.name;
 
                   return (
                     <div
                       key={module.key}
                       className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] items-center border-t border-border px-4 py-3"
                     >
-                      <span className="min-w-0 truncate text-sm font-medium">
+                      <span
+                        className={cn(
+                          "min-w-0 truncate text-sm font-medium",
+                          isChild &&
+                            "ml-4 border-l border-border pl-3 font-normal text-muted-foreground",
+                        )}
+                      >
                         {label}
                       </span>
                       <span className="flex justify-center">
-                        <Checkbox
-                          aria-label={`${label}: leer`}
-                          checked={flags.canRead}
-                          onCheckedChange={(checked) =>
-                            setFlag(module.key, "canRead", checked)
-                          }
-                        />
+                        {isChild ? (
+                          <span
+                            aria-hidden="true"
+                            className="text-muted-foreground"
+                          >
+                            —
+                          </span>
+                        ) : (
+                          <Checkbox
+                            aria-label={`${label}: leer`}
+                            checked={flags.canRead}
+                            onCheckedChange={(checked) =>
+                              setFlag(module.key, "canRead", checked)
+                            }
+                          />
+                        )}
                       </span>
                       <span className="flex justify-center">
                         <Checkbox
                           aria-label={`${label}: escribir`}
                           checked={flags.canWrite}
+                          disabled={isChild && !parentGranted}
                           onCheckedChange={(checked) =>
                             setFlag(module.key, "canWrite", checked)
                           }
@@ -296,6 +325,11 @@ function UserForm({
                 })}
               </div>
             )}
+            <p className="text-xs text-muted-foreground">
+              Las subsecciones de Proyectos solo se activan si la persona puede
+              leer Proyectos. Editar proyectos y comentar requieren Escribir en
+              Proyectos.
+            </p>
           </fieldset>
         )}
         {mutation.isError && <ErrorMessage>{mutation.error.message}</ErrorMessage>}

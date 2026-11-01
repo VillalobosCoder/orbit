@@ -232,6 +232,7 @@ export function createControllers(dependencies: ControllerDependencies) {
         dependencies.issueRepository,
         dependencies.transaction,
       ),
+      dependencies.userPermissionRepository,
     ),
     comments: new CommentController(
       new GetCommentsUseCase(

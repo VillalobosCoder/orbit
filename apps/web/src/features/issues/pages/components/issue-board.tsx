@@ -8,6 +8,7 @@ import { usePermission } from "@/context/auth/use-permission";
 import { useGetProjectMembers } from "@/features/projects/api/queries";
 import {
   BoardColumnCategory,
+  ModuleKey,
   type BoardColumnDto,
   type IssueDto,
   type ProjectDto,
@@ -67,7 +68,11 @@ function ColumnDot({ column }: { column: BoardColumnDto }) {
 }
 
 export default function IssueBoard({ project }: { project: ProjectDto }) {
-  const { canWrite } = usePermission("projects");
+  const { canWrite: canWriteIssues } = usePermission(ModuleKey.PROJECT_ISSUES);
+  const { canWrite: canMoveIssues } = usePermission(
+    ModuleKey.PROJECT_MOVE_ISSUES,
+  );
+  const { canWrite: canEditColumns } = usePermission(ModuleKey.PROJECT_COLUMNS);
   const board = useGetBoard(project.id);
   const options = useGetIssueOptions(project.id);
   const members = useGetProjectMembers(project.id);
@@ -155,7 +160,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
   }
 
   function handleDrop(columnId: number) {
-    if (draggingId === null || !canWrite) return resetDrag();
+    if (draggingId === null || !canMoveIssues) return resetDrag();
 
     const column = issuesIn(columnId, true);
     const beforeIndex = column.findIndex(
@@ -233,7 +238,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
             >
               Planificación
             </Button>
-            {canWrite && (
+            {canEditColumns && (
               <Button
                 type="button"
                 variant="outline"
@@ -243,7 +248,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
                 Columnas
               </Button>
             )}
-            {canWrite && (
+            {canWriteIssues && (
               <Button
                 type="button"
                 disabled={!options.data || !members.data}
@@ -314,7 +319,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
                         assignees={assigneesOf(issue)}
                         parentKey={parentKey(issue)}
                         subtasks={subtasksOf(issue)}
-                        draggable={canWrite}
+                        draggable={canMoveIssues}
                         isDragging={draggingId === issue.id}
                         onOpen={() =>
                           navigate(`/projects/${project.id}/issues/${issue.id}`)
