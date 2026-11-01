@@ -8,6 +8,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import { SPRINT_GOAL_MAX_LENGTH, SPRINT_NAME_MAX_LENGTH } from "@orbit/shared";
 import { auditColumns } from "./audit-columns.js";
 import { projects } from "./projects.js";
 import { users } from "./users.js";
@@ -19,8 +20,8 @@ export const sprints = pgTable(
     projectId: integer("project_id")
       .notNull()
       .references(() => projects.id),
-    name: varchar({ length: 100 }).notNull(),
-    goal: varchar({ length: 1000 }),
+    name: varchar({ length: SPRINT_NAME_MAX_LENGTH }).notNull(),
+    goal: varchar({ length: SPRINT_GOAL_MAX_LENGTH }),
     startDate: date("start_date"),
     endDate: date("end_date"),
     status: varchar({ length: 20 }).notNull().default("planned"),

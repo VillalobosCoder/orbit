@@ -18,7 +18,12 @@ import {
   useCreateProject,
   useUpdateProject,
 } from "@/features/projects/api/queries";
-import type { ProjectDto, UpdateProjectRequestDto } from "@orbit/shared";
+import {
+  PROJECT_DESCRIPTION_MAX_LENGTH,
+  PROJECT_NAME_MAX_LENGTH,
+  type ProjectDto,
+  type UpdateProjectRequestDto,
+} from "@orbit/shared";
 
 interface ProjectFormDialogProps {
   project?: ProjectDto;
@@ -37,15 +42,14 @@ export default function ProjectFormDialog({
   const updateProject = useUpdateProject();
   const mutation = isEditing ? updateProject : createProject;
   const [projectKey, setProjectKey] = useState(project?.projectKey ?? "");
+  const [description, setDescription] = useState(project?.description ?? "");
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
     const name = formData.get("name");
-    const description = formData.get("description");
-
-    if (typeof name !== "string" || typeof description !== "string") {
+    if (typeof name !== "string") {
       return;
     }
 
@@ -125,7 +129,7 @@ export default function ProjectFormDialog({
                   name="name"
                   defaultValue={project?.name}
                   minLength={2}
-                  maxLength={100}
+                  maxLength={PROJECT_NAME_MAX_LENGTH}
                   required
                 />
               </Field>
@@ -148,11 +152,14 @@ export default function ProjectFormDialog({
               </Label>
               <Textarea
                 id="description"
-                name="description"
-                defaultValue={project?.description ?? ""}
-                maxLength={1000}
-                rows={3}
+                value={description}
+                onChange={(event) => setDescription(event.currentTarget.value)}
+                maxLength={PROJECT_DESCRIPTION_MAX_LENGTH}
+                className="h-28 resize-none"
               />
+              <span className="self-end text-xs text-muted-foreground">
+                {description.length} / {PROJECT_DESCRIPTION_MAX_LENGTH}
+              </span>
             </Field>
             {mutation.isError && (
               <p

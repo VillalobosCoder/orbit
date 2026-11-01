@@ -4,7 +4,7 @@ import {
   injectQuery,
   requireData,
 } from "@/api/config";
-import { queryClient } from "@/api/tanstack-query-config";
+import { POLL_INTERVAL_MS, queryClient } from "@/api/tanstack-query-config";
 import { PROJECTS } from "@/api/uris";
 import type {
   AssignSprintRequestDto,
@@ -18,8 +18,6 @@ import type {
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 /** Cada cuánto se vuelve a pedir la planificación mientras está abierta. */
-const PLANNING_POLL_INTERVAL_MS = 15_000;
-
 /** Sprint, tablero e issues dependen unos de otros: se refrescan juntos. */
 function invalidateProject(projectId: number) {
   return queryClient.invalidateQueries({ queryKey: [PROJECTS, projectId] });
@@ -38,7 +36,7 @@ export function useGetPlanning(projectId: number) {
     staleTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    refetchInterval: PLANNING_POLL_INTERVAL_MS,
+    refetchInterval: POLL_INTERVAL_MS,
   });
 }
 

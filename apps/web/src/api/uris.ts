@@ -12,10 +12,12 @@ export const AVATAR = '/avatar';
 export const USERS = '/users';
 export const MODULES = '/modules';
 export const PROJECTS = '/projects';
+export const HOME = '/home';
 // #endregion
 
 // #region Extensions
 export const MEMBERS = '/members';
 export const AVAILABLE_USERS = '/available-users';
 export const RESET_PASSWORD = '/reset-password';
+export const SUMMARY = '/summary';
 // #endregion

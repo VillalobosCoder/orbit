@@ -3,3 +3,11 @@ export const ISSUE_DESCRIPTION_MAX_LENGTH = 255;
 export const COMMENT_MAX_LENGTH = 255;
 
 export const ISSUE_TITLE_MAX_LENGTH = 50;
+
+export const PROJECT_NAME_MAX_LENGTH = 25;
+
+export const PROJECT_DESCRIPTION_MAX_LENGTH = 255;
+
+export const SPRINT_NAME_MAX_LENGTH = 25;
+
+export const SPRINT_GOAL_MAX_LENGTH = 255;

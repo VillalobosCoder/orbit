@@ -4,7 +4,7 @@ import {
   injectQuery,
   requireData,
 } from "@/api/config";
-import { queryClient } from "@/api/tanstack-query-config";
+import { POLL_INTERVAL_MS, queryClient } from "@/api/tanstack-query-config";
 import { PROJECTS } from "@/api/uris";
 import {
   computeBoardPosition,
@@ -16,12 +16,9 @@ import {
   type ProjectIdRequestDto,
   type SaveIssueRequestDto,
 } from "@orbit/shared";
-import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
-/** Cada cuánto se vuelve a pedir el tablero mientras está abierto. */
-const BOARD_POLL_INTERVAL_MS = 15_000;
-
-const boardKey = (projectId: number) => [PROJECTS, projectId, "board"] as const;
+export const boardKey = (projectId: number) => [PROJECTS, projectId, "board"] as const;
 
 function invalidateBoard(projectId: number) {
   return queryClient.invalidateQueries({ queryKey: boardKey(projectId) });
@@ -36,16 +33,6 @@ function fetchBoard(projectId: number) {
   );
 }
 
-export function useGetBoards(projectIds: number[]) {
-  return useQueries({
-    queries: projectIds.map((projectId) => ({
-      queryKey: boardKey(projectId),
-      queryFn: () => fetchBoard(projectId),
-      staleTime: 30_000,
-    })),
-  });
-}
-
 export function useGetBoard(projectId: number) {
   return useQuery({
     queryKey: boardKey(projectId),
@@ -53,7 +40,7 @@ export function useGetBoard(projectId: number) {
     staleTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    refetchInterval: BOARD_POLL_INTERVAL_MS,
+    refetchInterval: POLL_INTERVAL_MS,
   });
 }
 

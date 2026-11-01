@@ -15,7 +15,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateSprint, useUpdateSprint } from "@/features/sprints/api/queries";
-import type { ProjectDto, SaveSprintRequestDto, SprintDto } from "@orbit/shared";
+import {
+  SPRINT_GOAL_MAX_LENGTH,
+  SPRINT_NAME_MAX_LENGTH,
+  type ProjectDto,
+  type SaveSprintRequestDto,
+  type SprintDto,
+} from "@orbit/shared";
 import { countDays } from "../utils/format-date";
 
 interface SprintFormDialogProps {
@@ -34,6 +40,7 @@ export default function SprintFormDialog({
   const createSprint = useCreateSprint();
   const updateSprint = useUpdateSprint();
   const mutation = isEditing ? updateSprint : createSprint;
+  const [goal, setGoal] = useState(sprint?.goal ?? "");
   const [startDate, setStartDate] = useState(sprint?.startDate ?? "");
   const [endDate, setEndDate] = useState(sprint?.endDate ?? "");
   const hasInvalidRange = Boolean(startDate && endDate && endDate < startDate);
@@ -46,9 +53,7 @@ export default function SprintFormDialog({
 
     const formData = new FormData(event.currentTarget);
     const name = formData.get("name");
-    const goal = formData.get("goal");
-
-    if (typeof name !== "string" || typeof goal !== "string") {
+    if (typeof name !== "string") {
       return;
     }
 
@@ -95,7 +100,7 @@ export default function SprintFormDialog({
                 id="name"
                 name="name"
                 defaultValue={sprint?.name}
-                maxLength={100}
+                maxLength={SPRINT_NAME_MAX_LENGTH}
                 required
               />
             </Field>
@@ -108,11 +113,14 @@ export default function SprintFormDialog({
               </Label>
               <Textarea
                 id="goal"
-                name="goal"
-                defaultValue={sprint?.goal ?? ""}
-                maxLength={1000}
-                rows={3}
+                value={goal}
+                onChange={(event) => setGoal(event.currentTarget.value)}
+                maxLength={SPRINT_GOAL_MAX_LENGTH}
+                className="h-28 resize-none"
               />
+              <span className="self-end text-xs text-muted-foreground">
+                {goal.length} / {SPRINT_GOAL_MAX_LENGTH}
+              </span>
             </Field>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field>

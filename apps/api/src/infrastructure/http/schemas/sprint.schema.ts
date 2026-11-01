@@ -1,10 +1,11 @@
 import * as z from "zod";
+import { SPRINT_GOAL_MAX_LENGTH, SPRINT_NAME_MAX_LENGTH } from "@orbit/shared";
 
 const date = z.iso.date();
 
 export const saveSprintSchema = z.object({
-  name: z.string().trim().min(1).max(100),
-  goal: z.string().trim().max(1000).nullish(),
+  name: z.string().trim().min(1).max(SPRINT_NAME_MAX_LENGTH),
+  goal: z.string().trim().max(SPRINT_GOAL_MAX_LENGTH).nullish(),
   startDate: date.nullish(),
   endDate: date.nullish(),
 });

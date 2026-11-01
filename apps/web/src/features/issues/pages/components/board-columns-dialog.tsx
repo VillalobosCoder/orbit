@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, CircleAlert, Plus } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
 import {
   Dialog,
   DialogContent,
@@ -14,19 +15,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
-import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
+import { queryClient } from "@/api/tanstack-query-config";
 import {
   BoardColumnCategory,
   type BoardColumnDto,
+  type BoardDto,
   type ProjectDto,
 } from "@orbit/shared";
 import { cn } from "cn";
 import {
-  useCreateBoardColumn,
-  useDeleteBoardColumn,
-  useReorderBoardColumns,
-  useUpdateBoardColumn,
+  useApplyBoardColumnChanges,
+  type ColumnChangePlan,
 } from "../../api/columns-queries";
+import { boardKey } from "../../api/queries";
 
 const CATEGORY_LABELS: Record<BoardColumnCategory, string> = {
   [BoardColumnCategory.TODO]: "Por hacer",
@@ -39,6 +40,36 @@ const CATEGORY_DOT: Record<BoardColumnCategory, string> = {
   [BoardColumnCategory.IN_PROGRESS]: "bg-primary",
   [BoardColumnCategory.DONE]: "bg-success",
 };
+
+type DraftColumn = {
+  key: string;
+  id: number | null;
+  name: string;
+  color: string | null;
+  category: BoardColumnCategory;
+  wipLimit: number | null;
+};
+
+type Deletion = { id: number; moveToId: number };
+
+function toDraft(column: BoardColumnDto): DraftColumn {
+  return {
+    key: `column-${column.id}`,
+    id: column.id,
+    name: column.name,
+    color: column.color,
+    category: column.category,
+    wipLimit: column.wipLimit,
+  };
+}
+
+function sortColumns(columns: BoardColumnDto[]) {
+  return [...columns].sort((a, b) => a.position - b.position || a.id - b.id);
+}
+
+function normalizeName(name: string) {
+  return name.trim().toLowerCase();
+}
 
 function ErrorAlert({ children }: { children: string }) {
   return (
@@ -63,25 +94,131 @@ export default function BoardColumnsDialog({
   columns,
   onClose,
 }: BoardColumnsDialogProps) {
-  const createColumn = useCreateBoardColumn();
-  const reorderColumns = useReorderBoardColumns();
-  const ordered = [...columns].sort(
-    (a, b) => a.position - b.position || a.id - b.id,
+  const [session, setSession] = useState<{
+    columns: BoardColumnDto[];
+    version: number;
+    error: string | null;
+  }>({ columns, version: 0, error: null });
+
+  return (
+    <ColumnsEditor
+      key={session.version}
+      project={project}
+      columns={session.columns}
+      initialError={session.error}
+      onClose={onClose}
+      onFailed={(freshColumns, message) =>
+        setSession((current) => ({
+          columns: freshColumns,
+          version: current.version + 1,
+          error: message,
+        }))
+      }
+    />
   );
-  const countIn = (category: BoardColumnCategory) =>
-    ordered.filter((column) => column.category === category).length;
+}
 
-  function move(index: number, direction: -1 | 1) {
-    const columnIds = ordered.map((column) => column.id);
-    const target = index + direction;
+function ColumnsEditor({
+  project,
+  columns,
+  initialError,
+  onClose,
+  onFailed,
+}: BoardColumnsDialogProps & {
+  initialError: string | null;
+  onFailed: (columns: BoardColumnDto[], message: string) => void;
+}) {
+  const applyChanges = useApplyBoardColumnChanges();
+  const [originalColumns] = useState(() => sortColumns(columns));
+  const [drafts, setDrafts] = useState<DraftColumn[]>(() =>
+    originalColumns.map(toDraft),
+  );
+  const [deletions, setDeletions] = useState<Deletion[]>([]);
+  const [newColumnCount, setNewColumnCount] = useState(0);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [applyError, setApplyError] = useState<string | null>(initialError);
+  const [isConfirmingDiscard, setIsConfirmingDiscard] = useState(false);
 
-    if (target < 0 || target >= columnIds.length) return;
+  const originalById = new Map(
+    originalColumns.map((column) => [column.id, column]),
+  );
+  const survivors = drafts.filter((draft) => draft.id !== null);
+  const creations = drafts.filter((draft) => draft.id === null);
+  const deletedIds = new Set(deletions.map((deletion) => deletion.id));
+  const keptOriginalIds = originalColumns
+    .filter((column) => !deletedIds.has(column.id))
+    .map((column) => column.id);
+  const orderChanged = survivors.some(
+    (draft, index) => draft.id !== keptOriginalIds[index],
+  );
+  const canonicalKeys = [...survivors, ...creations].map((draft) => draft.key);
+  const interleaved = drafts.some(
+    (draft, index) => draft.key !== canonicalKeys[index],
+  );
+  const updates = survivors.filter((draft) => {
+    const original = originalById.get(draft.id!);
 
-    [columnIds[index], columnIds[target]] = [columnIds[target], columnIds[index]];
-    reorderColumns.mutate({ id: project.id, columnIds });
+    return (
+      original !== undefined &&
+      (original.name !== draft.name.trim() ||
+        original.wipLimit !== draft.wipLimit)
+    );
+  });
+  const isDirty =
+    deletions.length > 0 ||
+    creations.length > 0 ||
+    updates.length > 0 ||
+    orderChanged;
+
+  const nameCounts = new Map<string, number>();
+  drafts.forEach((draft) => {
+    const normalized = normalizeName(draft.name);
+    nameCounts.set(normalized, (nameCounts.get(normalized) ?? 0) + 1);
+  });
+  const nameErrorOf = (draft: DraftColumn) => {
+    const normalized = normalizeName(draft.name);
+
+    if (!normalized) return "Escribe un nombre.";
+    if ((nameCounts.get(normalized) ?? 0) > 1) {
+      return "Ya hay otra columna con este nombre.";
+    }
+
+    return null;
+  };
+  const hasErrors = drafts.some((draft) => nameErrorOf(draft) !== null);
+  const survivorsIn = (category: BoardColumnCategory) =>
+    survivors.filter((draft) => draft.category === category).length;
+
+  function changeDraft(key: string, changes: Partial<DraftColumn>) {
+    setDrafts((current) =>
+      current.map((draft) =>
+        draft.key === key ? { ...draft, ...changes } : draft,
+      ),
+    );
   }
 
-  function handleCreate(event: SubmitEvent<HTMLFormElement>) {
+  function moveDraft(index: number, direction: -1 | 1) {
+    setDrafts((current) => {
+      const target = index + direction;
+
+      if (target < 0 || target >= current.length) return current;
+
+      const next = [...current];
+      [next[index], next[target]] = [next[target], next[index]];
+
+      return next;
+    });
+  }
+
+  function removeDraft(draft: DraftColumn, moveToId?: number) {
+    if (draft.id !== null && moveToId !== undefined) {
+      setDeletions((current) => [...current, { id: draft.id!, moveToId }]);
+    }
+
+    setDrafts((current) => current.filter((item) => item.key !== draft.key));
+  }
+
+  function handleAdd(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const form = event.currentTarget;
@@ -98,56 +235,158 @@ export default function BoardColumnsDialog({
       return;
     }
 
-    createColumn.mutate(
+    if (
+      drafts.some((draft) => normalizeName(draft.name) === normalizeName(name))
+    ) {
+      setFormError("Ya hay una columna con este nombre.");
+      return;
+    }
+
+    setFormError(null);
+    setDrafts((current) => [
+      ...current,
       {
-        id: project.id,
-        name,
+        key: `new-${newColumnCount}`,
+        id: null,
+        name: name.trim(),
+        color: null,
         category: category as BoardColumnCategory,
         wipLimit: wipLimit ? Number(wipLimit) : null,
       },
-      { onSuccess: () => form.reset() },
+    ]);
+    setNewColumnCount((count) => count + 1);
+    form.reset();
+  }
+
+  async function handleApply() {
+    if (!isDirty) {
+      onClose();
+      return;
+    }
+
+    const moveTargets = new Map(
+      deletions.map((deletion) => [deletion.id, deletion.moveToId]),
     );
+    const survivingTarget = (columnId: number) => {
+      let target = columnId;
+
+      while (moveTargets.has(target)) {
+        target = moveTargets.get(target)!;
+      }
+
+      return target;
+    };
+    const plan: ColumnChangePlan = {
+      projectId: project.id,
+      deletions: deletions.map((deletion) => ({
+        columnId: deletion.id,
+        moveIssuesToColumnId: survivingTarget(deletion.moveToId),
+      })),
+      updates: updates.map((draft) => ({
+        columnId: draft.id!,
+        name: draft.name.trim(),
+        color: draft.color,
+        wipLimit: draft.wipLimit,
+      })),
+      creations: creations.map((draft) => ({
+        key: draft.key,
+        payload: {
+          name: draft.name.trim(),
+          category: draft.category,
+          wipLimit: draft.wipLimit,
+        },
+      })),
+      finalOrder: drafts.map((draft) => draft.id ?? draft.key),
+      reorder: orderChanged || interleaved,
+    };
+
+    setApplyError(null);
+
+    try {
+      await applyChanges.mutateAsync(plan);
+      onClose();
+    } catch (error) {
+      const freshBoard = queryClient.getQueryData<BoardDto>(
+        boardKey(project.id),
+      );
+      const message =
+        error instanceof Error
+          ? error.message
+          : "No se pudieron aplicar los cambios.";
+
+      if (freshBoard) {
+        onFailed(
+          freshBoard.columns,
+          `${message} Los cambios anteriores a este error sí se guardaron; revisa la lista y vuelve a intentarlo.`,
+        );
+      } else {
+        setApplyError(message);
+      }
+    }
+  }
+
+  function requestClose() {
+    if (applyChanges.isPending) return;
+
+    if (isDirty) {
+      setIsConfirmingDiscard(true);
+      return;
+    }
+
+    onClose();
   }
 
   return (
     <Dialog
       open
       onOpenChange={(nextOpen) => {
-        if (!nextOpen) onClose();
+        if (!nextOpen) requestClose();
       }}
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
-        <DialogHeader>
+      <DialogContent className="flex h-[min(90vh,46rem)] flex-col gap-4 overflow-hidden sm:max-w-3xl">
+        <DialogHeader className="shrink-0">
           <DialogTitle>Columnas del tablero</DialogTitle>
           <DialogDescription>
             Cada columna es un estado de {project.projectKey}. Debe quedar al
             menos una «Por hacer» y una «Finalizada». La categoría se elige al
-            crearla y no cambia.
+            crearla y no cambia. Los cambios se aplican al pulsar «Listo».
           </DialogDescription>
         </DialogHeader>
 
-        {reorderColumns.isError && (
-          <ErrorAlert>{reorderColumns.error.message}</ErrorAlert>
+        {applyError && (
+          <div className="shrink-0">
+            <ErrorAlert>{applyError}</ErrorAlert>
+          </div>
         )}
 
-        <ul className="flex flex-col gap-3">
-          {ordered.map((column, index) => (
-            <ColumnRow
-              key={column.id}
-              project={project}
-              column={column}
-              others={ordered.filter((other) => other.id !== column.id)}
-              isLastOfCategory={countIn(column.category) <= 1}
-              canMoveUp={index > 0}
-              canMoveDown={index < ordered.length - 1}
-              onMove={(direction) => move(index, direction)}
-            />
-          ))}
+        <ul className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1">
+          {drafts.map((draft, index) => {
+            const isProtected =
+              draft.id !== null &&
+              draft.category !== BoardColumnCategory.IN_PROGRESS &&
+              survivorsIn(draft.category) <= 1;
+
+            return (
+              <ColumnRow
+                key={draft.key}
+                draft={draft}
+                nameError={nameErrorOf(draft)}
+                isProtected={isProtected}
+                targets={survivors.filter((item) => item.key !== draft.key)}
+                canMoveUp={index > 0}
+                canMoveDown={index < drafts.length - 1}
+                disabled={applyChanges.isPending}
+                onChange={(changes) => changeDraft(draft.key, changes)}
+                onMove={(direction) => moveDraft(index, direction)}
+                onRemove={(moveToId) => removeDraft(draft, moveToId)}
+              />
+            );
+          })}
         </ul>
 
         <form
-          onSubmit={handleCreate}
-          className="flex flex-col gap-3 rounded-xl border border-dashed border-input p-4"
+          onSubmit={handleAdd}
+          className="flex shrink-0 flex-col gap-3 rounded-xl border border-dashed border-input p-4"
         >
           <h3 className="text-sm font-semibold">Agregar columna</h3>
           <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_11rem_7rem_auto]">
@@ -164,7 +403,10 @@ export default function BoardColumnsDialog({
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="new-column-category" className="text-muted-foreground">
+              <Label
+                htmlFor="new-column-category"
+                className="text-muted-foreground"
+              >
                 Categoría
               </Label>
               <NativeSelect
@@ -192,87 +434,98 @@ export default function BoardColumnsDialog({
                 placeholder="Opcional"
               />
             </div>
-            <Button type="submit" size="lg" disabled={createColumn.isPending}>
+            <Button type="submit" size="lg" disabled={applyChanges.isPending}>
               <Plus />
-              {createColumn.isPending ? "Agregando..." : "Agregar"}
+              Agregar
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
             Los nombres son únicos por proyecto. El límite se guarda; aún no se
             aplica en el tablero.
           </p>
-          {createColumn.isError && (
-            <ErrorAlert>{createColumn.error.message}</ErrorAlert>
-          )}
+          {formError && <ErrorAlert>{formError}</ErrorAlert>}
         </form>
 
-        <DialogFooter>
-          <Button type="button" onClick={onClose}>
-            Listo
+        <DialogFooter className="shrink-0 items-center">
+          <span className="text-xs text-muted-foreground sm:mr-auto">
+            {isDirty ? "Tienes cambios sin aplicar." : ""}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={applyChanges.isPending}
+            onClick={requestClose}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            disabled={applyChanges.isPending || hasErrors}
+            onClick={() => void handleApply()}
+          >
+            {applyChanges.isPending ? "Aplicando..." : "Listo"}
           </Button>
         </DialogFooter>
+
+        <ConfirmDialogComponent
+          open={isConfirmingDiscard}
+          title="¿Descartar los cambios?"
+          description="Las columnas no se modificarán y perderás los cambios que hiciste en esta ventana."
+          confirmLabel="Descartar cambios"
+          pendingLabel="Descartando..."
+          isPending={false}
+          destructive
+          onClose={() => setIsConfirmingDiscard(false)}
+          onConfirm={() => {
+            setIsConfirmingDiscard(false);
+            onClose();
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
 }
 
 function ColumnRow({
-  project,
-  column,
-  others,
-  isLastOfCategory,
+  draft,
+  nameError,
+  isProtected,
+  targets,
   canMoveUp,
   canMoveDown,
+  disabled,
+  onChange,
   onMove,
+  onRemove,
 }: {
-  project: ProjectDto;
-  column: BoardColumnDto;
-  others: BoardColumnDto[];
-  /** La última «Por hacer» o «Finalizada» no se puede eliminar. */
-  isLastOfCategory: boolean;
+  draft: DraftColumn;
+  nameError: string | null;
+  /** La última «Por hacer» o «Finalizada» existente no se puede eliminar. */
+  isProtected: boolean;
+  targets: DraftColumn[];
   canMoveUp: boolean;
   canMoveDown: boolean;
+  disabled: boolean;
+  onChange: (changes: Partial<DraftColumn>) => void;
   onMove: (direction: -1 | 1) => void;
+  onRemove: (moveToId?: number) => void;
 }) {
-  const updateColumn = useUpdateBoardColumn();
-  const deleteColumn = useDeleteBoardColumn();
-  const [targetId, setTargetId] = useState<number>(others[0]?.id ?? 0);
-  const [isConfirming, setIsConfirming] = useState(false);
-  const target = others.find((other) => other.id === targetId);
-  const isProtected =
-    column.category !== BoardColumnCategory.IN_PROGRESS && isLastOfCategory;
-
-  function handleSave(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const formData = new FormData(event.currentTarget);
-    const name = formData.get("name");
-    const wipLimit = formData.get("wipLimit");
-
-    if (typeof name !== "string" || typeof wipLimit !== "string") return;
-
-    updateColumn.mutate({
-      id: project.id,
-      columnId: column.id,
-      name,
-      color: column.color,
-      wipLimit: wipLimit ? Number(wipLimit) : null,
-    });
-  }
+  const existingTargets = targets.filter((target) => target.id !== null);
+  const [targetId, setTargetId] = useState<number | null>(null);
+  const selectedTarget =
+    existingTargets.find((target) => target.id === targetId) ??
+    existingTargets[0];
 
   return (
     <li className="flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-3.5">
-      <form
-        onSubmit={handleSave}
-        className="grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[auto_auto_minmax(0,1fr)_auto_7rem_auto]"
-      >
+      <div className="grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[auto_auto_minmax(0,1fr)_auto_7rem]">
         <span className="flex flex-col gap-0.5">
           <Button
             type="button"
             variant="outline"
             size="icon-xs"
-            disabled={!canMoveUp}
-            aria-label={`Subir ${column.name}`}
+            disabled={!canMoveUp || disabled}
+            aria-label={`Subir ${draft.name}`}
             onClick={() => onMove(-1)}
           >
             <ChevronUp />
@@ -281,8 +534,8 @@ function ColumnRow({
             type="button"
             variant="outline"
             size="icon-xs"
-            disabled={!canMoveDown}
-            aria-label={`Bajar ${column.name}`}
+            disabled={!canMoveDown || disabled}
+            aria-label={`Bajar ${draft.name}`}
             onClick={() => onMove(1)}
           >
             <ChevronDown />
@@ -292,60 +545,79 @@ function ColumnRow({
           aria-hidden="true"
           className={cn(
             "size-2.5 rounded-full",
-            !column.color && CATEGORY_DOT[column.category],
+            !draft.color && CATEGORY_DOT[draft.category],
           )}
-          style={column.color ? { backgroundColor: column.color } : undefined}
+          style={draft.color ? { backgroundColor: draft.color } : undefined}
         />
         <Input
-          name="name"
           aria-label="Nombre de la columna"
-          defaultValue={column.name}
+          aria-invalid={nameError ? true : undefined}
+          value={draft.name}
           maxLength={50}
-          required
+          disabled={disabled}
+          onChange={(event) => onChange({ name: event.currentTarget.value })}
         />
         <Badge className="max-sm:col-start-3 max-sm:justify-self-start">
-          {CATEGORY_LABELS[column.category]}
+          {draft.id === null
+            ? `${CATEGORY_LABELS[draft.category]} · nueva`
+            : CATEGORY_LABELS[draft.category]}
         </Badge>
         <Input
-          name="wipLimit"
           type="number"
           aria-label="Límite de trabajo en curso"
           min={1}
           max={1000}
-          defaultValue={column.wipLimit ?? ""}
+          value={draft.wipLimit ?? ""}
           placeholder="Sin límite"
+          disabled={disabled}
           className="max-sm:col-start-3"
+          onChange={(event) =>
+            onChange({
+              wipLimit: event.currentTarget.value
+                ? Number(event.currentTarget.value)
+                : null,
+            })
+          }
         />
-        <Button
-          type="submit"
-          variant="outline"
-          className="max-sm:col-start-3 max-sm:justify-self-start"
-          disabled={updateColumn.isPending}
-        >
-          {updateColumn.isPending ? "Guardando..." : "Guardar"}
-        </Button>
-      </form>
+      </div>
+
+      {nameError && (
+        <p className="pl-1 text-xs text-destructive">{nameError}</p>
+      )}
 
       <div className="flex flex-wrap items-center gap-2.5 pl-1 text-sm text-muted-foreground">
-        {isProtected ? (
+        {draft.id === null ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={disabled}
+            onClick={() => onRemove()}
+          >
+            Quitar
+          </Button>
+        ) : isProtected ? (
           <p>
-            Es la única columna «{CATEGORY_LABELS[column.category]}»: no se puede
-            eliminar.
+            Es la única columna «{CATEGORY_LABELS[draft.category]}»: no se
+            puede eliminar.
           </p>
         ) : (
           <>
-            <label htmlFor={`target-${column.id}`}>
+            <label htmlFor={`target-${draft.key}`}>
               Al eliminar, mover issues a
             </label>
             <NativeSelect
-              id={`target-${column.id}`}
+              id={`target-${draft.key}`}
               className="h-8 w-44 text-[0.8125rem]"
-              value={targetId}
-              onChange={(event) => setTargetId(Number(event.currentTarget.value))}
+              value={selectedTarget?.id ?? ""}
+              disabled={disabled}
+              onChange={(event) =>
+                setTargetId(Number(event.currentTarget.value))
+              }
             >
-              {others.map((other) => (
-                <option key={other.id} value={other.id}>
-                  {other.name}
+              {existingTargets.map((target) => (
+                <option key={target.key} value={target.id!}>
+                  {target.name}
                 </option>
               ))}
             </NativeSelect>
@@ -353,43 +625,14 @@ function ColumnRow({
               type="button"
               variant="destructive"
               size="sm"
-              disabled={deleteColumn.isPending || !target}
-              onClick={() => setIsConfirming(true)}
+              disabled={disabled || !selectedTarget}
+              onClick={() => selectedTarget && onRemove(selectedTarget.id!)}
             >
               Eliminar
             </Button>
           </>
         )}
       </div>
-
-      {updateColumn.isError && (
-        <ErrorAlert>{updateColumn.error.message}</ErrorAlert>
-      )}
-      {deleteColumn.isError && (
-        <ErrorAlert>{deleteColumn.error.message}</ErrorAlert>
-      )}
-
-      <ConfirmDialogComponent
-        open={isConfirming}
-        title={`¿Eliminar «${column.name}»?`}
-        description={`Sus issues pasarán a «${target?.name}».`}
-        confirmLabel="Eliminar columna"
-        pendingLabel="Eliminando..."
-        isPending={deleteColumn.isPending}
-        destructive
-        onClose={() => setIsConfirming(false)}
-        onConfirm={() => {
-          if (!target) return;
-          deleteColumn.mutate(
-            {
-              id: project.id,
-              columnId: column.id,
-              moveIssuesToColumnId: target.id,
-            },
-            { onSettled: () => setIsConfirming(false) },
-          );
-        }}
-      />
     </li>
   );
 }

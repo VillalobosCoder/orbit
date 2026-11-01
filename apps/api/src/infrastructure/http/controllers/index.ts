@@ -22,6 +22,9 @@ import { GetUserListUseCase } from "../../../application/user/use-cases/get-user
 import { GetUserUseCase } from "../../../application/user/use-cases/get-user.use-case.js";
 import { UpdateUserUseCase } from "../../../application/user/use-cases/update-user.use-case.js";
 import { ModuleController } from "./module.controller.js";
+import type { HomeRepository } from "../../../application/home/ports/home-repository.port.js";
+import { GetHomeSummaryUseCase } from "../../../application/home/use-cases/get-home-summary.use-case.js";
+import { HomeController } from "./home.controller.js";
 import type { ProjectMemberRepository } from "../../../application/project/ports/project-member-repository.port.js";
 import type { ProjectRepository } from "../../../application/project/ports/project-repository.port.js";
 import { AddProjectMemberUseCase } from "../../../application/project/use-cases/add-project-member.use-case.js";
@@ -82,6 +85,7 @@ export interface ControllerDependencies {
   boardColumnRepository: BoardColumnRepository;
   fileRepository: FileRepository;
   fileStorage: FileStorage;
+  homeRepository: HomeRepository;
 }
 
 export function createControllers(dependencies: ControllerDependencies) {
@@ -155,6 +159,9 @@ export function createControllers(dependencies: ControllerDependencies) {
       ),
     ),
     modules: new ModuleController(dependencies.moduleRepository),
+    home: new HomeController(
+      new GetHomeSummaryUseCase(dependencies.homeRepository),
+    ),
     projects: new ProjectController(
       new GetProjectListUseCase(dependencies.projectRepository),
       new GetProjectUseCase(dependencies.projectRepository),

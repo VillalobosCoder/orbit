@@ -1,21 +1,14 @@
 import { NavLink } from "react-router-dom";
 import { CircleAlert } from "lucide-react";
-import {
-  BoardColumnCategory,
-  type BoardDto,
-  type IssueDto,
-  type ProjectDto,
-} from "@orbit/shared";
+import { BoardColumnCategory, HOME_ASSIGNED_ISSUES_LIMIT } from "@orbit/shared";
 
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/context/auth/use-auth";
 import { usePermission } from "@/context/auth/use-permission";
-import { useGetBoards } from "@/features/issues/api/queries";
-import { useGetProjects } from "@/features/projects/api/queries";
+import { useGetHomeSummary } from "@/features/home/api/queries";
 import { daysUntil } from "@/features/sprints/pages/utils/format-date";
 
-const MAX_ASSIGNED = 8;
 const ROW_HEIGHT_REM = 3.5;
 
 function getGreeting() {
@@ -70,64 +63,26 @@ function SummaryCard({
   );
 }
 
-type ProjectBoard = { project: ProjectDto; board: BoardDto };
-type AssignedIssue = {
-  project: ProjectDto;
-  issue: IssueDto;
-  columnName: string;
-  category: BoardColumnCategory;
-};
-
 export default function HomePage() {
   const { user } = useAuth();
   const { hasAccess } = usePermission("projects");
-  const projects = useGetProjects({ enabled: hasAccess });
-  const projectList = projects.data ?? [];
-  const boards = useGetBoards(projectList.map((project) => project.id));
-  const isLoading = projects.isLoading || boards.some((board) => board.isLoading);
-  const loadError = [projects, ...boards].find((query) => query.isError)?.error;
-
-  const projectBoards: ProjectBoard[] = projectList.flatMap((project, index) => {
-    const board = boards[index]?.data;
-    return board ? [{ project, board }] : [];
-  });
-
-  const assigned: AssignedIssue[] = projectBoards
-    .flatMap(({ project, board }) =>
-      board.issues
-        .filter((issue) => user && issue.assigneeIds.includes(user.id))
-        .map((issue) => {
-          const column = board.columns.find((item) => item.id === issue.columnId);
-
-          return {
-            project,
-            issue,
-            columnName: column?.name ?? "—",
-            category: column?.category ?? BoardColumnCategory.TODO,
-          };
-        }),
-    )
-    .filter((item) => item.category !== BoardColumnCategory.DONE)
-    .sort(
-      (a, b) =>
-        Number(b.category === BoardColumnCategory.IN_PROGRESS) -
-          Number(a.category === BoardColumnCategory.IN_PROGRESS) ||
-        a.project.projectKey.localeCompare(b.project.projectKey) ||
-        a.issue.issueNumber - b.issue.issueNumber,
-    );
-  const inProgress = assigned.filter(
-    (item) => item.category === BoardColumnCategory.IN_PROGRESS,
-  ).length;
-  const activeSprints = projectBoards.filter(({ board }) => board.activeSprint);
-  const closingThisWeek = activeSprints.filter(({ board }) => {
-    const endDate = board.activeSprint?.endDate;
+  const summary = useGetHomeSummary({ enabled: hasAccess });
+  const isLoading = summary.isLoading;
+  const loadError = summary.error;
+  const projects = summary.data?.projects ?? [];
+  const assigned = summary.data?.assigned ?? {
+    total: 0,
+    inProgress: 0,
+    items: [],
+  };
+  const activeSprints = projects.filter((project) => project.activeSprint);
+  const closingThisWeek = activeSprints.filter((project) => {
+    const endDate = project.activeSprint?.endDate;
     if (!endDate) return false;
     const days = daysUntil(endDate);
     return days >= 0 && days <= 7;
   }).length;
-
-  const visibleAssigned = assigned.slice(0, MAX_ASSIGNED);
-  const fillerCount = MAX_ASSIGNED - visibleAssigned.length;
+  const fillerCount = HOME_ASSIGNED_ISSUES_LIMIT - assigned.items.length;
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6">
@@ -158,14 +113,14 @@ export default function HomePage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <SummaryCard
               label="Proyectos"
-              value={projectList.length}
+              value={projects.length}
               caption={`${activeSprints.length} con sprint activo`}
               isLoading={isLoading}
             />
             <SummaryCard
               label="Asignados a ti"
-              value={assigned.length}
-              caption={`${inProgress} en curso`}
+              value={assigned.total}
+              caption={`${assigned.inProgress} en curso`}
               isLoading={isLoading}
             />
             <SummaryCard
@@ -184,10 +139,10 @@ export default function HomePage() {
               <h2 className="flex h-13 items-center px-5 text-[0.6875rem] font-semibold tracking-wider text-muted-foreground uppercase">
                 Asignados a ti
               </h2>
-              {isLoading || assigned.length === 0 ? (
+              {isLoading || assigned.items.length === 0 ? (
                 <div
                   className="flex items-center justify-center border-t border-border text-sm text-muted-foreground"
-                  style={{ height: `${MAX_ASSIGNED * ROW_HEIGHT_REM}rem` }}
+                  style={{ height: `${HOME_ASSIGNED_ISSUES_LIMIT * ROW_HEIGHT_REM}rem` }}
                 >
                   {isLoading ? (
                     <Spinner aria-label="Cargando" className="size-6" />
@@ -197,21 +152,21 @@ export default function HomePage() {
                 </div>
               ) : (
                 <ul>
-                  {visibleAssigned.map(
-                    ({ project, issue, columnName, category }) => (
+                  {assigned.items.map(
+                    ({ id, projectId, issueKey, title, columnName, category }) => (
                       <li
-                        key={`${project.id}-${issue.id}`}
+                        key={id}
                         className="h-14 border-t border-border"
                       >
                         <NavLink
-                          to={`/projects/${project.id}/issues/${issue.id}`}
+                          to={`/projects/${projectId}/issues/${id}`}
                           className="flex h-full items-center gap-3 px-5 text-sm transition-colors hover:bg-accent/50"
                         >
                           <span className="w-20 shrink-0 font-mono text-xs text-info">
-                            {issue.issueKey}
+                            {issueKey}
                           </span>
                           <span className="min-w-0 flex-1 truncate font-medium">
-                            {issue.title}
+                            {title}
                           </span>
                           <Badge
                             variant={
@@ -236,10 +191,10 @@ export default function HomePage() {
                 </ul>
               )}
               <p className="flex h-11 items-center border-t border-border px-5 text-xs text-muted-foreground">
-                {!isLoading && assigned.length > 0 &&
-                  (assigned.length > MAX_ASSIGNED
-                    ? `Mostrando ${MAX_ASSIGNED} de ${assigned.length} issues asignados`
-                    : `${assigned.length} ${assigned.length === 1 ? "issue asignado" : "issues asignados"}`)}
+                {!isLoading && assigned.total > 0 &&
+                  (assigned.total > assigned.items.length
+                    ? `Mostrando ${assigned.items.length} de ${assigned.total} issues asignados`
+                    : `${assigned.total} ${assigned.total === 1 ? "issue asignado" : "issues asignados"}`)}
               </p>
             </section>
 
@@ -258,13 +213,13 @@ export default function HomePage() {
                       className="size-6 text-muted-foreground"
                     />
                   </div>
-                ) : projectBoards.length === 0 ? (
+                ) : projects.length === 0 ? (
                   <p className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
                     Sin registros
                   </p>
                 ) : (
-                  projectBoards.map(({ project, board }) => {
-                    const sprint = board.activeSprint;
+                  projects.map((project) => {
+                    const sprint = project.activeSprint;
 
                     if (!sprint) {
                       return (
@@ -278,22 +233,14 @@ export default function HomePage() {
                           </span>{" "}
                           <strong className="font-semibold">{project.name}</strong>
                           <p className="mt-1 text-muted-foreground">
-                            Sin sprint activo · {board.issues.length} issues en
+                            Sin sprint activo · {project.backlogIssues} issues en
                             el backlog
                           </p>
                         </NavLink>
                       );
                     }
 
-                    const roots = board.issues.filter(
-                      (issue) => issue.parentId === null,
-                    );
-                    const done = roots.filter(
-                      (issue) =>
-                        board.columns.find(
-                          (column) => column.id === issue.columnId,
-                        )?.category === BoardColumnCategory.DONE,
-                    ).length;
+                    const { totalIssues, doneIssues } = sprint;
 
                     return (
                       <NavLink
@@ -317,20 +264,20 @@ export default function HomePage() {
                         <div
                           role="progressbar"
                           aria-valuemin={0}
-                          aria-valuemax={roots.length}
-                          aria-valuenow={done}
+                          aria-valuemax={totalIssues}
+                          aria-valuenow={doneIssues}
                           aria-label={`Progreso de ${sprint.name}`}
                           className="mt-3 h-1 overflow-hidden rounded-full bg-muted"
                         >
                           <div
                             className="h-full rounded-full bg-info"
                             style={{
-                              width: `${roots.length ? (done / roots.length) * 100 : 0}%`,
+                              width: `${totalIssues ? (doneIssues / totalIssues) * 100 : 0}%`,
                             }}
                           />
                         </div>
                         <p className="mt-2 text-xs text-muted-foreground">
-                          {done} de {roots.length} terminados
+                          {doneIssues} de {totalIssues} terminados
                         </p>
                       </NavLink>
                     );

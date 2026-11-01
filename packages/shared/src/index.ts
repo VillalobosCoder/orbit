@@ -6,6 +6,7 @@ export * from "./enums/sprint.enum.js";
 export * from "./dto/auth/auth.dto.js";
 export * from "./dto/users/users.dto.js";
 export * from "./dto/files/files.dto.js";
+export * from "./dto/home/home.dto.js";
 export * from "./dto/modules/modules.dto.js";
 export * from "./dto/projects/projects.dto.js";
 export * from "./dto/issues/issues.dto.js";

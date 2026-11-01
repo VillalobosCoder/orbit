@@ -15,6 +15,7 @@ import { DBProjectMemberRepository } from "./src/infrastructure/db/repositories/
 import { DBProjectRepository } from "./src/infrastructure/db/repositories/db-project.repository.js";
 import { DBFileRepository } from "./src/infrastructure/db/repositories/db-file.repository.js";
 import { LocalFileStorage } from "./src/infrastructure/storage/local-file-storage.js";
+import { DBHomeRepository } from "./src/infrastructure/db/repositories/db-home.repository.js";
 import { DBModuleRepository } from "./src/infrastructure/db/repositories/db-module.repository.js";
 
 const hostname = process.env.HOSTNAME!;
@@ -34,6 +35,7 @@ const sprintRepository = new DBSprintRepository(dbContext);
 const boardColumnRepository = new DBBoardColumnRepository(dbContext);
 const fileRepository = new DBFileRepository(dbContext);
 const fileStorage = new LocalFileStorage(process.env.STORAGE_DIR ?? "storage");
+const homeRepository = new DBHomeRepository(dbContext);
 const passwordHasher = new ScryptPasswordHasher();
 const tokenService = new JwtTokenService();
 const controllers = createControllers({
@@ -52,6 +54,7 @@ const controllers = createControllers({
   boardColumnRepository,
   fileRepository,
   fileStorage,
+  homeRepository,
 });
 const app = createHttpApp(controllers, tokenService, userPermissionRepository);
 

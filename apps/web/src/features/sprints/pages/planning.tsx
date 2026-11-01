@@ -132,12 +132,12 @@ export default function PlanningPage() {
     return (
       <li
         key={issue.id}
-        className="flex items-center gap-3 border-t border-border px-4 py-2.5 text-sm first:border-t-0"
+        className="flex h-14 items-center gap-3 border-t border-border px-4 text-sm first:border-t-0"
       >
         <IssueTypeIcon
           type={optionData?.issueTypes.find((type) => type.id === issue.typeId)}
         />
-        <span className="w-16 shrink-0 font-mono text-xs text-muted-foreground">
+        <span className="w-28 shrink-0 truncate font-mono text-xs text-muted-foreground">
           {issue.issueKey}
         </span>
         <NavLink
@@ -146,25 +146,37 @@ export default function PlanningPage() {
         >
           {issue.title}
         </NavLink>
-        {subtasks > 0 && (
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <ListTree className="size-3.5" aria-hidden="true" />
-            {subtasks}
-          </span>
-        )}
-        <Badge variant={isDone(issue) ? "success" : "default"}>
-          {column?.name ?? "—"}
-        </Badge>
-        <PriorityIcon
-          priority={optionData?.priorities.find(
-            (priority) => priority.id === issue.priorityId,
+        <span className="flex w-10 shrink-0 items-center gap-1 text-xs text-muted-foreground">
+          {subtasks > 0 && (
+            <>
+              <ListTree className="size-3.5" aria-hidden="true" />
+              {subtasks}
+            </>
           )}
-        />
-        <AssigneeStack people={assignees} />
+        </span>
+        <span className="flex w-28 shrink-0">
+          <Badge
+            variant={isDone(issue) ? "success" : "default"}
+            className="max-w-full"
+          >
+            <span className="truncate">{column?.name ?? "—"}</span>
+          </Badge>
+        </span>
+        <span className="flex w-6 shrink-0 justify-center">
+          <PriorityIcon
+            priority={optionData?.priorities.find(
+              (priority) => priority.id === issue.priorityId,
+            )}
+          />
+        </span>
+        <span className="flex w-20 shrink-0">
+          <AssigneeStack people={assignees} />
+        </span>
         {canWrite && (
           <NativeSelect
             aria-label={`Mover ${issue.issueKey} a`}
-            className="h-8 w-40 text-[0.8125rem]"
+            wrapperClassName="w-40 shrink-0"
+            className="h-8 text-[0.8125rem]"
             value={issue.sprintId ?? ""}
             disabled={assignSprint.isPending}
             onChange={(event) =>
@@ -195,7 +207,9 @@ export default function PlanningPage() {
         Sin issues.
       </p>
     ) : (
-      <ul>{list.map(renderIssueRow)}</ul>
+      <ul className="max-h-[21rem] overflow-y-auto">
+        {list.map(renderIssueRow)}
+      </ul>
     );
   }
 
@@ -269,7 +283,9 @@ export default function PlanningPage() {
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2.5">
-                  <h2 className="text-base font-semibold">{sprint.name}</h2>
+                  <h2 className="truncate text-base font-semibold [overflow-wrap:anywhere]">
+                    {sprint.name}
+                  </h2>
                   <Badge variant={isActive ? "info" : "muted"}>
                     {isActive && (
                       <span
@@ -280,7 +296,7 @@ export default function PlanningPage() {
                     {STATUS_LABELS[sprint.status]}
                   </Badge>
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground [overflow-wrap:anywhere]">
                   {formatDateRange(sprint.startDate, sprint.endDate)}
                   {sprint.goal && ` · ${sprint.goal}`}
                 </p>
@@ -384,7 +400,7 @@ export default function PlanningPage() {
           <h2 className="border-b border-border px-4 py-3 text-base font-semibold">
             Historial de sprints
           </h2>
-          <ul>
+          <ul className="max-h-48 overflow-y-auto">
             {closedSprints.map((sprint) => (
               <li
                 key={sprint.id}

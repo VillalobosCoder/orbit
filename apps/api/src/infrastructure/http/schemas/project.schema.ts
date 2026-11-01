@@ -1,9 +1,13 @@
 import * as z from "zod";
+import {
+  PROJECT_DESCRIPTION_MAX_LENGTH,
+  PROJECT_NAME_MAX_LENGTH,
+} from "@orbit/shared";
 
-const description = z.string().trim().max(1000).nullish();
+const description = z.string().trim().max(PROJECT_DESCRIPTION_MAX_LENGTH).nullish();
 
 export const updateProjectSchema = z.object({
-  name: z.string().trim().min(2).max(100),
+  name: z.string().trim().min(2).max(PROJECT_NAME_MAX_LENGTH),
   description,
 });
 

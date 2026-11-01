@@ -58,7 +58,7 @@ function ColumnDot({ column }: { column: BoardColumnDto }) {
     <span
       aria-hidden="true"
       className={cn(
-        "size-2 rounded-full",
+        "size-2 shrink-0 rounded-full",
         !column.color && CATEGORY_DOT[column.category],
       )}
       style={column.color ? { backgroundColor: column.color } : undefined}
@@ -279,12 +279,14 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
                 }}
                 onDrop={() => handleDrop(column.id)}
               >
-                <h3 className="flex items-center gap-2 px-1 pt-0.5 pb-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                <h3 className="flex min-w-0 shrink-0 items-center gap-2 px-1 pt-0.5 pb-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                   <ColumnDot column={column} />
-                  {column.name}
+                  <span className="min-w-0 truncate" title={column.name}>
+                    {column.name}
+                  </span>
                   <span
                     className={cn(
-                      "rounded-full bg-muted px-2 py-0.5 text-xs font-medium tracking-normal",
+                      "shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium tracking-normal",
                       isOverLimit && "bg-destructive/15 text-destructive",
                     )}
                   >

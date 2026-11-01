@@ -8,6 +8,8 @@ import type { BoardColumnController } from "../controllers/board-column.controll
 import type { IssueController } from "../controllers/issue.controller.js";
 import type { ProjectController } from "../controllers/project.controller.js";
 import type { ModuleController } from "../controllers/module.controller.js";
+import type { HomeController } from "../controllers/home.controller.js";
+import { createHomeRoutes } from "./home.routes.js";
 import { createAuthRoutes } from "./auth.routes.js";
 import { UserRoutes } from "./user.routes.js";
 import { createModuleRoutes } from "./module.routes.js";
@@ -23,6 +25,7 @@ export interface RouteControllers {
   auth: AuthController;
   users: UserController;
   modules: ModuleController;
+  home: HomeController;
   projects: ProjectController;
   issues: IssueController;
   comments: CommentController;
@@ -66,6 +69,10 @@ export function createApiRoutes(
       authenticateReady,
       permissions,
     ),
+  );
+  router.use(
+    "/home",
+    createHomeRoutes(controllers.home, authenticateReady, permissions),
   );
   router.use(
     "/modules",

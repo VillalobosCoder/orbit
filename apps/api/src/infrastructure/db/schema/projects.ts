@@ -5,6 +5,10 @@ import {
   unique,
   varchar,
 } from "drizzle-orm/pg-core";
+import {
+  PROJECT_DESCRIPTION_MAX_LENGTH,
+  PROJECT_NAME_MAX_LENGTH,
+} from "@orbit/shared";
 import { auditColumns } from "./audit-columns.js";
 import { statuses } from "./statuses.js";
 import { users } from "./users.js";
@@ -20,8 +24,8 @@ export const projects = pgTable(
       .notNull()
       .references(() => statuses.id),
     projectKey: varchar("project_key", { length: 10 }).notNull(),
-    name: varchar({ length: 100 }).notNull(),
-    description: varchar({ length: 1000 }),
+    name: varchar({ length: PROJECT_NAME_MAX_LENGTH }).notNull(),
+    description: varchar({ length: PROJECT_DESCRIPTION_MAX_LENGTH }),
     issueCounter: integer("issue_counter").notNull().default(0),
     ...auditColumns((): AnyPgColumn => users.id),
   },

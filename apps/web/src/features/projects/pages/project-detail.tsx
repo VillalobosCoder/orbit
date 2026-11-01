@@ -91,12 +91,12 @@ export default function ProjectDetailPage() {
             <span className="font-mono text-sm font-medium text-info">
               {project.projectKey}
             </span>
-            <h1 className="text-2xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight [overflow-wrap:anywhere]">
               {project.name}
             </h1>
           </div>
           {project.description && (
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+            <p className="mt-1 line-clamp-2 max-w-3xl text-sm text-muted-foreground [overflow-wrap:anywhere]">
               {project.description}
             </p>
           )}

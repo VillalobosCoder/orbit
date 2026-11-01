@@ -1,5 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 
+export const POLL_INTERVAL_MS = 15_000;
+
 function shouldRetry(failureCount: number, error: unknown) {
   const status = typeof error === "object" && error !== null && "status" in error
     ? Number(error.status)

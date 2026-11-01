@@ -79,3 +79,64 @@ export function useDeleteBoardColumn() {
     onError: handleMutationError,
   });
 }
+
+export type ColumnChangePlan = {
+  projectId: number;
+  deletions: { columnId: number; moveIssuesToColumnId: number }[];
+  updates: (SaveBoardColumnRequestDto & { columnId: number })[];
+  creations: { key: string; payload: CreateBoardColumnRequestDto }[];
+  /** Ids de las columnas existentes y claves de las nuevas, en el orden final. */
+  finalOrder: (number | string)[];
+  reorder: boolean;
+};
+
+export function useApplyBoardColumnChanges() {
+  return useMutation<void, Error, ColumnChangePlan>({
+    mutationFn: async (plan) => {
+      const columnsUri = [PROJECTS, `/${plan.projectId}`, "/columns"];
+
+      for (const { columnId, moveIssuesToColumnId } of plan.deletions) {
+        const payload: DeleteBoardColumnRequestDto = { moveIssuesToColumnId };
+        await injectQuery([...columnsUri, `/${columnId}`], {
+          method: HttpMethod.DELETE,
+          body: JSON.stringify(payload),
+        });
+      }
+
+      for (const { columnId, ...payload } of plan.updates) {
+        await injectQuery([...columnsUri, `/${columnId}`], {
+          method: HttpMethod.PATCH,
+          body: JSON.stringify(payload),
+        });
+      }
+
+      const createdIds = new Map<string, number>();
+
+      for (const { key, payload } of plan.creations) {
+        const created = await injectQuery<BoardColumnDto>(columnsUri, {
+          method: HttpMethod.POST,
+          body: JSON.stringify(payload),
+        });
+
+        if (!created) {
+          throw new Error("La API no devolvió la columna creada.");
+        }
+
+        createdIds.set(key, created.id);
+      }
+
+      if (plan.reorder) {
+        const payload: ReorderBoardColumnsRequestDto = {
+          columnIds: plan.finalOrder.map((entry) =>
+            typeof entry === "number" ? entry : createdIds.get(entry)!,
+          ),
+        };
+        await injectQuery([...columnsUri, "/order"], {
+          method: HttpMethod.PUT,
+          body: JSON.stringify(payload),
+        });
+      }
+    },
+    onSettled: (_data, _error, plan) => invalidateProject(plan.projectId),
+  });
+}
