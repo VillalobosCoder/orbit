@@ -2,6 +2,7 @@ import { HttpMethod, injectQuery, requireData } from "@/api/config";
 import { MODULES } from "@/api/uris";
 import type { ModuleDto } from "@orbit/shared";
 import { useQuery } from "@tanstack/react-query";
+import { t } from "@/i18n/locale-store";
 
 export function useGetModules() {
   return useQuery({
@@ -9,7 +10,7 @@ export function useGetModules() {
     queryFn: () =>
       requireData(
         injectQuery<ModuleDto[]>([MODULES], { method: HttpMethod.GET }),
-        "La API no devolvió los módulos.",
+        t("api.emptyModules"),
       ),
   });
 }

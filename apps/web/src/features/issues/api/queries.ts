@@ -17,6 +17,7 @@ import {
   type SaveIssueRequestDto,
 } from "@orbit/shared";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { t } from "@/i18n/locale-store";
 
 export const boardKey = (projectId: number) => [PROJECTS, projectId, "board"] as const;
 
@@ -29,7 +30,7 @@ function fetchBoard(projectId: number) {
     injectQuery<BoardDto>([PROJECTS, `/${projectId}`, BOARD], {
       method: HttpMethod.GET,
     }),
-    "La API no devolvió el tablero.",
+    t("api.emptyBoard"),
   );
 }
 
@@ -53,7 +54,7 @@ export function useGetIssueOptions(projectId: number) {
           [PROJECTS, `/${projectId}`, ISSUE_OPTIONS],
           { method: HttpMethod.GET },
         ),
-        "La API no devolvió las opciones de issue.",
+        t("api.emptyIssueOptions"),
       ),
   });
 }

@@ -2,6 +2,7 @@ import { HttpMethod, injectQuery, requireData } from "@/api/config";
 import { HOME, SUMMARY } from "@/api/uris";
 import type { HomeSummaryDto } from "@orbit/shared";
 import { useQuery } from "@tanstack/react-query";
+import { t } from "@/i18n/locale-store";
 
 export function useGetHomeSummary({ enabled }: { enabled: boolean }) {
   return useQuery({
@@ -14,7 +15,7 @@ export function useGetHomeSummary({ enabled }: { enabled: boolean }) {
         injectQuery<HomeSummaryDto>([HOME, SUMMARY], {
           method: HttpMethod.GET,
         }),
-        "La API no devolvió el resumen.",
+        t("api.emptyHome"),
       ),
   });
 }

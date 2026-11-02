@@ -79,7 +79,7 @@ export class UpdateIssueUseCase {
       input.columnId !== undefined &&
       input.columnId !== issue.columnId
     ) {
-      throw new IssueActionNotAllowedError("mover issues entre columnas");
+      throw new IssueActionNotAllowedError("move");
     }
 
     if (
@@ -88,7 +88,7 @@ export class UpdateIssueUseCase {
       input.sprintId !== undefined &&
       input.sprintId !== issue.sprintId
     ) {
-      throw new IssueActionNotAllowedError("cambiar el sprint de un issue");
+      throw new IssueActionNotAllowedError("changeSprint");
     }
 
     const parent =
@@ -106,7 +106,7 @@ export class UpdateIssueUseCase {
 
     if (type.isSubtask && (await this.issues.hasChildren(input))) {
       throw new InvalidIssueParentError(
-        "Un issue con subtareas no puede convertirse en subtarea.",
+        "withChildren",
       );
     }
     assertPriority(priorities, input.priorityId);
@@ -134,7 +134,7 @@ export class UpdateIssueUseCase {
           });
 
           if (!sprint) {
-            throw new InvalidIssueReferenceError("El sprint");
+            throw new InvalidIssueReferenceError("sprint");
           }
 
           sprint.assertAcceptsIssues();

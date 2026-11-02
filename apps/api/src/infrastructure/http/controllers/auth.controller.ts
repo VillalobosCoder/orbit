@@ -18,6 +18,7 @@ import {
   updateProfileSchema,
 } from "../schemas/auth.schema.js";
 import type { AuthedRequest } from "../middleware/auth.middleware.js";
+import { sendError } from "../middleware/locale.middleware.js";
 
 const ACCESS_TOKEN_MAX_AGE_MS = 15 * 60 * 1000;
 const isProduction = process.env.NODE_ENV === "production";
@@ -48,14 +49,14 @@ export class AuthController {
       const authenticatedUserId = req.auth?.id;
 
       if (authenticatedUserId === undefined) {
-        res.status(401).json({ error: "No autenticado." });
+        sendError(res, 401, "errors.http.notAuthenticated");
         return;
       }
 
       const user = await this.getCurrentUserUseCase.execute(authenticatedUserId);
 
       if (!user) {
-        res.status(401).json({ error: "La sesión ya no es válida." });
+        sendError(res, 401, "errors.http.sessionInvalid");
         return;
       }
 
@@ -75,7 +76,7 @@ export class AuthController {
       const actorUserId = req.auth?.id;
 
       if (actorUserId === undefined) {
-        res.status(401).json({ error: "No autenticado." });
+        sendError(res, 401, "errors.http.notAuthenticated");
         return;
       }
 
@@ -86,7 +87,7 @@ export class AuthController {
       const user = await this.getCurrentUserUseCase.execute(actorUserId);
 
       if (!user) {
-        res.status(401).json({ error: "La sesión ya no es válida." });
+        sendError(res, 401, "errors.http.sessionInvalid");
         return;
       }
 
@@ -106,7 +107,7 @@ export class AuthController {
       const actorUserId = req.auth?.id;
 
       if (actorUserId === undefined) {
-        res.status(401).json({ error: "No autenticado." });
+        sendError(res, 401, "errors.http.notAuthenticated");
         return;
       }
 
@@ -121,7 +122,7 @@ export class AuthController {
       const user = await this.getCurrentUserUseCase.execute(actorUserId);
 
       if (!user) {
-        res.status(401).json({ error: "La sesión ya no es válida." });
+        sendError(res, 401, "errors.http.sessionInvalid");
         return;
       }
 
@@ -141,7 +142,7 @@ export class AuthController {
       const actorUserId = req.auth?.id;
 
       if (actorUserId === undefined) {
-        res.status(401).json({ error: "No autenticado." });
+        sendError(res, 401, "errors.http.notAuthenticated");
         return;
       }
 
@@ -149,7 +150,7 @@ export class AuthController {
       const user = await this.getCurrentUserUseCase.execute(actorUserId);
 
       if (!user) {
-        res.status(401).json({ error: "La sesión ya no es válida." });
+        sendError(res, 401, "errors.http.sessionInvalid");
         return;
       }
 
@@ -190,7 +191,7 @@ export class AuthController {
       const userId = req.auth?.id;
 
       if (userId === undefined) {
-        res.status(401).json({ error: "No autenticado." });
+        sendError(res, 401, "errors.http.notAuthenticated");
         return;
       }
 
@@ -204,7 +205,7 @@ export class AuthController {
       const user = await this.getCurrentUserUseCase.execute(userId);
 
       if (!user) {
-        res.status(401).json({ error: "La sesión ya no es válida." });
+        sendError(res, 401, "errors.http.sessionInvalid");
         return;
       }
 

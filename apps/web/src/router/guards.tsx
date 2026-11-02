@@ -2,8 +2,11 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 import { Spinner } from "@/components/ui/spinner.tsx";
 import { useAuth } from "@/context/auth/use-auth";
+import { useI18n } from "@/i18n/use-i18n";
 
 function GuardLoading() {
+  const { t } = useI18n();
+
   return (
     <div
       className="flex min-h-dvh w-full items-center justify-center bg-background text-primary"
@@ -11,7 +14,7 @@ function GuardLoading() {
       aria-live="polite"
     >
       <Spinner />
-      <span className="sr-only">Cargando sesión...</span>
+      <span className="sr-only">{t("shell.guard.loadingSession")}</span>
     </div>
   );
 }

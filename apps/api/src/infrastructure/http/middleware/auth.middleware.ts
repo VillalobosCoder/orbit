@@ -1,5 +1,6 @@
 import type { Request, RequestHandler } from "express";
 import type { TokenService } from "../../../application/auth/ports/token-service.port.js";
+import { sendError } from "./locale.middleware.js";
 
 export interface AuthedRequest extends Request {
   auth?: {
@@ -19,9 +20,7 @@ export function requirePasswordChanged(
       }
 
       if ((req as AuthedRequest).auth?.mustChangePassword) {
-        res
-          .status(403)
-          .json({ error: "Debes cambiar tu contraseña antes de continuar." });
+        sendError(res, 403, "errors.http.mustChangePassword");
         return;
       }
 
@@ -35,7 +34,7 @@ export function makeAuthMiddleware(tokens: TokenService): RequestHandler {
     const token: unknown = req.cookies?.access_token;
 
     if (typeof token !== "string" || token.length === 0) {
-      res.status(401).json({ error: "No autenticado." });
+      sendError(res, 401, "errors.http.notAuthenticated");
       return;
     }
 
@@ -46,12 +45,12 @@ export function makeAuthMiddleware(tokens: TokenService): RequestHandler {
       id = Number(payload.sub);
       mustChangePassword = payload.mustChangePassword === true;
     } catch {
-      res.status(401).json({ error: "Sesión inválida o expirada." });
+      sendError(res, 401, "errors.http.sessionExpired");
       return;
     }
 
     if (!Number.isSafeInteger(id) || id <= 0) {
-      res.status(401).json({ error: "Sesión inválida o expirada." });
+      sendError(res, 401, "errors.http.sessionExpired");
       return;
     }
 

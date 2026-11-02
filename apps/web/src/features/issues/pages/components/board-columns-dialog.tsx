@@ -28,12 +28,8 @@ import {
   type ColumnChangePlan,
 } from "../../api/columns-queries";
 import { boardKey } from "../../api/queries";
-
-const CATEGORY_LABELS: Record<BoardColumnCategory, string> = {
-  [BoardColumnCategory.TODO]: "Por hacer",
-  [BoardColumnCategory.IN_PROGRESS]: "En curso",
-  [BoardColumnCategory.DONE]: "Finalizada",
-};
+import { useI18n } from "@/i18n/use-i18n";
+import { columnLabel } from "@/i18n/catalog";
 
 const CATEGORY_DOT: Record<BoardColumnCategory, string> = {
   [BoardColumnCategory.TODO]: "bg-muted-foreground",
@@ -128,6 +124,7 @@ function ColumnsEditor({
   initialError: string | null;
   onFailed: (columns: BoardColumnDto[], message: string) => void;
 }) {
+  const { t } = useI18n();
   const applyChanges = useApplyBoardColumnChanges();
   const [originalColumns] = useState(() => sortColumns(columns));
   const [drafts, setDrafts] = useState<DraftColumn[]>(() =>
@@ -178,9 +175,9 @@ function ColumnsEditor({
   const nameErrorOf = (draft: DraftColumn) => {
     const normalized = normalizeName(draft.name);
 
-    if (!normalized) return "Escribe un nombre.";
+    if (!normalized) return t("issues.columns.nameEmpty");
     if ((nameCounts.get(normalized) ?? 0) > 1) {
-      return "Ya hay otra columna con este nombre.";
+      return t("issues.columns.nameDuplicate");
     }
 
     return null;
@@ -238,7 +235,7 @@ function ColumnsEditor({
     if (
       drafts.some((draft) => normalizeName(draft.name) === normalizeName(name))
     ) {
-      setFormError("Ya hay una columna con este nombre.");
+      setFormError(t("issues.columns.formDuplicate"));
       return;
     }
 
@@ -312,12 +309,12 @@ function ColumnsEditor({
       const message =
         error instanceof Error
           ? error.message
-          : "No se pudieron aplicar los cambios.";
+          : t("issues.columns.applyFailed");
 
       if (freshBoard) {
         onFailed(
           freshBoard.columns,
-          `${message} Los cambios anteriores a este error sí se guardaron; revisa la lista y vuelve a intentarlo.`,
+          t("issues.columns.partialSaved", { message }),
         );
       } else {
         setApplyError(message);
@@ -345,11 +342,9 @@ function ColumnsEditor({
     >
       <DialogContent className="flex h-[min(90vh,46rem)] flex-col gap-4 overflow-hidden sm:max-w-3xl">
         <DialogHeader className="shrink-0">
-          <DialogTitle>Columnas del tablero</DialogTitle>
+          <DialogTitle>{t("issues.columns.title")}</DialogTitle>
           <DialogDescription>
-            Cada columna es un estado de {project.projectKey}. Debe quedar al
-            menos una «Por hacer» y una «Finalizada». La categoría se elige al
-            crearla y no cambia. Los cambios se aplican al pulsar «Listo».
+            {t("issues.columns.description", { key: project.projectKey })}
           </DialogDescription>
         </DialogHeader>
 
@@ -388,16 +383,18 @@ function ColumnsEditor({
           onSubmit={handleAdd}
           className="flex shrink-0 flex-col gap-3 rounded-xl border border-dashed border-input p-4"
         >
-          <h3 className="text-sm font-semibold">Agregar columna</h3>
+          <h3 className="text-sm font-semibold">
+            {t("issues.columns.add")}
+          </h3>
           <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_11rem_7rem_auto]">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="new-column-name" className="text-muted-foreground">
-                Nombre
+                {t("common.name")}
               </Label>
               <Input
                 id="new-column-name"
                 name="name"
-                placeholder="Ej. En pruebas"
+                placeholder={t("issues.columns.namePlaceholder")}
                 maxLength={50}
                 required
               />
@@ -407,7 +404,7 @@ function ColumnsEditor({
                 htmlFor="new-column-category"
                 className="text-muted-foreground"
               >
-                Categoría
+                {t("issues.columns.category")}
               </Label>
               <NativeSelect
                 id="new-column-category"
@@ -416,14 +413,14 @@ function ColumnsEditor({
               >
                 {Object.values(BoardColumnCategory).map((category) => (
                   <option key={category} value={category}>
-                    {CATEGORY_LABELS[category]}
+                    {t(`issues.categories.${category}`)}
                   </option>
                 ))}
               </NativeSelect>
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="new-column-limit" className="text-muted-foreground">
-                Límite WIP
+                {t("issues.columns.wipLimit")}
               </Label>
               <Input
                 id="new-column-limit"
@@ -431,24 +428,23 @@ function ColumnsEditor({
                 type="number"
                 min={1}
                 max={1000}
-                placeholder="Opcional"
+                placeholder={t("issues.columns.wipPlaceholder")}
               />
             </div>
             <Button type="submit" size="lg" disabled={applyChanges.isPending}>
               <Plus />
-              Agregar
+              {t("common.add")}
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Los nombres son únicos por proyecto. El límite se guarda; aún no se
-            aplica en el tablero.
+            {t("issues.columns.addHint")}
           </p>
           {formError && <ErrorAlert>{formError}</ErrorAlert>}
         </form>
 
         <DialogFooter className="shrink-0 items-center">
           <span className="text-xs text-muted-foreground sm:mr-auto">
-            {isDirty ? "Tienes cambios sin aplicar." : ""}
+            {isDirty ? t("issues.columns.pendingChanges") : ""}
           </span>
           <Button
             type="button"
@@ -456,23 +452,25 @@ function ColumnsEditor({
             disabled={applyChanges.isPending}
             onClick={requestClose}
           >
-            Cancelar
+            {t("common.cancel")}
           </Button>
           <Button
             type="button"
             disabled={applyChanges.isPending || hasErrors}
             onClick={() => void handleApply()}
           >
-            {applyChanges.isPending ? "Aplicando..." : "Listo"}
+            {applyChanges.isPending
+              ? t("issues.columns.applying")
+              : t("issues.columns.done")}
           </Button>
         </DialogFooter>
 
         <ConfirmDialogComponent
           open={isConfirmingDiscard}
-          title="¿Descartar los cambios?"
-          description="Las columnas no se modificarán y perderás los cambios que hiciste en esta ventana."
-          confirmLabel="Descartar cambios"
-          pendingLabel="Descartando..."
+          title={t("issues.columns.discard.title")}
+          description={t("issues.columns.discard.description")}
+          confirmLabel={t("issues.columns.discard.confirm")}
+          pendingLabel={t("issues.columns.discard.pending")}
           isPending={false}
           destructive
           onClose={() => setIsConfirmingDiscard(false)}
@@ -510,7 +508,9 @@ function ColumnRow({
   onMove: (direction: -1 | 1) => void;
   onRemove: (moveToId?: number) => void;
 }) {
+  const { t } = useI18n();
   const existingTargets = targets.filter((target) => target.id !== null);
+  const categoryName = t(`issues.categories.${draft.category}`);
   const [targetId, setTargetId] = useState<number | null>(null);
   const selectedTarget =
     existingTargets.find((target) => target.id === targetId) ??
@@ -525,7 +525,7 @@ function ColumnRow({
             variant="outline"
             size="icon-xs"
             disabled={!canMoveUp || disabled}
-            aria-label={`Subir ${draft.name}`}
+            aria-label={t("issues.columns.row.moveUp", { name: draft.name })}
             onClick={() => onMove(-1)}
           >
             <ChevronUp />
@@ -535,7 +535,7 @@ function ColumnRow({
             variant="outline"
             size="icon-xs"
             disabled={!canMoveDown || disabled}
-            aria-label={`Bajar ${draft.name}`}
+            aria-label={t("issues.columns.row.moveDown", { name: draft.name })}
             onClick={() => onMove(1)}
           >
             <ChevronDown />
@@ -550,7 +550,7 @@ function ColumnRow({
           style={draft.color ? { backgroundColor: draft.color } : undefined}
         />
         <Input
-          aria-label="Nombre de la columna"
+          aria-label={t("issues.columns.row.nameField")}
           aria-invalid={nameError ? true : undefined}
           value={draft.name}
           maxLength={50}
@@ -559,16 +559,16 @@ function ColumnRow({
         />
         <Badge className="max-sm:col-start-3 max-sm:justify-self-start">
           {draft.id === null
-            ? `${CATEGORY_LABELS[draft.category]} · nueva`
-            : CATEGORY_LABELS[draft.category]}
+            ? t("issues.columns.row.newBadge", { category: categoryName })
+            : categoryName}
         </Badge>
         <Input
           type="number"
-          aria-label="Límite de trabajo en curso"
+          aria-label={t("issues.columns.row.wipField")}
           min={1}
           max={1000}
           value={draft.wipLimit ?? ""}
-          placeholder="Sin límite"
+          placeholder={t("issues.columns.row.noLimit")}
           disabled={disabled}
           className="max-sm:col-start-3"
           onChange={(event) =>
@@ -594,17 +594,16 @@ function ColumnRow({
             disabled={disabled}
             onClick={() => onRemove()}
           >
-            Quitar
+            {t("issues.columns.row.remove")}
           </Button>
         ) : isProtected ? (
           <p>
-            Es la única columna «{CATEGORY_LABELS[draft.category]}»: no se
-            puede eliminar.
+            {t("issues.columns.row.onlyOfCategory", { category: categoryName })}
           </p>
         ) : (
           <>
             <label htmlFor={`target-${draft.key}`}>
-              Al eliminar, mover issues a
+              {t("issues.columns.row.moveIssuesTo")}
             </label>
             <NativeSelect
               id={`target-${draft.key}`}
@@ -617,7 +616,7 @@ function ColumnRow({
             >
               {existingTargets.map((target) => (
                 <option key={target.key} value={target.id!}>
-                  {target.name}
+                  {columnLabel(t, target)}
                 </option>
               ))}
             </NativeSelect>
@@ -628,7 +627,7 @@ function ColumnRow({
               disabled={disabled || !selectedTarget}
               onClick={() => selectedTarget && onRemove(selectedTarget.id!)}
             >
-              Eliminar
+              {t("common.delete")}
             </Button>
           </>
         )}

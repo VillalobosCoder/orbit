@@ -4,7 +4,7 @@ export class InvalidEmailError extends DomainError {
   readonly statusCode = 400;
 
   constructor(raw: string) {
-    super(`El correo "${raw}" no tiene un formato válido.`);
+    super("errors.user.invalidEmail", { raw });
   }
 }
 
@@ -12,7 +12,7 @@ export class WeakPasswordError extends DomainError {
   readonly statusCode = 400;
 
   constructor() {
-    super("La contraseña debe tener al menos 8 caracteres.");
+    super("errors.user.weakPassword");
   }
 }
 
@@ -20,7 +20,7 @@ export class PasswordTooLongError extends DomainError {
   readonly statusCode = 400;
 
   constructor() {
-    super("La contraseña no puede superar 1024 bytes.");
+    super("errors.user.passwordTooLong");
   }
 }
 
@@ -28,7 +28,7 @@ export class UserAlreadyExistsError extends DomainError {
   readonly statusCode = 409;
 
   constructor(email: string) {
-    super(`Ya existe un usuario con el correo ${email}.`);
+    super("errors.user.alreadyExists", { email });
   }
 }
 
@@ -36,7 +36,7 @@ export class UserNotFoundError extends DomainError {
   readonly statusCode = 404;
 
   constructor(id: number) {
-    super(`No se encontró el usuario ${id}.`);
+    super("errors.user.notFound", { id });
   }
 }
 
@@ -44,7 +44,7 @@ export class InvalidUserPermissionError extends DomainError {
   readonly statusCode = 400;
 
   constructor(module: string) {
-    super(`El módulo "${module}" no existe.`);
+    super("errors.user.invalidModule", { module });
   }
 }
 
@@ -52,7 +52,7 @@ export class InitialAdminAlreadyExistsError extends DomainError {
   readonly statusCode = 409;
 
   constructor() {
-    super("El administrador inicial solo puede configurarse si no existen usuarios.");
+    super("errors.user.initialAdminExists");
   }
 }
 
@@ -60,7 +60,7 @@ export class InvalidCredentialsError extends DomainError {
   readonly statusCode = 401;
   
   constructor() {
-    super("Correo o contraseña incorrectos.");
+    super("errors.user.invalidCredentials");
   }
 }
 
@@ -69,9 +69,7 @@ export class PasswordPolicyError extends DomainError {
   readonly statusCode = 400;
 
   constructor() {
-    super(
-      "La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.",
-    );
+    super("errors.user.passwordPolicy");
   }
 }
 
@@ -79,7 +77,7 @@ export class IncorrectCurrentPasswordError extends DomainError {
   readonly statusCode = 400;
 
   constructor() {
-    super("La contraseña actual no es correcta.");
+    super("errors.user.incorrectCurrentPassword");
   }
 }
 
@@ -87,7 +85,7 @@ export class SamePasswordError extends DomainError {
   readonly statusCode = 400;
 
   constructor() {
-    super("La contraseña nueva debe ser distinta de la actual.");
+    super("errors.user.samePassword");
   }
 }
 
@@ -95,7 +93,7 @@ export class CannotResetOwnPasswordError extends DomainError {
   readonly statusCode = 403;
 
   constructor() {
-    super("No puedes restablecer tu propia contraseña; cámbiala desde tu perfil.");
+    super("errors.user.cannotResetOwnPassword");
   }
 }
 
@@ -103,7 +101,7 @@ export class InvalidAvatarImageError extends DomainError {
   readonly statusCode = 415;
 
   constructor() {
-    super("La foto debe ser una imagen PNG, JPG o WebP válida.");
+    super("errors.user.invalidAvatar");
   }
 }
 
@@ -111,7 +109,7 @@ export class AvatarTooLargeError extends DomainError {
   readonly statusCode = 413;
 
   constructor() {
-    super("La foto no puede superar los 2 MB.");
+    super("errors.user.avatarTooLarge");
   }
 }
 
@@ -119,7 +117,7 @@ export class AvatarNotFoundError extends DomainError {
   readonly statusCode = 404;
 
   constructor() {
-    super("El usuario no tiene foto de perfil.");
+    super("errors.user.avatarNotFound");
   }
 }
 
@@ -127,8 +125,9 @@ export class PermissionRequiresParentModuleError extends DomainError {
   readonly statusCode = 400;
 
   constructor(moduleName: string, parentName: string) {
-    super(
-      `Para dar acceso a «${moduleName}» también se necesita acceso a «${parentName}».`,
-    );
+    super("errors.user.permissionRequiresParent", {
+      module: moduleName,
+      parent: parentName,
+    });
   }
 }

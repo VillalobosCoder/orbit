@@ -1,5 +1,6 @@
 import { API_BASE_PATH } from "@/api/uris";
-import { ERROR_500, type ApiError, type ApiErrorResponseDto } from "@orbit/shared";
+import { getLocale, t } from "@/i18n/locale-store";
+import type { ApiError, ApiErrorResponseDto } from "@orbit/shared";
 
 function resolveApiUrl(configuredUrl?: string) {
   return import.meta.env.PROD ? API_BASE_PATH : configuredUrl ?? API_BASE_PATH;
@@ -31,15 +32,6 @@ export class ApiRequestError extends Error {
   }
 }
 
-const NETWORK_ERROR_MESSAGE =
-  "No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.";
-const TIMEOUT_ERROR_MESSAGE =
-  "El servidor tardó demasiado en responder. Inténtalo de nuevo en unos minutos.";
-const SERVICE_UNAVAILABLE_MESSAGE =
-  "El servicio no está disponible por el momento. Inténtalo de nuevo más tarde.";
-const UNEXPECTED_ERROR_MESSAGE =
-  "Ocurrió un error inesperado. Inténtalo de nuevo.";
-
 function isTimeoutError(error: unknown) {
   return (
     error instanceof DOMException &&
@@ -48,7 +40,7 @@ function isTimeoutError(error: unknown) {
 }
 
 function describeFailedResponse(status: number) {
-  return status >= 500 ? SERVICE_UNAVAILABLE_MESSAGE : UNEXPECTED_ERROR_MESSAGE;
+  return t(status >= 500 ? "api.serviceUnavailable" : "api.unexpected");
 }
 
 function parseJson(text: string): unknown {
@@ -83,6 +75,7 @@ async function requestQuery<T>(
   params?: Record<string, string | number>,
 ): Promise<T | null> {
   const headers: HeadersInit = {
+    "Accept-Language": getLocale(),
     "Content-Type": "application/json",
     ...options.headers,
   };
@@ -110,7 +103,7 @@ async function requestQuery<T>(
     }
 
     throw new ApiRequestError(
-      isTimeoutError(error) ? TIMEOUT_ERROR_MESSAGE : NETWORK_ERROR_MESSAGE,
+      t(isTimeoutError(error) ? "api.timeout" : "api.network"),
       0,
     );
   }
@@ -178,5 +171,5 @@ export function handleMutationError(error: unknown) {
     console.log(apiError.message);
     return;
   }
-  console.log(ERROR_500);
+  console.log(t("errors.http.technicalProblems"));
 }

@@ -3,23 +3,25 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button.tsx";
 import { StatusPageComponent } from "@/shared/ui/custom-components/status-page-component";
+import { useI18n } from "@/i18n/use-i18n";
 
 export default function NotFoundPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   return (
     <StatusPageComponent
       code="404"
-      title="Te alejaste demasiado de la órbita."
-      description="Esta página no existe o no tienes acceso a ella."
+      title={t("shell.notFound.title")}
+      description={t("shell.notFound.description")}
     >
       <Button size="lg" nativeButton={false} render={<Link to="/" />}>
         <House />
-        Volver al inicio
+        {t("common.goHome")}
       </Button>
       <Button size="lg" variant="outline" onClick={() => navigate(-1)}>
         <ArrowLeft />
-        Ir atrás
+        {t("common.goBack")}
       </Button>
     </StatusPageComponent>
   );

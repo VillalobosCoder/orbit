@@ -16,6 +16,7 @@ import {
 } from "@orbit/shared";
 import { authSessionQueryKey } from "@/features/auth/api/auth.api";
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
+import { t } from "@/i18n/locale-store";
 
 export function useGetUsers(query: UserListQueryDto) {
   const { search, ...rest } = query;
@@ -30,7 +31,7 @@ export function useGetUsers(query: UserListQueryDto) {
           { method: HttpMethod.GET },
           search ? { ...rest, search } : rest,
         ),
-        "La API no devolvió los usuarios.",
+        t("api.emptyUsers"),
       ),
   });
 }
@@ -44,7 +45,7 @@ export function useGetUser(id: number | null) {
         injectQuery<UserDetailDto>([USERS, `/${id}`], {
           method: HttpMethod.GET,
         }),
-        "La API no devolvió el usuario.",
+        t("api.emptyUser"),
       ),
   });
 }

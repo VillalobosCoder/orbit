@@ -4,7 +4,7 @@ export class CommentNotFoundError extends DomainError {
   readonly statusCode = 404;
 
   constructor(commentId: number) {
-    super(`No se encontró el comentario ${commentId}.`);
+    super("errors.comment.notFound", { commentId });
   }
 }
 
@@ -12,6 +12,6 @@ export class NotCommentAuthorError extends DomainError {
   readonly statusCode = 403;
 
   constructor() {
-    super("Solo el autor puede modificar o borrar su comentario.");
+    super("errors.comment.onlyAuthor");
   }
 }

@@ -11,6 +11,7 @@ import type {
   SaveBoardColumnRequestDto,
 } from "@orbit/shared";
 import { useMutation } from "@tanstack/react-query";
+import { t } from "@/i18n/locale-store";
 
 function invalidateProject(projectId: number) {
   return queryClient.invalidateQueries({ queryKey: [PROJECTS, projectId] });
@@ -119,7 +120,7 @@ export function useApplyBoardColumnChanges() {
         });
 
         if (!created) {
-          throw new Error("La API no devolvió la columna creada.");
+          throw new Error(t("api.emptyCreatedColumn"));
         }
 
         createdIds.set(key, created.id);

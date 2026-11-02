@@ -18,6 +18,7 @@ import {
   useGetProjectMembers,
   useRemoveProjectMember,
 } from "../../api/queries";
+import { useI18n } from "@/i18n/use-i18n";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ProjectMemberDto>();
 
@@ -40,6 +41,7 @@ export default function ProjectMembers({
   project: ProjectDto;
   canManage: boolean;
 }) {
+  const { t } = useI18n();
   const { user } = useAuth();
   const membersQuery = useGetProjectMembers(project.id);
   const availableUsers = useGetAvailableUsers(project.id, { enabled: canManage });
@@ -64,7 +66,7 @@ export default function ProjectMembers({
   const columns = columnHelper.columns([
     columnHelper.display({
       id: "fullName",
-      header: "Miembro",
+      header: t("projects.members.memberColumn"),
       cell: ({ row }) => {
         const fullName = `${row.original.name} ${row.original.lastName}`;
 
@@ -78,7 +80,7 @@ export default function ProjectMembers({
               {fullName}
               {row.original.id === user?.id && (
                 <span className="ml-1.5 font-normal text-muted-foreground">
-                  (tú)
+                  {t("users.selfTag")}
                 </span>
               )}
             </span>
@@ -87,24 +89,24 @@ export default function ProjectMembers({
       },
     }),
     columnHelper.accessor("email", {
-      header: "Correo electrónico",
+      header: t("common.email"),
       cell: ({ getValue }) => (
         <span className="text-muted-foreground">{getValue()}</span>
       ),
     }),
     columnHelper.display({
       id: "role",
-      header: "Rol",
+      header: t("projects.members.roleColumn"),
       cell: ({ row }) =>
         row.original.id === project.ownerUserId ? (
-          <Badge variant="primary">Propietario</Badge>
+          <Badge variant="primary">{t("projects.members.owner")}</Badge>
         ) : (
-          <Badge>Miembro</Badge>
+          <Badge>{t("projects.members.member")}</Badge>
         ),
     }),
     columnHelper.display({
       id: "actions",
-      header: () => <span className="sr-only">Acciones</span>,
+      header: () => <span className="sr-only">{t("common.actions")}</span>,
       cell: ({ row }) =>
         canManage && row.original.id !== project.ownerUserId ? (
           <div className="flex justify-end">
@@ -113,8 +115,10 @@ export default function ProjectMembers({
               variant="ghost"
               size="icon-sm"
               className="hover:bg-destructive/10 hover:text-destructive"
-              aria-label={`Quitar a ${row.original.name} ${row.original.lastName}`}
-              title="Quitar del proyecto"
+              aria-label={t("projects.members.remove", {
+                name: `${row.original.name} ${row.original.lastName}`,
+              })}
+              title={t("projects.members.removeTitle")}
               onClick={() => setMemberToRemove(row.original)}
             >
               <Trash2 />
@@ -126,16 +130,16 @@ export default function ProjectMembers({
 
   return (
     <section
-      aria-label="Miembros del proyecto"
+      aria-label={t("projects.members.section")}
       className="flex flex-col gap-6"
     >
       <PageHeaderComponent
-        title="Miembros"
-        description={`Solo los miembros ven este proyecto. ${
+        title={t("projects.members.title")}
+        description={`${t("projects.members.intro")} ${t(
           canManage
-            ? "Tú, como propietario, decides quién entra y quién sale."
-            : "El propietario gestiona quién entra y quién sale."
-        }`}
+            ? "projects.members.ownerManages"
+            : "projects.members.othersManage",
+        )}`}
       >
         {canManage && (
           <form onSubmit={handleAdd} className="flex items-center gap-2">
@@ -144,15 +148,15 @@ export default function ProjectMembers({
               users={availableUsers.data ?? []}
               value={selectedUserId}
               onChange={setSelectedUserId}
-              placeholder="Selecciona un usuario"
-              ariaLabel="Agregar miembro"
+              placeholder={t("projects.members.selectUser")}
+              ariaLabel={t("projects.members.addMember")}
             />
             <Button
               type="submit"
               disabled={selectedUserId === null || addMember.isPending}
             >
               <UserPlus />
-              {addMember.isPending ? "Agregando..." : "Agregar"}
+              {addMember.isPending ? t("projects.members.adding") : t("common.add")}
             </Button>
           </form>
         )}
@@ -173,27 +177,27 @@ export default function ProjectMembers({
           data={membersQuery.data ?? []}
           columns={columns}
           isLoading={membersQuery.isLoading}
-          emptyMessage="Este proyecto aún no tiene miembros."
+          emptyMessage={t("projects.members.empty")}
         />
       )}
 
       <ConfirmDialogComponent
         open={memberToRemove !== null}
-        title="¿Quitar del proyecto?"
+        title={t("projects.members.removeDialog.title")}
         description={
           <>
             <strong className="font-medium text-foreground">
               {memberToRemove?.name} {memberToRemove?.lastName}
             </strong>{" "}
-            dejará de ver el proyecto{" "}
+            {t("projects.members.removeDialog.leaves")}{" "}
             <strong className="font-medium text-foreground">
               {project.projectKey}
             </strong>
             .
           </>
         }
-        confirmLabel="Quitar del proyecto"
-        pendingLabel="Quitando..."
+        confirmLabel={t("projects.members.removeDialog.confirm")}
+        pendingLabel={t("projects.members.removeDialog.pending")}
         isPending={removeMember.isPending}
         destructive
         onClose={() => setMemberToRemove(null)}

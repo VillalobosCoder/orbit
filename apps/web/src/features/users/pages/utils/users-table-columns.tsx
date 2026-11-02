@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import type { DataTableFeatures } from "@/components/ui/table-component";
 import { SortableHeaderComponent } from "@/components/ui/sortable-header-component";
 import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
+import type { Translator } from "@orbit/i18n";
 
 const columnHelper = createColumnHelper<DataTableFeatures, UserDto>();
 
 interface UserTableColumnOptions {
+  t: Translator;
   sortBy: UserSortField;
   sortDirection: SortDirection;
   onSort: (field: UserSortField) => void;
@@ -22,6 +24,7 @@ interface UserTableColumnOptions {
 }
 
 export function createColumns({
+  t,
   sortBy,
   sortDirection,
   onSort,
@@ -37,7 +40,7 @@ export function createColumns({
       id: "fullName",
       header: () => (
         <SortableHeaderComponent
-          label="Usuario"
+          label={t("users.columns.user")}
           direction={sortBy === "name" ? sortDirection : null}
           onToggle={() => onSort("name")}
         />
@@ -55,7 +58,7 @@ export function createColumns({
               {fullName}
               {row.original.id === currentUserId && (
                 <span className="ml-1.5 font-normal text-muted-foreground">
-                  (tú)
+                  {t("users.selfTag")}
                 </span>
               )}
             </span>
@@ -66,7 +69,7 @@ export function createColumns({
     columnHelper.accessor("email", {
       header: () => (
         <SortableHeaderComponent
-          label="Correo electrónico"
+          label={t("common.email")}
           direction={sortBy === "email" ? sortDirection : null}
           onToggle={() => onSort("email")}
         />
@@ -81,15 +84,17 @@ export function createColumns({
     columns.push(
       columnHelper.display({
         id: "actions",
-        header: () => <span className="sr-only">Acciones</span>,
+        header: () => <span className="sr-only">{t("common.actions")}</span>,
         cell: ({ row }) => (
           <div className="flex justify-end gap-1">
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label={`Editar a ${row.original.name} ${row.original.lastName}`}
-              title="Editar y permisos"
+              aria-label={t("users.actions.edit", {
+                name: `${row.original.name} ${row.original.lastName}`,
+              })}
+              title={t("users.actions.editTitle")}
               onClick={() => onEdit(row.original)}
             >
               <Pencil />
@@ -101,8 +106,10 @@ export function createColumns({
                     type="button"
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={`Restablecer la contraseña de ${row.original.name} ${row.original.lastName}`}
-                    title="Restablecer contraseña"
+                    aria-label={t("users.actions.reset", {
+                      name: `${row.original.name} ${row.original.lastName}`,
+                    })}
+                    title={t("users.actions.resetTitle")}
                     onClick={() => onResetPassword(row.original)}
                   >
                     <KeyRound />
@@ -112,8 +119,10 @@ export function createColumns({
                     variant="ghost"
                     size="icon-sm"
                     className="hover:bg-destructive/10 hover:text-destructive"
-                    aria-label={`Eliminar a ${row.original.name} ${row.original.lastName}`}
-                    title="Eliminar"
+                    aria-label={t("users.actions.delete", {
+                      name: `${row.original.name} ${row.original.lastName}`,
+                    })}
+                    title={t("users.actions.deleteTitle")}
                     disabled={deletingUserId === row.original.id}
                     onClick={() => onDelete(row.original)}
                   >

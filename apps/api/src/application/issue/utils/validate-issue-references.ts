@@ -20,7 +20,7 @@ export function assertPriority(
     priorityId != null &&
     !priorities.some((priority) => priority.id === priorityId)
   ) {
-    throw new InvalidIssueReferenceError("La prioridad");
+    throw new InvalidIssueReferenceError("priority");
   }
 }
 
@@ -32,7 +32,7 @@ export function assertDifficulty(
     difficultyId != null &&
     !difficulties.some((difficulty) => difficulty.id === difficultyId)
   ) {
-    throw new InvalidIssueReferenceError("La dificultad");
+    throw new InvalidIssueReferenceError("difficulty");
   }
 }
 
@@ -43,7 +43,7 @@ export function findIssueType(
   const type = types.find((item) => item.id === typeId);
 
   if (!type) {
-    throw new InvalidIssueReferenceError("El tipo de issue");
+    throw new InvalidIssueReferenceError("type");
   }
 
   return type;
@@ -62,29 +62,29 @@ export function assertParent(input: {
   if (!type.isSubtask) {
     if (parentId != null) {
       throw new InvalidIssueParentError(
-        "Solo las subtareas pueden tener un issue padre.",
+        "onlySubtasks",
       );
     }
     return;
   }
 
   if (parentId == null) {
-    throw new InvalidIssueParentError("Una subtarea necesita un issue padre.");
+    throw new InvalidIssueParentError("subtaskNeedsParent");
   }
 
   if (parentId === issueId) {
     throw new InvalidIssueParentError(
-      "Un issue no puede ser su propio padre.",
+      "ownParent",
     );
   }
 
   if (!parent) {
-    throw new InvalidIssueReferenceError("El issue padre");
+    throw new InvalidIssueReferenceError("parent");
   }
 
   if (types.find((item) => item.id === parent.typeId)?.isSubtask) {
     throw new InvalidIssueParentError(
-      "Una subtarea no puede ser el padre de otra subtarea.",
+      "subtaskAsParent",
     );
   }
 }
@@ -96,7 +96,7 @@ export function findColumn(
   const column = columns.find((item) => item.id === columnId);
 
   if (!column) {
-    throw new InvalidIssueReferenceError("La columna");
+    throw new InvalidIssueReferenceError("column");
   }
 
   return column;

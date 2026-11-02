@@ -46,6 +46,8 @@ import { useGetModules } from "@/features/modules/api/queries";
 import { useGetProjects } from "@/features/projects/api/queries";
 import ProjectFormDialog from "@/features/projects/pages/components/project-form-dialog";
 import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
+import { useI18n } from "@/i18n/use-i18n";
+import { moduleLabel } from "@/i18n/catalog";
 
 const MODULE_ROUTES: Record<string, string> = {
   home: "/",
@@ -70,6 +72,7 @@ function isPathActive(pathname: string, url: string) {
 export default function SidebarComponent() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const { state, isMobile } = useSidebar();
   const { user } = useAuth();
   const { canWrite: canWriteProjects } = usePermission("projects");
@@ -104,7 +107,7 @@ export default function SidebarComponent() {
       className="z-30 border-r border-sidebar-border"
     >
       <SidebarTrigger
-        aria-label={isCollapsed ? "Expandir menú" : "Contraer menú"}
+        aria-label={t(isCollapsed ? "shell.sidebar.expand" : "shell.sidebar.collapse")}
         className="absolute top-6 -right-3 z-20 hidden size-6 rounded-full border border-sidebar-border bg-sidebar text-sidebar-foreground/70 shadow-sm hover:bg-accent hover:text-foreground md:inline-flex"
       >
         {isCollapsed ? (
@@ -121,7 +124,7 @@ export default function SidebarComponent() {
           to="/"
           end
           className="flex min-w-0 items-center gap-2.5 rounded-lg px-1 py-1 text-lg font-bold tracking-tight text-sidebar-foreground"
-          aria-label="Orbit, inicio"
+          aria-label={t("shell.sidebar.homeLink")}
         >
           <Orbit className="size-7 shrink-0 text-sidebar-primary" />
           {!isCollapsed && <span className="truncate">Orbit</span>}
@@ -141,10 +144,10 @@ export default function SidebarComponent() {
                     <SidebarMenuButton
                       render={<NavLink to={url} end={url === "/"} />}
                       isActive={isPathActive(pathname, url)}
-                      tooltip={module.name}
+                      tooltip={moduleLabel(t, module.key, module.name)}
                     >
                       <Icon />
-                      <span>{module.name}</span>
+                      <span>{moduleLabel(t, module.key, module.name)}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -159,7 +162,7 @@ export default function SidebarComponent() {
               <SidebarMenuItem>
                 <DropdownMenu>
                   <DropdownMenuTrigger
-                    aria-label="Proyectos"
+                    aria-label={t("shell.sidebar.projects")}
                     data-active={hasActiveProject || undefined}
                     className={cn(sidebarMenuButtonVariants(), "cursor-pointer")}
                   >
@@ -167,7 +170,7 @@ export default function SidebarComponent() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent side="right" align="start" className="w-64">
                     <DropdownMenuLabel className="text-[0.65rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
-                      Proyectos
+                      {t("shell.sidebar.projects")}
                     </DropdownMenuLabel>
                     {projects.map((project) => (
                       <DropdownMenuItem
@@ -187,7 +190,7 @@ export default function SidebarComponent() {
                     ))}
                     {projects.length === 0 && (
                       <p className="px-2.5 py-2 text-sm text-muted-foreground">
-                        Aún no tienes proyectos.
+                        {t("shell.sidebar.noProjects")}
                       </p>
                     )}
                     {canWriteProjects && (
@@ -197,7 +200,7 @@ export default function SidebarComponent() {
                           onClick={() => setIsCreatingProject(true)}
                         >
                           <Plus />
-                          Nuevo proyecto
+                          {t("shell.sidebar.newProject")}
                         </DropdownMenuItem>
                       </>
                     )}
@@ -210,11 +213,11 @@ export default function SidebarComponent() {
 
         {hasProjects && !isCollapsed && (
           <SidebarGroup>
-            <SidebarGroupLabel>Proyectos</SidebarGroupLabel>
+            <SidebarGroupLabel>{t("shell.sidebar.projects")}</SidebarGroupLabel>
             {canWriteProjects && (
               <SidebarGroupAction
-                aria-label="Nuevo proyecto"
-                title="Nuevo proyecto"
+                aria-label={t("shell.sidebar.newProject")}
+                title={t("shell.sidebar.newProject")}
                 onClick={() => setIsCreatingProject(true)}
               >
                 <Plus />
@@ -242,7 +245,7 @@ export default function SidebarComponent() {
                 ))}
                 {projects.length === 0 && !isCollapsed && (
                   <li className="px-3 py-2 text-sm text-sidebar-foreground/60">
-                    Aún no tienes proyectos.
+                    {t("shell.sidebar.noProjects")}
                   </li>
                 )}
               </SidebarMenu>
@@ -256,7 +259,7 @@ export default function SidebarComponent() {
           <DropdownMenu>
             <DropdownMenuTrigger
               className="flex w-full items-center gap-3 rounded-xl border border-sidebar-border p-2 text-left outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring data-popup-open:bg-sidebar-accent group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:p-1"
-              aria-label="Menú de cuenta"
+              aria-label={t("shell.sidebar.accountMenu")}
             >
               <UserAvatarComponent name={fullName} avatarUrl={user.avatarUrl} />
               <span className="min-w-0 flex-1 leading-tight group-data-[collapsible=icon]:hidden">
@@ -285,11 +288,11 @@ export default function SidebarComponent() {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate("/perfil")}>
                 <UserRound />
-                Mi perfil
+                {t("shell.sidebar.myProfile")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/configuracion")}>
                 <Settings />
-                Configuración
+                {t("shell.sidebar.settings")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -298,7 +301,11 @@ export default function SidebarComponent() {
                 onClick={() => logoutMutation.mutate()}
               >
                 <LogOut />
-                {logoutMutation.isPending ? "Cerrando sesión..." : "Cerrar sesión"}
+                {t(
+                  logoutMutation.isPending
+                    ? "shell.sidebar.signingOut"
+                    : "shell.sidebar.signOut",
+                )}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

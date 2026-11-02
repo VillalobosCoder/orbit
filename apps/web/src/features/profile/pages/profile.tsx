@@ -10,8 +10,10 @@ import { useUpdateProfile } from "@/features/auth/api/queries";
 import ChangePasswordForm from "@/features/auth/pages/components/change-password-form";
 import { PageHeaderComponent } from "@/components/ui/page-header-component";
 import ProfilePhoto from "./components/profile-photo";
+import { useI18n } from "@/i18n/use-i18n";
 
 export default function ProfilePage() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const updateProfile = useUpdateProfile();
   const [name, setName] = useState(user?.name ?? "");
@@ -36,12 +38,12 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6">
       <PageHeaderComponent
-        title="Mi perfil"
-        description="Tus datos personales y la seguridad de tu cuenta."
+        title={t("profile.title")}
+        description={t("profile.description")}
       />
 
       <section
-        aria-label="Datos personales"
+        aria-label={t("profile.personal")}
         className="rounded-xl border border-border bg-card p-6"
       >
         <ProfilePhoto
@@ -54,7 +56,7 @@ export default function ProfilePage() {
           <FieldGroup>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field>
-                <FieldLabel htmlFor="name">Nombre</FieldLabel>
+                <FieldLabel htmlFor="name">{t("common.name")}</FieldLabel>
                 <Input
                   id="name"
                   value={name}
@@ -69,7 +71,7 @@ export default function ProfilePage() {
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="lastName">Apellido</FieldLabel>
+                <FieldLabel htmlFor="lastName">{t("common.lastName")}</FieldLabel>
                 <Input
                   id="lastName"
                   value={lastName}
@@ -85,10 +87,10 @@ export default function ProfilePage() {
               </Field>
             </div>
             <Field>
-              <FieldLabel htmlFor="email">Correo electrónico</FieldLabel>
+              <FieldLabel htmlFor="email">{t("common.email")}</FieldLabel>
               <Input id="email" value={user.email} disabled readOnly />
               <p className="text-xs text-muted-foreground">
-                El correo solo lo cambia un administrador.
+                {t("profile.emailLocked")}
               </p>
             </Field>
 
@@ -107,7 +109,7 @@ export default function ProfilePage() {
                 className="flex items-center gap-2.5 rounded-lg border border-success/40 bg-success/10 px-3 py-2.5 text-sm text-success"
               >
                 <Check className="size-4 shrink-0" aria-hidden="true" />
-                Cambios guardados.
+                {t("profile.saved")}
               </p>
             )}
 
@@ -117,26 +119,28 @@ export default function ProfilePage() {
               className="self-start"
               disabled={!hasChanges || updateProfile.isPending}
             >
-              {updateProfile.isPending ? <Spinner /> : "Guardar cambios"}
+              {updateProfile.isPending ? <Spinner /> : t("common.saveChanges")}
             </Button>
           </FieldGroup>
         </form>
       </section>
 
       <section
-        aria-label="Seguridad"
+        aria-label={t("profile.security.section")}
         className="rounded-xl border border-border bg-card p-6"
       >
-        <h2 className="text-lg font-semibold">Contraseña</h2>
+        <h2 className="text-lg font-semibold">
+          {t("profile.security.title")}
+        </h2>
         <p className="mt-1 mb-5 text-sm text-muted-foreground">
-          Usa una contraseña que no repitas en otros sitios.
+          {t("profile.security.hint")}
         </p>
         <div className="max-w-md">
           <ChangePasswordForm
-            currentLabel="Contraseña actual"
-            differentRuleLabel="Distinta de la actual"
-            submitLabel="Cambiar contraseña"
-            successMessage="Contraseña actualizada."
+            currentLabel={t("profile.security.currentLabel")}
+            differentRuleLabel={t("profile.security.differentRule")}
+            submitLabel={t("profile.security.submit")}
+            successMessage={t("profile.security.success")}
           />
         </div>
       </section>

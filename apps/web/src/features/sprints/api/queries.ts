@@ -16,6 +16,7 @@ import type {
   SprintRequestDto,
 } from "@orbit/shared";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { t } from "@/i18n/locale-store";
 
 /** Sprint, tablero e issues dependen unos de otros: se refrescan juntos. */
 function invalidateProject(projectId: number) {
@@ -30,7 +31,7 @@ export function useGetPlanning(projectId: number) {
         injectQuery<PlanningDto>([PROJECTS, `/${projectId}`, PLANNING], {
           method: HttpMethod.GET,
         }),
-        "La API no devolvió la planificación.",
+        t("api.emptyPlanning"),
       ),
     staleTime: 0,
     refetchOnMount: true,

@@ -1,3 +1,5 @@
+import { getLocale, t } from "@/i18n/locale-store";
+
 /** Las fechas de sprint son `YYYY-MM-DD`; se leen como fecha local, sin zona horaria. */
 function parseDate(value: string) {
   const [year, month, day] = value.split("-").map(Number);
@@ -5,7 +7,7 @@ function parseDate(value: string) {
 }
 
 function formatDay(date: Date, includeYear: boolean) {
-  return date.toLocaleDateString("es", {
+  return date.toLocaleDateString(getLocale(), {
     day: "numeric",
     month: "short",
     year: includeYear ? "numeric" : undefined,
@@ -14,7 +16,7 @@ function formatDay(date: Date, includeYear: boolean) {
 
 /** "31 oct – 14 nov"; con extremos faltantes, "sin inicio" o "sin fin". */
 export function formatDateRange(start: string | null, end: string | null) {
-  if (!start && !end) return "Sin fechas";
+  if (!start && !end) return t("dates.noDates");
 
   const startDate = start ? parseDate(start) : null;
   const endDate = end ? parseDate(end) : null;
@@ -23,8 +25,8 @@ export function formatDateRange(start: string | null, end: string | null) {
     (startDate ?? endDate)!.getFullYear() !== currentYear ||
     (endDate ?? startDate)!.getFullYear() !== currentYear;
 
-  return `${startDate ? formatDay(startDate, includeYear) : "sin inicio"} – ${
-    endDate ? formatDay(endDate, includeYear) : "sin fin"
+  return `${startDate ? formatDay(startDate, includeYear) : t("dates.noStart")} – ${
+    endDate ? formatDay(endDate, includeYear) : t("dates.noEnd")
   }`;
 }
 
@@ -45,4 +47,12 @@ export function countDays(start: string | null, end: string | null) {
     1;
 
   return days > 0 ? days : null;
+}
+
+/** "termina hoy", "vencido" o "N días", según los días que faltan. */
+export function describeDays(days: number) {
+  if (days < 0) return t("dates.overdue");
+  if (days === 0) return t("dates.endsToday");
+
+  return t("dates.days", { count: days });
 }

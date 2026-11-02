@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useI18n } from "@/i18n/use-i18n";
 
 interface ConfirmDialogComponentProps {
   open: boolean;
@@ -26,13 +27,15 @@ export function ConfirmDialogComponent({
   open,
   title,
   description,
-  confirmLabel = "Confirmar",
-  pendingLabel = "Procesando...",
+  confirmLabel,
+  pendingLabel,
   isPending = false,
   destructive = false,
   onConfirm,
   onClose,
 }: ConfirmDialogComponentProps) {
+  const { t } = useI18n();
+
   return (
     <Dialog
       open={open}
@@ -52,7 +55,7 @@ export function ConfirmDialogComponent({
             disabled={isPending}
             onClick={onClose}
           >
-            Cancelar
+            {t("common.cancel")}
           </Button>
           <Button
             type="button"
@@ -60,7 +63,9 @@ export function ConfirmDialogComponent({
             disabled={isPending}
             onClick={onConfirm}
           >
-            {isPending ? pendingLabel : confirmLabel}
+            {isPending
+              ? (pendingLabel ?? t("common.processing"))
+              : (confirmLabel ?? t("common.confirm"))}
           </Button>
         </DialogFooter>
       </DialogContent>

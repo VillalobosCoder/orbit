@@ -7,8 +7,11 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Spinner } from "@/components/ui/spinner";
 import { useChangePassword } from "@/features/auth/api/queries";
+import { useI18n } from "@/i18n/use-i18n";
 
 function Rule({ met, children }: { met: boolean; children: string }) {
+  const { t } = useI18n();
+
   return (
     <li
       className={cn(
@@ -22,7 +25,10 @@ function Rule({ met, children }: { met: boolean; children: string }) {
         <Circle className="size-3.5" aria-hidden="true" />
       )}
       {children}
-      <span className="sr-only">{met ? " (cumplido)" : " (pendiente)"}</span>
+      <span className="sr-only">
+        {" "}
+        {t(met ? "auth.passwordForm.met" : "auth.passwordForm.pending")}
+      </span>
     </li>
   );
 }
@@ -42,6 +48,7 @@ export default function ChangePasswordForm({
   successMessage,
   fullWidthSubmit = false,
 }: ChangePasswordFormProps) {
+  const { t } = useI18n();
   const changePassword = useChangePassword();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -106,7 +113,9 @@ export default function ChangePasswordForm({
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="newPassword">Nueva contraseña</FieldLabel>
+          <FieldLabel htmlFor="newPassword">
+            {t("auth.passwordForm.newPassword")}
+          </FieldLabel>
           <PasswordInput
             id="newPassword"
             autoComplete="new-password"
@@ -133,14 +142,18 @@ export default function ChangePasswordForm({
             ))}
           </div>
           <ul id="password-rules" className="flex flex-col gap-1">
-            <Rule met={hasLength}>Al menos 8 caracteres</Rule>
-            <Rule met={hasUppercaseAndNumber}>Mayúscula y número</Rule>
+            <Rule met={hasLength}>{t("auth.passwordForm.ruleLength")}</Rule>
+            <Rule met={hasUppercaseAndNumber}>
+              {t("auth.passwordForm.ruleUppercaseNumber")}
+            </Rule>
             <Rule met={isDifferent}>{differentRuleLabel}</Rule>
           </ul>
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="confirmPassword">Confirmar contraseña</FieldLabel>
+          <FieldLabel htmlFor="confirmPassword">
+            {t("auth.passwordForm.confirm")}
+          </FieldLabel>
           <PasswordInput
             id="confirmPassword"
             autoComplete="new-password"
@@ -151,7 +164,7 @@ export default function ChangePasswordForm({
           />
           {confirmation !== "" && !matches && (
             <p className="text-sm text-destructive">
-              Las contraseñas no coinciden.
+              {t("auth.passwordForm.mismatch")}
             </p>
           )}
         </Field>

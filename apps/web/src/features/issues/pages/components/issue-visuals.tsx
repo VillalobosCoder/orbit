@@ -14,6 +14,8 @@ import type { DifficultyDto, IssueTypeDto, PriorityDto } from "@orbit/shared";
 import { cn } from "cn";
 
 import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
+import { useI18n } from "@/i18n/use-i18n";
+import { issueTypeLabel, priorityLabel } from "@/i18n/catalog";
 
 const TYPE_ICONS: Record<string, { icon: LucideIcon; className: string }> = {
   CheckSquare: { icon: SquareCheckBig, className: "text-type-task" },
@@ -29,6 +31,8 @@ export function IssueTypeIcon({
   type?: IssueTypeDto;
   className?: string;
 }) {
+  const { t } = useI18n();
+
   if (!type) return null;
 
   const visual =
@@ -39,7 +43,7 @@ export function IssueTypeIcon({
   return (
     <Icon
       role="img"
-      aria-label={type.name}
+      aria-label={issueTypeLabel(t, type)}
       className={cn("size-4 shrink-0", visual.className, className)}
     />
   );
@@ -62,6 +66,8 @@ export function PriorityIcon({
   priority?: PriorityDto;
   className?: string;
 }) {
+  const { t } = useI18n();
+
   if (!priority) return null;
 
   const visual = PRIORITY_ICONS[priority.level] ?? PRIORITY_ICONS[4]!;
@@ -70,7 +76,9 @@ export function PriorityIcon({
   return (
     <Icon
       role="img"
-      aria-label={`Prioridad ${priority.name.toLowerCase()}`}
+      aria-label={t("issues.visuals.priority", {
+        name: priorityLabel(t, priority).toLowerCase(),
+      })}
       className={cn("size-4 shrink-0", visual.className, className)}
     />
   );
@@ -81,11 +89,13 @@ export function DifficultyPill({
 }: {
   difficulty?: DifficultyDto;
 }) {
+  const { t } = useI18n();
+
   if (!difficulty) return null;
 
   return (
     <span
-      title={`Dificultad ${difficulty.name}`}
+      title={t("issues.visuals.difficulty", { name: difficulty.name })}
       className="rounded-full bg-muted px-2 py-0.5 font-mono text-[0.6875rem] font-medium text-muted-foreground"
     >
       {difficulty.name}
@@ -107,13 +117,15 @@ export function AssigneeStack({
   people: Person[];
   max?: number;
 }) {
+  const { t } = useI18n();
+
   if (people.length === 0) {
     return (
       <span
-        title="Sin asignar"
+        title={t("common.unassigned")}
         className="inline-flex size-6 items-center justify-center rounded-full border border-dashed border-border text-muted-foreground"
       >
-        <span className="sr-only">Sin asignar</span>
+        <span className="sr-only">{t("common.unassigned")}</span>
         <span aria-hidden="true" className="text-xs">
           –
         </span>

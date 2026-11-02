@@ -1,6 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
+import { isMessageKey, translate } from "@orbit/i18n";
 import { ZodError } from "zod";
 import { DomainError } from "../../../domain/shared/domain-error.js";
+import { localeOf, sendError } from "./locale.middleware.js";
 
 function getParserErrorType(error: unknown): string | undefined {
   if (
@@ -26,34 +28,38 @@ export function errorHandler(
   }
 
   if (err instanceof ZodError) {
-    return res
-      .status(400)
-      .json({ error: "Datos invalidos", details: err.issues });
+    return res.status(400).json({
+      error: translate(localeOf(res), "errors.http.invalidData"),
+      details: err.issues.map((issue) => ({
+        ...issue,
+        message: isMessageKey(issue.message)
+          ? translate(localeOf(res), issue.message)
+          : issue.message,
+      })),
+    });
   }
 
   if (err instanceof DomainError) {
-    return res.status(err.statusCode).json({ error: err.message });
+    return res.status(err.statusCode).json({
+      error: translate(localeOf(res), err.messageKey, err.params),
+    });
   }
 
   const parserErrorType = getParserErrorType(err);
   if (parserErrorType === "entity.parse.failed") {
-    return res.status(400).json({ error: "El cuerpo JSON no es válido." });
+    return sendError(res, 400, "errors.http.invalidJson");
   }
 
   if (parserErrorType === "entity.too.large") {
-    return res
-      .status(413)
-      .json({ error: "El cuerpo de la solicitud es demasiado grande." });
+    return sendError(res, 413, "errors.http.bodyTooLarge");
   }
 
   if (
     parserErrorType === "encoding.unsupported" ||
     parserErrorType === "charset.unsupported"
   ) {
-    return res
-      .status(415)
-      .json({ error: "Formato de solicitud no compatible." });
+    return sendError(res, 415, "errors.http.unsupportedFormat");
   }
 
-  res.status(500).json({ error: "Error interno del servidor." });
+  sendError(res, 500, "errors.http.internal");
 }

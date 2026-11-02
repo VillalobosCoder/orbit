@@ -43,7 +43,7 @@ export class AssignIssueSprintUseCase {
 
     if (issue.parentId !== null) {
       throw new InvalidIssueParentError(
-        "Las subtareas siguen el sprint de su issue padre.",
+        "followsParentSprint",
       );
     }
 
@@ -54,7 +54,7 @@ export class AssignIssueSprintUseCase {
       });
 
       if (!sprint) {
-        throw new InvalidIssueReferenceError("El sprint");
+        throw new InvalidIssueReferenceError("sprint");
       }
 
       sprint.assertAcceptsIssues();

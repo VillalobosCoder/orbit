@@ -16,7 +16,7 @@ const permissionsSchema = z
         if (modules.has(permission.module)) {
           context.addIssue({
             code: "custom",
-            message: "No se puede repetir un módulo.",
+            message: "errors.validation.duplicateModule",
             path: [index, "module"],
           });
         }
@@ -25,7 +25,7 @@ const permissionsSchema = z
         if (!permission.canRead && !permission.canWrite) {
           context.addIssue({
             code: "custom",
-            message: "Selecciona al menos un permiso para cada módulo.",
+            message: "errors.validation.needPermission",
             path: [index],
           });
         }

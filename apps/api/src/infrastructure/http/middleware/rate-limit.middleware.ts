@@ -1,6 +1,7 @@
 import { rateLimit } from "express-rate-limit";
 import type { RequestHandler } from "express";
 import type { RateLimitConfig } from "../config/rate-limit.config.js";
+import { sendError } from "./locale.middleware.js";
 
 export function makeRateLimitMiddleware({
   windowMs,
@@ -11,6 +12,6 @@ export function makeRateLimitMiddleware({
     limit,
     standardHeaders: "draft-8",
     legacyHeaders: false,
-    message: { error: "Demasiados intentos. Intenta de nuevo más tarde." },
+    handler: (_req, res) => sendError(res, 429, "errors.http.tooManyAttempts"),
   });
 }

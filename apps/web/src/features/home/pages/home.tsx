@@ -7,32 +7,32 @@ import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/context/auth/use-auth";
 import { usePermission } from "@/context/auth/use-permission";
 import { useGetHomeSummary } from "@/features/home/api/queries";
-import { daysUntil } from "@/features/sprints/pages/utils/format-date";
+import {
+  daysUntil,
+  describeDays,
+} from "@/features/sprints/pages/utils/format-date";
+import { getLocale } from "@/i18n/locale-store";
+import { useI18n } from "@/i18n/use-i18n";
+import { columnLabel } from "@/i18n/catalog";
 
 const ROW_HEIGHT_REM = 3.5;
 
-function getGreeting() {
+function getGreetingKey() {
   const hour = new Date().getHours();
 
-  if (hour < 12) return "Buenos días";
-  if (hour < 20) return "Buenas tardes";
-  return "Buenas noches";
+  if (hour < 12) return "home.greeting.morning";
+  if (hour < 20) return "home.greeting.afternoon";
+  return "home.greeting.evening";
 }
 
 function getToday() {
-  const text = new Date().toLocaleDateString("es", {
+  const text = new Date().toLocaleDateString(getLocale(), {
     weekday: "long",
     day: "numeric",
     month: "long",
   });
 
   return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
-function describeDays(days: number) {
-  if (days < 0) return "vencido";
-  if (days === 0) return "termina hoy";
-  return days === 1 ? "1 día" : `${days} días`;
 }
 
 function SummaryCard({
@@ -53,7 +53,7 @@ function SummaryCard({
       </p>
       <p className="mt-2 flex h-9 items-center text-3xl font-bold tracking-tight">
         {isLoading ? (
-          <Spinner aria-label="Cargando" className="size-5 text-muted-foreground" />
+          <Spinner className="size-5 text-muted-foreground" />
         ) : (
           value
         )}
@@ -64,6 +64,7 @@ function SummaryCard({
 }
 
 export default function HomePage() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const { hasAccess } = usePermission("projects");
   const summary = useGetHomeSummary({ enabled: hasAccess });
@@ -89,14 +90,14 @@ export default function HomePage() {
       <header>
         <p className="text-sm text-muted-foreground">{getToday()}</p>
         <h1 className="mt-1 text-3xl font-bold tracking-tight">
-          {getGreeting()}
+          {t(getGreetingKey())}
           {user ? `, ${user.name}` : ""}
         </h1>
       </header>
 
       {!hasAccess ? (
         <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          Aquí aparecerá el resumen de tus proyectos cuando tengas acceso a ellos.
+          {t("home.noAccess")}
         </p>
       ) : (
         <>
@@ -112,32 +113,38 @@ export default function HomePage() {
 
           <div className="grid gap-4 sm:grid-cols-3">
             <SummaryCard
-              label="Proyectos"
+              label={t("home.summary.projects")}
               value={projects.length}
-              caption={`${activeSprints.length} con sprint activo`}
+              caption={t("home.summary.withActiveSprint", {
+                count: activeSprints.length,
+              })}
               isLoading={isLoading}
             />
             <SummaryCard
-              label="Asignados a ti"
+              label={t("home.summary.assigned")}
               value={assigned.total}
-              caption={`${assigned.inProgress} en curso`}
+              caption={t("home.summary.inProgress", {
+                count: assigned.inProgress,
+              })}
               isLoading={isLoading}
             />
             <SummaryCard
-              label="Cierran esta semana"
+              label={t("home.summary.closing")}
               value={closingThisWeek}
-              caption={closingThisWeek === 1 ? "sprint por cerrar" : "sprints por cerrar"}
+              caption={t("home.summary.sprintToClose", {
+                count: closingThisWeek,
+              })}
               isLoading={isLoading}
             />
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
             <section
-              aria-label="Asignados a ti"
+              aria-label={t("home.assigned.title")}
               className="overflow-hidden rounded-xl border border-border bg-card"
             >
               <h2 className="flex h-13 items-center px-5 text-[0.6875rem] font-semibold tracking-wider text-muted-foreground uppercase">
-                Asignados a ti
+                {t("home.assigned.title")}
               </h2>
               {isLoading || assigned.items.length === 0 ? (
                 <div
@@ -145,9 +152,9 @@ export default function HomePage() {
                   style={{ height: `${HOME_ASSIGNED_ISSUES_LIMIT * ROW_HEIGHT_REM}rem` }}
                 >
                   {isLoading ? (
-                    <Spinner aria-label="Cargando" className="size-6" />
+                    <Spinner className="size-6" />
                   ) : (
-                    "Sin registros"
+                    t("common.noRecords")
                   )}
                 </div>
               ) : (
@@ -175,7 +182,7 @@ export default function HomePage() {
                                 : "default"
                             }
                           >
-                            {columnName}
+                            {columnLabel(t, { category, name: columnName })}
                           </Badge>
                         </NavLink>
                       </li>
@@ -193,29 +200,29 @@ export default function HomePage() {
               <p className="flex h-11 items-center border-t border-border px-5 text-xs text-muted-foreground">
                 {!isLoading && assigned.total > 0 &&
                   (assigned.total > assigned.items.length
-                    ? `Mostrando ${assigned.items.length} de ${assigned.total} issues asignados`
-                    : `${assigned.total} ${assigned.total === 1 ? "issue asignado" : "issues asignados"}`)}
+                    ? t("home.assigned.showing", {
+                        shown: assigned.items.length,
+                        total: assigned.total,
+                      })
+                    : t("home.assigned.count", { count: assigned.total }))}
               </p>
             </section>
 
             <section
-              aria-label="Sprints activos"
+              aria-label={t("home.sprints.title")}
               className="flex flex-col gap-3 lg:h-[34rem]"
             >
               <h2 className="px-1 text-[0.6875rem] font-semibold tracking-wider text-muted-foreground uppercase">
-                Sprints activos
+                {t("home.sprints.title")}
               </h2>
               <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
                 {isLoading ? (
                   <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-border p-6">
-                    <Spinner
-                      aria-label="Cargando"
-                      className="size-6 text-muted-foreground"
-                    />
+                    <Spinner className="size-6 text-muted-foreground" />
                   </div>
                 ) : projects.length === 0 ? (
                   <p className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                    Sin registros
+                    {t("common.noRecords")}
                   </p>
                 ) : (
                   projects.map((project) => {
@@ -233,8 +240,9 @@ export default function HomePage() {
                           </span>{" "}
                           <strong className="font-semibold">{project.name}</strong>
                           <p className="mt-1 text-muted-foreground">
-                            Sin sprint activo · {project.backlogIssues} issues en
-                            el backlog
+                            {t("home.sprints.noActive", {
+                              count: project.backlogIssues,
+                            })}
                           </p>
                         </NavLink>
                       );
@@ -266,7 +274,7 @@ export default function HomePage() {
                           aria-valuemin={0}
                           aria-valuemax={totalIssues}
                           aria-valuenow={doneIssues}
-                          aria-label={`Progreso de ${sprint.name}`}
+                          aria-label={t("home.sprints.progress", { name: sprint.name })}
                           className="mt-3 h-1 overflow-hidden rounded-full bg-muted"
                         >
                           <div
@@ -277,7 +285,10 @@ export default function HomePage() {
                           />
                         </div>
                         <p className="mt-2 text-xs text-muted-foreground">
-                          {doneIssues} de {totalIssues} terminados
+                          {t("home.sprints.done", {
+                            done: doneIssues,
+                            total: totalIssues,
+                          })}
                         </p>
                       </NavLink>
                     );

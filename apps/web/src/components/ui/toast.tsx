@@ -4,6 +4,7 @@ import { cn } from "cn"
 
 import { Button } from "@/components/ui/button"
 import { XIcon, CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
+import { useI18n } from "@/i18n/use-i18n";
 
 const toast = ToastPrimitive.createToastManager()
 
@@ -112,10 +113,12 @@ function ToastClose({
   render = <Button variant="ghost" size="icon-sm" />,
   ...props
 }: ToastPrimitive.Close.Props) {
+  const { t } = useI18n()
+
   return (
     <ToastPrimitive.Close
       data-slot="toast-close"
-      aria-label="Close toast"
+      aria-label={t("shell.ui.closeToast")}
       render={render}
       className={cn(
         "relative shrink-0 text-muted-foreground after:absolute after:-inset-2 after:content-[''] hover:text-foreground",

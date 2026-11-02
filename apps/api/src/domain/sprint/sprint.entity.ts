@@ -57,7 +57,7 @@ export class Sprint {
 
   withDetails(input: SprintDetails): Sprint {
     if (this.props.status === SprintStatus.CLOSED) {
-      throw new InvalidSprintStateError("Un sprint cerrado no se puede editar.");
+      throw new InvalidSprintStateError("closedNotEditable");
     }
 
     return new Sprint({ ...this.props, ...Sprint.normalizeDetails(input) });
@@ -65,7 +65,7 @@ export class Sprint {
 
   start(): Sprint {
     if (this.props.status !== SprintStatus.PLANNED) {
-      throw new InvalidSprintStateError("Solo se puede iniciar un sprint planeado.");
+      throw new InvalidSprintStateError("onlyPlannedStart");
     }
 
     return new Sprint({ ...this.props, status: SprintStatus.ACTIVE });
@@ -73,7 +73,7 @@ export class Sprint {
 
   close(): Sprint {
     if (this.props.status !== SprintStatus.ACTIVE) {
-      throw new InvalidSprintStateError("Solo se puede completar un sprint activo.");
+      throw new InvalidSprintStateError("onlyActiveClose");
     }
 
     return new Sprint({ ...this.props, status: SprintStatus.CLOSED });
@@ -82,7 +82,7 @@ export class Sprint {
   assertDeletable(): void {
     if (this.props.status !== SprintStatus.PLANNED) {
       throw new InvalidSprintStateError(
-        "Solo se puede eliminar un sprint que aún no empezó.",
+        "onlyPlannedDelete",
       );
     }
   }
@@ -90,7 +90,7 @@ export class Sprint {
   assertAcceptsIssues(): void {
     if (this.props.status === SprintStatus.CLOSED) {
       throw new InvalidSprintStateError(
-        "No se pueden asignar issues a un sprint cerrado.",
+        "closedNoIssues",
       );
     }
   }

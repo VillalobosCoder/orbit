@@ -21,6 +21,7 @@ import { GetUserUseCase } from "../../../application/user/use-cases/get-user.use
 import { UpdateUserUseCase } from "../../../application/user/use-cases/update-user.use-case.js";
 import type { GetAvatarUseCase } from "../../../application/user/use-cases/get-avatar.use-case.js";
 import { GetUserListUseCase } from "../../../application/user/use-cases/get-user-list.use-case.js";
+import { sendError } from "../middleware/locale.middleware.js";
 
 export class UserController {
   constructor(
@@ -41,7 +42,7 @@ export class UserController {
     try {
       const authenticatedUserId = req.auth?.id;
       if (authenticatedUserId === undefined) {
-        res.status(401).json({ error: "No autenticado." });
+        sendError(res, 401, "errors.http.notAuthenticated");
         return;
       }
 
@@ -84,7 +85,7 @@ export class UserController {
     try {
       const actorUserId = req.auth?.id;
       if (actorUserId === undefined) {
-        res.status(401).json({ error: "No autenticado." });
+        sendError(res, 401, "errors.http.notAuthenticated");
         return;
       }
 
@@ -122,7 +123,7 @@ export class UserController {
     try {
       const actorUserId = req.auth?.id;
       if (actorUserId === undefined) {
-        res.status(401).json({ error: "No autenticado." });
+        sendError(res, 401, "errors.http.notAuthenticated");
         return;
       }
 
@@ -130,9 +131,7 @@ export class UserController {
       const input: SaveUserRequestDto = saveSchema.parse(req.body);
 
       if (id === actorUserId && input.permissions !== undefined) {
-        res
-          .status(403)
-          .json({ error: "No puedes modificar tus propios permisos." });
+        sendError(res, 403, "errors.http.cannotEditOwnPermissions");
         return;
       }
 
@@ -152,7 +151,7 @@ export class UserController {
       const actorUserId = req.auth?.id;
 
       if (actorUserId === undefined) {
-        res.status(401).json({ error: "No autenticado." });
+        sendError(res, 401, "errors.http.notAuthenticated");
         return;
       }
 
@@ -175,12 +174,12 @@ export class UserController {
       const authenticatedUserId = req.auth?.id;
 
       if (authenticatedUserId === undefined) {
-        res.status(401).json({ error: "No autenticado." });
+        sendError(res, 401, "errors.http.notAuthenticated");
         return;
       }
 
       if (id === authenticatedUserId) {
-        res.status(403).json({ error: "No puedes eliminar tu propia cuenta." });
+        sendError(res, 403, "errors.http.cannotDeleteOwnAccount");
         return;
       }
 

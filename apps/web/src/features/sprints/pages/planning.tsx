@@ -39,14 +39,17 @@ import {
 } from "../api/queries";
 import SprintFormDialog from "./components/sprint-form-dialog";
 import { formatDateRange } from "./utils/format-date";
+import { useI18n } from "@/i18n/use-i18n";
+import type { MessageKey } from "@orbit/i18n";
+import { columnLabel } from "@/i18n/catalog";
 
 type SprintDialogState = { sprint?: SprintDto } | null;
 type ConfirmState = { kind: "close" | "delete"; sprint: SprintDto } | null;
 
-const STATUS_LABELS: Record<SprintStatus, string> = {
-  [SprintStatus.PLANNED]: "Planeado",
-  [SprintStatus.ACTIVE]: "Activo",
-  [SprintStatus.CLOSED]: "Cerrado",
+const STATUS_MESSAGES: Record<SprintStatus, MessageKey> = {
+  [SprintStatus.PLANNED]: "sprints.status.planned",
+  [SprintStatus.ACTIVE]: "sprints.status.active",
+  [SprintStatus.CLOSED]: "sprints.status.closed",
 };
 
 function ErrorAlert({ children }: { children: string }) {
@@ -62,6 +65,7 @@ function ErrorAlert({ children }: { children: string }) {
 }
 
 export default function PlanningPage() {
+  const { t } = useI18n();
   const params = useParams();
   const projectId = Number(params.id);
   const { canWrite: canEditSprints } = usePermission(ModuleKey.PROJECT_SPRINTS);
@@ -161,7 +165,7 @@ export default function PlanningPage() {
             variant={isDone(issue) ? "success" : "default"}
             className="max-w-full"
           >
-            <span className="truncate">{column?.name ?? "—"}</span>
+            <span className="truncate">{column ? columnLabel(t, column) : t("common.none")}</span>
           </Badge>
         </span>
         <span className="flex w-6 shrink-0 justify-center">
@@ -176,7 +180,7 @@ export default function PlanningPage() {
         </span>
         {canEditSprints && (
           <NativeSelect
-            aria-label={`Mover ${issue.issueKey} a`}
+            aria-label={t("sprints.planning.moveTo", { key: issue.issueKey })}
             wrapperClassName="w-40 shrink-0"
             className="h-8 text-[0.8125rem]"
             value={issue.sprintId ?? ""}
@@ -191,7 +195,7 @@ export default function PlanningPage() {
               })
             }
           >
-            <option value="">Backlog</option>
+            <option value="">{t("common.backlog")}</option>
             {openSprints.map((sprint) => (
               <option key={sprint.id} value={sprint.id}>
                 {sprint.name}
@@ -206,7 +210,7 @@ export default function PlanningPage() {
   function renderIssueList(list: IssueDto[]) {
     return list.length === 0 ? (
       <p className="m-3 rounded-lg border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
-        Sin issues.
+        {t("sprints.planning.noIssues")}
       </p>
     ) : (
       <ul className="max-h-[21rem] overflow-y-auto">
@@ -232,8 +236,8 @@ export default function PlanningPage() {
           {project.data.name}
         </NavLink>
         <PageHeaderComponent
-          title="Planificación"
-          description="Organiza los issues en sprints y mantén el backlog al día."
+          title={t("sprints.planning.title")}
+          description={t("sprints.planning.description")}
         >
           {canEditSprints && (
             <Button
@@ -242,7 +246,7 @@ export default function PlanningPage() {
               onClick={() => setSprintDialog({})}
             >
               <Plus />
-              Nuevo sprint
+              {t("sprints.planning.newSprint")}
             </Button>
           )}
           {canWriteIssues && (
@@ -252,7 +256,7 @@ export default function PlanningPage() {
               onClick={() => setIsCreatingIssue(true)}
             >
               <Plus />
-              Nuevo issue
+              {t("sprints.planning.newIssue")}
             </Button>
           )}
         </PageHeaderComponent>
@@ -299,7 +303,7 @@ export default function PlanningPage() {
                         aria-hidden="true"
                       />
                     )}
-                    {STATUS_LABELS[sprint.status]}
+                    {t(STATUS_MESSAGES[sprint.status])}
                   </Badge>
                 </div>
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground [overflow-wrap:anywhere]">
@@ -311,14 +315,14 @@ export default function PlanningPage() {
                 {isActive && total > 0 && (
                   <div className="w-36">
                     <p className="mb-1 text-xs text-muted-foreground">
-                      {done} / {total} terminados
+                      {t("sprints.planning.progress", { done, total })}
                     </p>
                     <div
                       role="progressbar"
                       aria-valuemin={0}
                       aria-valuemax={total}
                       aria-valuenow={done}
-                      aria-label="Issues terminados"
+                      aria-label={t("sprints.planning.progressLabel")}
                       className="h-1 overflow-hidden rounded-full bg-muted"
                     >
                       <div
@@ -339,7 +343,7 @@ export default function PlanningPage() {
                         className="hover:bg-destructive/10 hover:text-destructive"
                         onClick={() => setConfirm({ kind: "delete", sprint })}
                       >
-                        Eliminar
+                        {t("common.delete")}
                       </Button>
                     )}
                     <Button
@@ -348,7 +352,7 @@ export default function PlanningPage() {
                       size="sm"
                       onClick={() => setSprintDialog({ sprint })}
                     >
-                      Editar
+                      {t("common.edit")}
                     </Button>
                     {sprint.status === SprintStatus.PLANNED && (
                       <Button
@@ -362,7 +366,7 @@ export default function PlanningPage() {
                           })
                         }
                       >
-                        Iniciar
+                        {t("sprints.planning.start")}
                       </Button>
                     )}
                     {isActive && (
@@ -373,7 +377,7 @@ export default function PlanningPage() {
                         disabled={closeSprint.isPending}
                         onClick={() => setConfirm({ kind: "close", sprint })}
                       >
-                        Completar sprint
+                        {t("sprints.planning.complete")}
                       </Button>
                     )}
                   </div>
@@ -386,13 +390,15 @@ export default function PlanningPage() {
       })}
 
       <section
-        aria-label="Backlog"
+        aria-label={t("sprints.planning.backlog")}
         className="overflow-hidden rounded-xl border border-border bg-card"
       >
         <div className="flex items-center gap-2.5 border-b border-border px-4 py-3">
-          <h2 className="text-base font-semibold">Backlog</h2>
+          <h2 className="text-base font-semibold">
+            {t("sprints.planning.backlog")}
+          </h2>
           <span className="text-sm text-muted-foreground">
-            {issuesIn(null).length} issues
+            {t("sprints.planning.issueCount", { count: issuesIn(null).length })}
           </span>
         </div>
         {renderIssueList(issuesIn(null))}
@@ -400,11 +406,11 @@ export default function PlanningPage() {
 
       {closedSprints.length > 0 && (
         <section
-          aria-label="Historial de sprints"
+          aria-label={t("sprints.planning.history")}
           className="overflow-hidden rounded-xl border border-border bg-card"
         >
           <h2 className="border-b border-border px-4 py-3 text-base font-semibold">
-            Historial de sprints
+            {t("sprints.planning.history")}
           </h2>
           <ul className="max-h-48 overflow-y-auto">
             {closedSprints.map((sprint) => (
@@ -416,10 +422,12 @@ export default function PlanningPage() {
                 <span className="text-muted-foreground">
                   {formatDateRange(sprint.startDate, sprint.endDate)}
                 </span>
-                <Badge variant="muted">Cerrado</Badge>
+                <Badge variant="muted">{t("sprints.planning.closedBadge")}</Badge>
                 <span className="w-36 text-right text-muted-foreground">
-                  {doneCount(sprint.id)} / {issuesIn(sprint.id).length}{" "}
-                  terminados
+                  {t("sprints.planning.progress", {
+                    done: doneCount(sprint.id),
+                    total: issuesIn(sprint.id).length,
+                  })}
                 </span>
               </li>
             ))}
@@ -431,20 +439,28 @@ export default function PlanningPage() {
         open={confirm !== null}
         title={
           confirm?.kind === "close"
-            ? `¿Completar ${confirmSprint?.name}?`
-            : `¿Eliminar ${confirmSprint?.name}?`
+            ? t("sprints.planning.completeDialog.title", {
+                name: confirmSprint?.name ?? "",
+              })
+            : t("sprints.planning.deleteDialog.title", {
+                name: confirmSprint?.name ?? "",
+              })
         }
         description={
           confirm?.kind === "close"
             ? pendingInSprint > 0
-              ? `${pendingInSprint} issue(s) sin terminar volverán al backlog.`
-              : "Todos sus issues están terminados. El sprint pasará al historial."
-            : "Sus issues volverán al backlog."
+              ? t("sprints.planning.completeDialog.pending", {
+                  count: pendingInSprint,
+                })
+              : t("sprints.planning.completeDialog.allDone")
+            : t("sprints.planning.deleteDialog.description")
         }
         confirmLabel={
-          confirm?.kind === "close" ? "Completar sprint" : "Eliminar sprint"
+          confirm?.kind === "close"
+            ? t("sprints.planning.completeDialog.confirm")
+            : t("sprints.planning.deleteDialog.confirm")
         }
-        pendingLabel="Procesando..."
+        pendingLabel={t("common.processing")}
         isPending={closeSprint.isPending || deleteSprint.isPending}
         destructive={confirm?.kind === "delete"}
         onClose={() => setConfirm(null)}

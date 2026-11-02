@@ -2,6 +2,7 @@ import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
 import { cn } from "cn";
 
 import type { SortDirection } from "@orbit/shared";
+import { useI18n } from "@/i18n/use-i18n";
 
 export function SortableHeaderComponent({
   label,
@@ -12,6 +13,7 @@ export function SortableHeaderComponent({
   direction: SortDirection | null;
   onToggle: () => void;
 }) {
+  const { t } = useI18n();
   const Icon =
     direction === "asc" ? ArrowUp : direction === "desc" ? ArrowDown : ChevronsUpDown;
 
@@ -19,7 +21,7 @@ export function SortableHeaderComponent({
     <button
       type="button"
       onClick={onToggle}
-      aria-label={`Ordenar por ${label}`}
+      aria-label={t("shell.ui.sortBy", { label })}
       className={cn(
         "-mx-2 inline-flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold tracking-wide uppercase transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40",
         direction ? "text-foreground" : "text-muted-foreground",

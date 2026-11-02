@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
 import { useRemoveAvatar, useUploadAvatar } from "@/features/auth/api/queries";
+import { useI18n } from "@/i18n/use-i18n";
 
 const MAX_MEGABYTES = AVATAR_MAX_BYTES / (1024 * 1024);
 
@@ -24,6 +25,7 @@ export default function ProfilePhoto({
   email,
   avatarUrl,
 }: ProfilePhotoProps) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const uploadAvatar = useUploadAvatar();
   const removeAvatar = useRemoveAvatar();
@@ -45,12 +47,12 @@ export default function ProfilePhoto({
     uploadAvatar.reset();
 
     if (!isAvatarType(file.type)) {
-      setValidationError("Elige una imagen PNG, JPG o WebP.");
+      setValidationError(t("profile.photo.invalidType"));
       return;
     }
 
     if (file.size > AVATAR_MAX_BYTES) {
-      setValidationError(`La foto no puede superar los ${MAX_MEGABYTES} MB.`);
+      setValidationError(t("profile.photo.tooLarge", { size: MAX_MEGABYTES }));
       return;
     }
 
@@ -82,7 +84,7 @@ export default function ProfilePhoto({
               accept={AVATAR_MIME_TYPES.join(",")}
               className="hidden"
               onChange={handleFileChange}
-              aria-label="Elegir foto de perfil"
+              aria-label={t("profile.photo.chooseFile")}
             />
             <Button
               type="button"
@@ -92,7 +94,7 @@ export default function ProfilePhoto({
               onClick={() => inputRef.current?.click()}
             >
               {uploadAvatar.isPending ? <Spinner /> : <Camera />}
-              {avatarUrl ? "Cambiar foto" : "Subir foto"}
+              {t(avatarUrl ? "profile.photo.change" : "profile.photo.upload")}
             </Button>
             {avatarUrl && (
               <Button
@@ -103,11 +105,11 @@ export default function ProfilePhoto({
                 onClick={handleRemove}
               >
                 {removeAvatar.isPending ? <Spinner /> : <Trash2 />}
-                Quitar foto
+                {t("profile.photo.remove")}
               </Button>
             )}
             <span className="text-xs text-muted-foreground">
-              PNG, JPG o WebP · máx. {MAX_MEGABYTES} MB
+              {t("profile.photo.hint", { size: MAX_MEGABYTES })}
             </span>
           </div>
         </div>

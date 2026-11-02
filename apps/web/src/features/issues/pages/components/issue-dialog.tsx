@@ -46,6 +46,8 @@ import {
   type SprintDto,
 } from "@orbit/shared";
 import { AssigneeStack, IssueTypeIcon, PriorityIcon } from "./issue-visuals";
+import { columnLabel, issueTypeLabel, priorityLabel } from "@/i18n/catalog";
+import { useI18n } from "@/i18n/use-i18n";
 
 interface IssueDialogProps {
   project: ProjectDto;
@@ -97,6 +99,7 @@ export default function IssueDialog({
   defaultSprintId = null,
   onClose,
 }: IssueDialogProps) {
+  const { t, locale } = useI18n();
   const { user } = useAuth();
   const { canWrite } = usePermission(ModuleKey.PROJECTS);
   const { canWrite: canWriteIssues } = usePermission(ModuleKey.PROJECT_ISSUES);
@@ -210,6 +213,11 @@ export default function IssueDialog({
     columns.find((col) => col.id === item.columnId)?.category ===
     BoardColumnCategory.DONE;
   const doneSubtasks = subtasks.filter(isDone);
+  const subtaskColumn = (columnId: number) => {
+    const subtaskColumnData = columns.find((col) => col.id === columnId);
+
+    return subtaskColumnData ? columnLabel(t, subtaskColumnData) : "";
+  };
   const type = options.issueTypes.find((item) => item.id === issue?.typeId);
   const priority = options.priorities.find(
     (item) => item.id === issue?.priorityId,
@@ -249,7 +257,9 @@ export default function IssueDialog({
                   {issue.issueKey}
                 </span>
               ) : (
-                <span className="text-sm font-medium">Nuevo issue</span>
+                <span className="text-sm font-medium">
+                  {t("issues.dialog.newTitle")}
+                </span>
               )}
             </div>
             {isEditing ? (
@@ -260,7 +270,7 @@ export default function IssueDialog({
                   size="sm"
                   onClick={cancelEditing}
                 >
-                  Cancelar
+                  {t("common.cancel")}
                 </Button>
                 <Button
                   type="button"
@@ -270,11 +280,11 @@ export default function IssueDialog({
                 >
                   {mutation.isPending
                     ? issue
-                      ? "Guardando..."
-                      : "Creando..."
+                      ? t("common.saving")
+                      : t("issues.dialog.creating")
                     : issue
-                      ? "Guardar cambios"
-                      : "Crear issue"}
+                      ? t("common.saveChanges")
+                      : t("issues.dialog.create")}
                 </Button>
               </div>
             ) : (
@@ -287,7 +297,7 @@ export default function IssueDialog({
                     onClick={startEditing}
                   >
                     <Pencil />
-                    Editar
+                    {t("common.edit")}
                   </Button>
                   <Button
                     type="button"
@@ -296,7 +306,7 @@ export default function IssueDialog({
                     onClick={() => setIsConfirmingDelete(true)}
                   >
                     <Trash2 />
-                    Eliminar
+                    {t("common.delete")}
                   </Button>
                 </div>
               )
@@ -305,11 +315,13 @@ export default function IssueDialog({
           {isEditing ? (
             <>
               <DialogTitle className="sr-only">
-                {issue ? `Editando ${issue.issueKey}` : "Nuevo issue"}
+                {issue
+                  ? t("issues.dialog.editingTitle", { key: issue.issueKey })
+                  : t("issues.dialog.newTitle")}
               </DialogTitle>
               <Input
-                aria-label="Título"
-                placeholder="Título del issue"
+                aria-label={t("issues.dialog.titleLabel")}
+                placeholder={t("issues.dialog.titlePlaceholder")}
                 value={draft.title}
                 maxLength={ISSUE_TITLE_MAX_LENGTH}
                 autoFocus
@@ -334,7 +346,7 @@ export default function IssueDialog({
             {!isEditing && parent ? (
               <span className="inline-flex items-center gap-1.5">
                 <CornerDownRight className="size-3.5" aria-hidden="true" />
-                Subtarea de{" "}
+                {t("issues.dialog.subtaskOf")}{" "}
                 <NavLink
                   to={`/projects/${project.id}/issues/${parent.id}`}
                   className="font-medium text-foreground underline-offset-4 hover:underline"
@@ -343,10 +355,15 @@ export default function IssueDialog({
                 </NavLink>
               </span>
             ) : isCreating ? (
-              `Se creará en ${project.projectKey} · ${project.name}.`
+              t("issues.dialog.createdIn", {
+                key: project.projectKey,
+                name: project.name,
+              })
             ) : (
               <span className="sr-only">
-                Detalle del issue en {project.projectKey}.
+                {t("issues.dialog.viewDescription", {
+                  key: project.projectKey,
+                })}
               </span>
             )}
           </DialogDescription>
@@ -370,11 +387,13 @@ export default function IssueDialog({
         <div className="grid min-h-0 flex-1 gap-6 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_16rem] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden">
           <div className="flex min-w-0 flex-col gap-7 lg:overflow-y-auto lg:pr-2">
             <section className="flex flex-col gap-2">
-              <h2 className="text-sm font-semibold">Descripción</h2>
+              <h2 className="text-sm font-semibold">
+                {t("issues.dialog.description")}
+              </h2>
               {isEditing ? (
                 <>
                   <Textarea
-                    aria-label="Descripción"
+                    aria-label={t("issues.dialog.description")}
                     value={draft.description}
                     maxLength={ISSUE_DESCRIPTION_MAX_LENGTH}
                     className="h-32 resize-none"
@@ -392,7 +411,7 @@ export default function IssueDialog({
                 </p>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Sin descripción.
+                  {t("issues.dialog.noDescription")}
                 </p>
               )}
             </section>
@@ -401,10 +420,13 @@ export default function IssueDialog({
               <section className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <h2 className="flex items-baseline gap-2 text-sm font-semibold">
-                    Subtareas
+                    {t("issues.dialog.subtasks")}
                     {subtasks.length > 0 && (
                       <span className="text-xs font-normal text-muted-foreground">
-                        {doneSubtasks.length} de {subtasks.length} completadas
+                        {t("issues.dialog.subtasksDone", {
+                          done: doneSubtasks.length,
+                          total: subtasks.length,
+                        })}
                       </span>
                     )}
                   </h2>
@@ -415,7 +437,7 @@ export default function IssueDialog({
                     aria-valuemin={0}
                     aria-valuemax={subtasks.length}
                     aria-valuenow={doneSubtasks.length}
-                    aria-label="Subtareas completadas"
+                    aria-label={t("issues.dialog.subtasksProgress")}
                     className="h-1.5 overflow-hidden rounded-full bg-muted"
                   >
                     <div
@@ -436,12 +458,12 @@ export default function IssueDialog({
                         {isDone(subtask) ? (
                           <CircleCheck
                             className="size-4 shrink-0 text-success"
-                            aria-label="Completada"
+                            aria-label={t("issues.dialog.completed")}
                           />
                         ) : (
                           <Circle
                             className="size-4 shrink-0 text-muted-foreground"
-                            aria-label="Pendiente"
+                            aria-label={t("issues.dialog.pending")}
                           />
                         )}
                         <span className="font-mono text-xs text-muted-foreground">
@@ -451,10 +473,7 @@ export default function IssueDialog({
                           {subtask.title}
                         </span>
                         <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-xs">
-                          {
-                            columns.find((col) => col.id === subtask.columnId)
-                              ?.name
-                          }
+                          {subtaskColumn(subtask.columnId)}
                         </span>
                       </NavLink>
                     </li>
@@ -469,7 +488,7 @@ export default function IssueDialog({
                     onClick={() => setIsCreatingSubtask(true)}
                   >
                     <Plus />
-                    Nueva subtarea
+                    {t("issues.dialog.newSubtask")}
                   </Button>
                 )}
               </section>
@@ -486,10 +505,10 @@ export default function IssueDialog({
 
           <aside className="h-fit rounded-xl border border-border bg-muted/40 p-4 lg:max-h-full lg:overflow-y-auto">
             <dl className="flex flex-col gap-4">
-              <Detail label="Estado">
+              <Detail label={t("issues.dialog.status")}>
                 {isEditing && (isCreating || canMoveIssues) ? (
                   <NativeSelect
-                    aria-label="Estado"
+                    aria-label={t("issues.dialog.status")}
                     className={selectClass}
                     value={draft.columnId}
                     onChange={(event) =>
@@ -500,7 +519,7 @@ export default function IssueDialog({
                   >
                     {columns.map((item) => (
                       <option key={item.id} value={item.id}>
-                        {item.name}
+                        {columnLabel(t, item)}
                       </option>
                     ))}
                   </NativeSelect>
@@ -515,18 +534,18 @@ export default function IssueDialog({
                           : undefined
                       }
                     />
-                    {column?.name ?? "—"}
+                    {column ? columnLabel(t, column) : t("common.none")}
                   </>
                 )}
               </Detail>
-              <Detail label="Responsables">
+              <Detail label={t("issues.dialog.assignees")}>
                 {isEditing ? (
                   <UserMultiSelectComponent
                     users={members}
                     values={draft.assigneeIds}
                     onChange={(assigneeIds) => updateDraft({ assigneeIds })}
-                    placeholder="Sin asignar"
-                    ariaLabel="Responsables"
+                    placeholder={t("common.unassigned")}
+                    ariaLabel={t("issues.dialog.assignees")}
                   />
                 ) : assignees.length > 0 ? (
                   <span className="flex flex-col gap-2">
@@ -538,13 +557,15 @@ export default function IssueDialog({
                     ))}
                   </span>
                 ) : (
-                  <span className="text-muted-foreground">Sin asignar</span>
+                  <span className="text-muted-foreground">
+                    {t("common.unassigned")}
+                  </span>
                 )}
               </Detail>
-              <Detail label="Prioridad">
+              <Detail label={t("issues.dialog.priority")}>
                 {isEditing ? (
                   <NativeSelect
-                    aria-label="Prioridad"
+                    aria-label={t("issues.dialog.priority")}
                     className={selectClass}
                     value={draft.priorityId ?? ""}
                     onChange={(event) =>
@@ -553,27 +574,27 @@ export default function IssueDialog({
                       })
                     }
                   >
-                    <option value="">Sin prioridad</option>
+                    <option value="">{t("issues.dialog.noPriority")}</option>
                     {options.priorities.map((item) => (
                       <option key={item.id} value={item.id}>
-                        {item.name}
+                        {priorityLabel(t, item)}
                       </option>
                     ))}
                   </NativeSelect>
                 ) : priority ? (
                   <>
                     <PriorityIcon priority={priority} />
-                    {priority.name}
+                    {priorityLabel(t, priority)}
                   </>
                 ) : (
                   "—"
                 )}
               </Detail>
               <div className="grid grid-cols-2 gap-4">
-                <Detail label="Tipo">
+                <Detail label={t("issues.dialog.type")}>
                   {isEditing ? (
                     <NativeSelect
-                      aria-label="Tipo"
+                      aria-label={t("issues.dialog.type")}
                       className={selectClass}
                       value={draft.typeId}
                       onChange={(event) =>
@@ -584,18 +605,18 @@ export default function IssueDialog({
                     >
                       {options.issueTypes.map((item) => (
                         <option key={item.id} value={item.id}>
-                          {item.name}
+                          {issueTypeLabel(t, item)}
                         </option>
                       ))}
                     </NativeSelect>
                   ) : (
-                    (type?.name ?? "—")
+                    (type ? issueTypeLabel(t, type) : t("common.none"))
                   )}
                 </Detail>
-                <Detail label="Dificultad">
+                <Detail label={t("issues.dialog.difficulty")}>
                   {isEditing ? (
                     <NativeSelect
-                      aria-label="Dificultad"
+                      aria-label={t("issues.dialog.difficulty")}
                       className={selectClass}
                       value={draft.difficultyId ?? ""}
                       onChange={(event) =>
@@ -615,15 +636,15 @@ export default function IssueDialog({
                     </NativeSelect>
                   ) : (
                     <span className="font-mono text-[0.8125rem]">
-                      {difficulty?.name ?? "—"}
+                      {difficulty?.name ?? t("common.none")}
                     </span>
                   )}
                 </Detail>
               </div>
               {isEditing && isDraftSubtask ? (
-                <Detail label="Issue padre">
+                <Detail label={t("issues.dialog.parent")}>
                   <NativeSelect
-                    aria-label="Issue padre"
+                    aria-label={t("issues.dialog.parent")}
                     className={selectClass}
                     value={draft.parentId ?? ""}
                     onChange={(event) =>
@@ -632,7 +653,7 @@ export default function IssueDialog({
                       })
                     }
                   >
-                    <option value="">Selecciona un issue</option>
+                    <option value="">{t("issues.dialog.selectIssue")}</option>
                     {parentCandidates.map((candidate) => (
                       <option key={candidate.id} value={candidate.id}>
                         {candidate.issueKey} · {candidate.title}
@@ -641,10 +662,10 @@ export default function IssueDialog({
                   </NativeSelect>
                 </Detail>
               ) : (
-                <Detail label="Sprint">
+                <Detail label={t("issues.dialog.sprint")}>
                   {isEditing && (isCreating || canEditSprints) ? (
                     <NativeSelect
-                      aria-label="Sprint"
+                      aria-label={t("issues.dialog.sprint")}
                       className={selectClass}
                       value={draft.sprintId ?? ""}
                       onChange={(event) =>
@@ -653,7 +674,7 @@ export default function IssueDialog({
                         })
                       }
                     >
-                      <option value="">Backlog</option>
+                      <option value="">{t("common.backlog")}</option>
                       {selectableSprints.map((item) => (
                         <option key={item.id} value={item.id}>
                           {item.name}
@@ -661,25 +682,29 @@ export default function IssueDialog({
                       ))}
                     </NativeSelect>
                   ) : (
-                    (sprint?.name ?? "Backlog")
+                    (sprint?.name ?? t("common.backlog"))
                   )}
                 </Detail>
               )}
               {issue && (
                 <div className="flex flex-col gap-3 border-t border-border pt-4 text-xs">
                   <div className="flex justify-between gap-2">
-                    <span className="text-muted-foreground">Reportado por</span>
+                    <span className="text-muted-foreground">
+                      {t("issues.dialog.reporter")}
+                    </span>
                     <span className="text-right">
                       {reporter
                         ? `${reporter.name} ${reporter.lastName}`
-                        : `Usuario ${issue.reporterId}`}
+                        : t("issues.dialog.userFallback", { id: issue.reporterId })}
                     </span>
                   </div>
                   <div className="flex justify-between gap-2">
-                    <span className="text-muted-foreground">Resuelto</span>
+                    <span className="text-muted-foreground">
+                      {t("issues.dialog.resolved")}
+                    </span>
                     <span className="text-right">
                       {issue.resolvedAt
-                        ? new Date(issue.resolvedAt).toLocaleString()
+                        ? new Date(issue.resolvedAt).toLocaleString(locale)
                         : "—"}
                     </span>
                   </div>
@@ -692,14 +717,16 @@ export default function IssueDialog({
         {issue && (
           <ConfirmDialogComponent
             open={isConfirmingDelete}
-            title={`¿Eliminar ${issue.issueKey}?`}
+            title={t("issues.dialog.deleteDialog.title", { key: issue.issueKey })}
             description={
               subtasks.length > 0
-                ? `También se eliminarán sus ${subtasks.length} subtareas. Esta acción no se puede deshacer.`
-                : "Esta acción no se puede deshacer."
+                ? t("issues.dialog.deleteDialog.withSubtasks", {
+                    count: subtasks.length,
+                  })
+                : t("issues.dialog.deleteDialog.simple")
             }
-            confirmLabel="Eliminar issue"
-            pendingLabel="Eliminando..."
+            confirmLabel={t("issues.dialog.deleteDialog.confirm")}
+            pendingLabel={t("common.deleting")}
             isPending={deleteIssue.isPending}
             destructive
             onClose={() => setIsConfirmingDelete(false)}

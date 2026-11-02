@@ -4,11 +4,13 @@ import { cn } from "cn"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useI18n } from "@/i18n/use-i18n";
 
 function PasswordInput({
   className,
   ...props
 }: Omit<React.ComponentProps<"input">, "type">) {
+  const { t } = useI18n()
   const [visible, setVisible] = React.useState(false)
 
   return (
@@ -23,7 +25,7 @@ function PasswordInput({
         variant="ghost"
         size="icon-sm"
         className="absolute top-1/2 right-1.5 -translate-y-1/2"
-        aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
+        aria-label={t(visible ? "shell.ui.hidePassword" : "shell.ui.showPassword")}
         aria-pressed={visible}
         onClick={() => setVisible((current) => !current)}
       >

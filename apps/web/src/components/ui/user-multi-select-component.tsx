@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
+import { useI18n } from "@/i18n/use-i18n";
 
 export function UserMultiSelectComponent({
   users,
@@ -26,6 +27,7 @@ export function UserMultiSelectComponent({
   ariaLabel: string;
   className?: string;
 }) {
+  const { t } = useI18n();
   const selected = users.filter((candidate) => values.includes(candidate.id));
 
   function toggle(userId: number) {
@@ -77,7 +79,7 @@ export function UserMultiSelectComponent({
       >
         {users.length === 0 ? (
           <p className="px-2.5 py-2 text-sm text-muted-foreground">
-            Sin registros
+            {t("common.noRecords")}
           </p>
         ) : (
           users.map((candidate) => {

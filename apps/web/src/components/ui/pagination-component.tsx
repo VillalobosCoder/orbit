@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/i18n/use-i18n";
 
 export function PaginationComponent({
   page,
@@ -13,29 +14,30 @@ export function PaginationComponent({
   total: number;
   onPageChange: (page: number) => void;
 }) {
+  const { t } = useI18n();
   const lastPage = Math.max(1, Math.ceil(total / pageSize));
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
 
   return (
     <nav
-      aria-label="Paginación"
+      aria-label={t("shell.ui.pagination")}
       className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground"
     >
       <p>
         {total === 0
-          ? "Sin resultados"
-          : `Mostrando ${from}–${to} de ${total}`}
+          ? t("shell.ui.noResults")
+          : t("shell.ui.showingRange", { from, to, total })}
       </p>
       <div className="flex items-center gap-2">
         <span>
-          Página {page} de {lastPage}
+          {t("shell.ui.pageOf", { page, lastPage })}
         </span>
         <Button
           type="button"
           variant="outline"
           size="icon-sm"
-          aria-label="Página anterior"
+          aria-label={t("shell.ui.previousPage")}
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
@@ -45,7 +47,7 @@ export function PaginationComponent({
           type="button"
           variant="outline"
           size="icon-sm"
-          aria-label="Página siguiente"
+          aria-label={t("shell.ui.nextPage")}
           disabled={page >= lastPage}
           onClick={() => onPageChange(page + 1)}
         >

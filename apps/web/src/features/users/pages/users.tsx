@@ -7,10 +7,12 @@ import { usePermission } from "@/context/auth/use-permission";
 import { PageHeaderComponent } from "@/components/ui/page-header-component";
 import UserFormDialog from "./components/user-form-dialog";
 import UserTable from "./components/user-table";
+import { useI18n } from "@/i18n/use-i18n";
 
 type DialogState = { userId?: number } | null;
 
 export default function UsersPage() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const { canWrite } = usePermission("users");
   const [dialog, setDialog] = useState<DialogState>(null);
@@ -18,13 +20,13 @@ export default function UsersPage() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6">
       <PageHeaderComponent
-        title="Usuarios"
-        description="Gestiona las cuentas y los permisos de acceso de tu equipo."
+        title={t("users.title")}
+        description={t("users.description")}
       >
         {canWrite && (
           <Button type="button" onClick={() => setDialog({})}>
             <Plus />
-            Nuevo usuario
+            {t("users.newUser")}
           </Button>
         )}
       </PageHeaderComponent>

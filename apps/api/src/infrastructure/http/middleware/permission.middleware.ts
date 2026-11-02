@@ -4,6 +4,7 @@ import type {
   UserPermissionRepository,
 } from "../../../application/auth/ports/user-permission-repository.port.js";
 import type { AuthedRequest } from "./auth.middleware.js";
+import { sendError } from "./locale.middleware.js";
 
 export function makePermissionMiddleware(
   permissions: UserPermissionRepository,
@@ -14,7 +15,7 @@ export function makePermissionMiddleware(
     const userId = (req as AuthedRequest).auth?.id;
 
     if (userId === undefined) {
-      res.status(401).json({ error: "No autenticado." });
+      sendError(res, 401, "errors.http.notAuthenticated");
       return;
     }
 
@@ -26,7 +27,7 @@ export function makePermissionMiddleware(
       );
 
       if (!allowed) {
-        res.status(403).json({ error: "No tienes permiso para esta acción." });
+        sendError(res, 403, "errors.http.forbidden");
         return;
       }
 

@@ -78,7 +78,7 @@ export class MoveIssueUseCase {
       neighbor.id === input.issueId ||
       neighbor.columnId !== input.columnId
     ) {
-      throw new InvalidIssueReferenceError("La tarjeta vecina");
+      throw new InvalidIssueReferenceError("neighbor");
     }
 
     return neighbor.boardPosition;

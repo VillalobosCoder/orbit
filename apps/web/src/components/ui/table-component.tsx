@@ -8,6 +8,7 @@ import {
 import { cn } from "cn";
 
 import { Spinner } from "@/components/ui/spinner";
+import { useI18n } from "@/i18n/use-i18n";
 
 const features = tableFeatures({});
 
@@ -27,9 +28,10 @@ export function TableComponent<TData extends RowData>({
   data,
   columns,
   isLoading = false,
-  emptyMessage = "Sin registros",
+  emptyMessage,
   minRows,
 }: DataTableProps<TData>) {
+  const { t } = useI18n();
   const table = useTable({
     features,
     data,
@@ -77,9 +79,9 @@ export function TableComponent<TData extends RowData>({
                 className="px-5 py-10 text-center text-muted-foreground"
               >
                 {isLoading ? (
-                  <Spinner aria-label="Cargando" className="mx-auto size-6" />
+                  <Spinner className="mx-auto size-6" />
                 ) : (
-                  emptyMessage
+                  (emptyMessage ?? t("common.noRecords"))
                 )}
               </td>
             </tr>

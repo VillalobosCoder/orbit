@@ -16,6 +16,7 @@ import {
 } from "../../api/queries";
 import { createColumns } from "../utils/users-table-columns";
 import TemporaryPassword from "./temporary-password";
+import { useI18n } from "@/i18n/use-i18n";
 
 const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -27,6 +28,7 @@ export default function UserTable({
   canWrite: boolean;
   onEdit: (userId: number) => void;
 }) {
+  const { t } = useI18n();
   const [searchText, setSearchText] = useState("");
   const [sortBy, setSortBy] = useState<UserSortField>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -62,6 +64,7 @@ export default function UserTable({
   }
 
   const columns = createColumns({
+    t,
     sortBy,
     sortDirection,
     onSort: handleSort,
@@ -99,8 +102,8 @@ export default function UserTable({
         <Input
           type="search"
           value={searchText}
-          placeholder="Buscar por nombre o correo"
-          aria-label="Buscar usuarios"
+          placeholder={t("users.search.placeholder")}
+          aria-label={t("users.search.label")}
           className="pl-9"
           onChange={(event) => {
             setPage(1);
@@ -113,7 +116,7 @@ export default function UserTable({
         columns={columns}
         isLoading={isLoading}
         minRows={PAGE_SIZE}
-        emptyMessage={search ? "Ningún usuario coincide con la búsqueda." : undefined}
+        emptyMessage={search ? t("users.search.noMatches") : undefined}
       />
       {data && (
         <PaginationComponent
@@ -125,18 +128,18 @@ export default function UserTable({
       )}
       <ConfirmDialogComponent
         open={userToDelete !== null}
-        title="¿Eliminar usuario?"
+        title={t("users.deleteDialog.title")}
         description={
           <>
-            Se eliminará la cuenta de{" "}
+            {t("users.deleteDialog.before")}{" "}
             <strong className="font-medium text-foreground">
               {userToDelete?.email}
             </strong>
-            . Esta acción no se puede deshacer.
+            {t("users.deleteDialog.after")}
           </>
         }
-        confirmLabel="Eliminar usuario"
-        pendingLabel="Eliminando..."
+        confirmLabel={t("users.deleteDialog.confirm")}
+        pendingLabel={t("common.deleting")}
         isPending={deleteUser.isPending}
         destructive
         onClose={() => setUserToDelete(null)}
@@ -149,19 +152,18 @@ export default function UserTable({
       />
       <ConfirmDialogComponent
         open={userToReset !== null}
-        title="¿Restablecer la contraseña?"
+        title={t("users.resetDialog.title")}
         description={
           <>
-            Se generará una contraseña temporal para{" "}
+            {t("users.resetDialog.before")}{" "}
             <strong className="font-medium text-foreground">
               {userToReset?.email}
             </strong>
-            . La actual dejará de funcionar y la persona deberá cambiarla al
-            volver a entrar.
+            {t("users.resetDialog.after")}
           </>
         }
-        confirmLabel="Restablecer contraseña"
-        pendingLabel="Restableciendo..."
+        confirmLabel={t("users.resetDialog.confirm")}
+        pendingLabel={t("users.resetDialog.pending")}
         isPending={resetPassword.isPending}
         onClose={() => setUserToReset(null)}
         onConfirm={() => {
@@ -186,8 +188,10 @@ export default function UserTable({
         <DialogContent className="sm:max-w-md">
           {resetResult && (
             <TemporaryPassword
-              title="Contraseña restablecida"
-              description={`Comparte esta contraseña temporal con ${resetResult.user.name} ${resetResult.user.lastName}. No se volverá a mostrar después de cerrar este diálogo.`}
+              title={t("users.resetDone.title")}
+              description={t("users.resetDone.description", {
+                name: `${resetResult.user.name} ${resetResult.user.lastName}`,
+              })}
               password={resetResult.password}
               onClose={() => setResetResult(null)}
             />

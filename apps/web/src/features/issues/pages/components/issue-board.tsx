@@ -22,6 +22,10 @@ import {
 import BoardColumnsDialog from "./board-columns-dialog";
 import IssueCard from "./issue-card";
 import IssueDialog from "./issue-dialog";
+import { useI18n } from "@/i18n/use-i18n";
+import { getLocale, t as translateNow } from "@/i18n/locale-store";
+import { describeDays } from "@/features/sprints/pages/utils/format-date";
+import { columnLabel } from "@/i18n/catalog";
 
 type DropTarget = { columnId: number; beforeIssueId: number | null };
 
@@ -37,21 +41,16 @@ function describeEndDate(endDate: string) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const daysLeft = Math.round((end.getTime() - today.getTime()) / 86_400_000);
-  const formatted = end.toLocaleDateString("es", {
+  const formatted = end.toLocaleDateString(getLocale(), {
     day: "numeric",
     month: "short",
     year: end.getFullYear() === today.getFullYear() ? undefined : "numeric",
   });
-  const remaining =
-    daysLeft < 0
-      ? "vencido"
-      : daysLeft === 0
-        ? "termina hoy"
-        : daysLeft === 1
-          ? "1 día"
-          : `${daysLeft} días`;
 
-  return `hasta ${formatted} · ${remaining}`;
+  return translateNow("dates.until", {
+    date: formatted,
+    remaining: describeDays(daysLeft),
+  });
 }
 
 function ColumnDot({ column }: { column: BoardColumnDto }) {
@@ -68,6 +67,7 @@ function ColumnDot({ column }: { column: BoardColumnDto }) {
 }
 
 export default function IssueBoard({ project }: { project: ProjectDto }) {
+  const { t } = useI18n();
   const { canWrite: canWriteIssues } = usePermission(ModuleKey.PROJECT_ISSUES);
   const { canWrite: canMoveIssues } = usePermission(
     ModuleKey.PROJECT_MOVE_ISSUES,
@@ -184,7 +184,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
 
   return (
     <section
-      aria-label="Tablero"
+      aria-label={t("issues.board.section")}
       className="flex min-h-0 flex-1 flex-col gap-4"
     >
       {moveIssue.isError && (
@@ -213,7 +213,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
                     className="size-1.5 rounded-full bg-info shadow-[0_0_8px_var(--info)]"
                     aria-hidden="true"
                   />
-                  Sprint activo
+                  {t("issues.board.activeSprint")}
                 </span>
                 <strong className="text-[0.9375rem] font-semibold">
                   {activeSprint.name}
@@ -226,7 +226,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
               </>
             ) : (
               <span className="text-muted-foreground">
-                Sin sprint activo: se muestran los issues del backlog.
+                {t("issues.board.noActiveSprint")}
               </span>
             )}
           </p>
@@ -236,7 +236,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
               nativeButton={false}
               render={<NavLink to={`/projects/${project.id}/planning`} />}
             >
-              Planificación
+              {t("issues.board.planning")}
             </Button>
             {canEditColumns && (
               <Button
@@ -245,7 +245,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
                 onClick={() => setIsEditingColumns(true)}
               >
                 <Columns3 />
-                Columnas
+                {t("issues.board.columns")}
               </Button>
             )}
             {canWriteIssues && (
@@ -255,7 +255,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
                 onClick={() => setIsCreating(true)}
               >
                 <Plus />
-                Nuevo issue
+                {t("issues.board.newIssue")}
               </Button>
             )}
           </div>
@@ -286,8 +286,11 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
               >
                 <h3 className="flex min-w-0 shrink-0 items-center gap-2 px-1 pt-0.5 pb-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                   <ColumnDot column={column} />
-                  <span className="min-w-0 truncate" title={column.name}>
-                    {column.name}
+                  <span
+                    className="min-w-0 truncate"
+                    title={columnLabel(t, column)}
+                  >
+                    {columnLabel(t, column)}
                   </span>
                   <span
                     className={cn(
@@ -342,7 +345,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
                     dropIndicator}
                   {columnIssues.length === 0 && !isDropColumn && (
                     <li className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
-                      Sin issues en esta columna
+                      {t("issues.board.emptyColumn")}
                     </li>
                   )}
                 </ul>

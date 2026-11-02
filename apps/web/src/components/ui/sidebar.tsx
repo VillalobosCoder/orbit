@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/tooltip"
 import { PanelLeftIcon } from "lucide-react"
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ComponentProps, type CSSProperties } from "react"
+import { useI18n } from "@/i18n/use-i18n"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -153,6 +154,7 @@ function Sidebar({
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
 }) {
+  const { t } = useI18n()
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
 
   if (collapsible === "none") {
@@ -187,8 +189,10 @@ function Sidebar({
           side={side}
         >
           <SheetHeader className="sr-only">
-            <SheetTitle>Sidebar</SheetTitle>
-            <SheetDescription>Displays the mobile sidebar.</SheetDescription>
+            <SheetTitle>{t("shell.sidebar.title")}</SheetTitle>
+            <SheetDescription>
+              {t("shell.sidebar.mobileDescription")}
+            </SheetDescription>
           </SheetHeader>
           <div className="flex h-full w-full flex-col">{children}</div>
         </SheetContent>
@@ -246,6 +250,7 @@ function SidebarTrigger({
   children,
   ...props
 }: ComponentProps<typeof Button>) {
+  const { t } = useI18n()
   const { toggleSidebar } = useSidebar()
 
   return (
@@ -264,7 +269,7 @@ function SidebarTrigger({
       {children ?? (
         <>
           <PanelLeftIcon />
-          <span className="sr-only">Alternar menú</span>
+          <span className="sr-only">{t("shell.sidebar.toggle")}</span>
         </>
       )}
     </Button>
@@ -272,16 +277,17 @@ function SidebarTrigger({
 }
 
 function SidebarRail({ className, ...props }: ComponentProps<"button">) {
+  const { t } = useI18n()
   const { toggleSidebar } = useSidebar()
 
   return (
     <button
       data-sidebar="rail"
       data-slot="sidebar-rail"
-      aria-label="Toggle Sidebar"
+      aria-label={t("shell.sidebar.toggle")}
       tabIndex={-1}
       onClick={toggleSidebar}
-      title="Toggle Sidebar"
+      title={t("shell.sidebar.toggle")}
       className={cn(
         "absolute inset-y-0 z-20 hidden w-4 transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:start-1/2 after:w-[2px] hover:after:bg-sidebar-border sm:flex ltr:-translate-x-1/2 rtl:-translate-x-1/2",
         "in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize",

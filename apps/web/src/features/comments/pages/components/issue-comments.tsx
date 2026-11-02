@@ -17,6 +17,7 @@ import {
   useGetComments,
   useUpdateComment,
 } from "../../api/queries";
+import { useI18n } from "@/i18n/use-i18n";
 
 interface IssueCommentsProps {
   issue: IssueRequestDto;
@@ -41,6 +42,7 @@ export default function IssueComments({
   currentUserId,
   canWrite,
 }: IssueCommentsProps) {
+  const { t, locale } = useI18n();
   const comments = useGetComments(issue);
   const createComment = useCreateComment();
   const updateComment = useUpdateComment();
@@ -78,9 +80,12 @@ export default function IssueComments({
   }
 
   return (
-    <section aria-label="Comentarios" className="flex flex-col gap-4">
+    <section
+      aria-label={t("issues.comments.section")}
+      className="flex flex-col gap-4"
+    >
       <h2 className="flex items-baseline gap-2 text-sm font-semibold">
-        Comentarios
+        {t("issues.comments.section")}
         {comments.data && (
           <span className="text-xs font-normal text-muted-foreground">
             {comments.data.length}
@@ -97,7 +102,7 @@ export default function IssueComments({
       {comments.isError && <ErrorAlert>{comments.error.message}</ErrorAlert>}
       {comments.data?.length === 0 && (
         <p className="rounded-lg border border-dashed border-border px-3 py-5 text-center text-sm text-muted-foreground">
-          Aún no hay comentarios.
+          {t("issues.comments.empty")}
         </p>
       )}
 
@@ -117,11 +122,12 @@ export default function IssueComments({
                     {comment.authorName}
                   </strong>
                   <span className="text-xs text-muted-foreground">
-                    {new Date(comment.createdAt).toLocaleString("es", {
+                    {new Date(comment.createdAt).toLocaleString(locale, {
                       dateStyle: "medium",
                       timeStyle: "short",
                     })}
-                    {comment.updatedAt !== comment.createdAt && " · editado"}
+                    {comment.updatedAt !== comment.createdAt &&
+                      ` · ${t("issues.comments.edited")}`}
                   </span>
                   {canWrite && isAuthor && editingId !== comment.id && (
                     <span className="ml-auto flex gap-1">
@@ -131,7 +137,7 @@ export default function IssueComments({
                         size="xs"
                         onClick={() => setEditingId(comment.id)}
                       >
-                        Editar
+                        {t("common.edit")}
                       </Button>
                       <Button
                         type="button"
@@ -141,7 +147,7 @@ export default function IssueComments({
                         disabled={deleteComment.isPending}
                         onClick={() => setCommentToDelete(comment)}
                       >
-                        Eliminar
+                        {t("common.delete")}
                       </Button>
                     </span>
                   )}
@@ -153,7 +159,7 @@ export default function IssueComments({
                   >
                     <Textarea
                       name="body"
-                      aria-label="Editar comentario"
+                      aria-label={t("issues.comments.editLabel")}
                       defaultValue={comment.body}
                       maxLength={COMMENT_MAX_LENGTH}
                       rows={3}
@@ -165,7 +171,7 @@ export default function IssueComments({
                         size="sm"
                         disabled={updateComment.isPending}
                       >
-                        {updateComment.isPending ? "Guardando..." : "Guardar"}
+                        {updateComment.isPending ? t("common.saving") : t("common.save")}
                       </Button>
                       <Button
                         type="button"
@@ -173,7 +179,7 @@ export default function IssueComments({
                         size="sm"
                         onClick={() => setEditingId(null)}
                       >
-                        Cancelar
+                        {t("common.cancel")}
                       </Button>
                     </div>
                     {updateComment.isError && (
@@ -200,8 +206,8 @@ export default function IssueComments({
           <span className="mt-1 size-9 shrink-0" aria-hidden="true" />
           <div className="flex min-w-0 flex-1 flex-col gap-2 rounded-xl border border-input bg-card p-3 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30">
             <Textarea
-              aria-label="Nuevo comentario"
-              placeholder="Escribe un comentario…"
+              aria-label={t("issues.comments.newLabel")}
+              placeholder={t("issues.comments.placeholder")}
               value={draft}
               onChange={(event) => setDraft(event.currentTarget.value)}
               maxLength={COMMENT_MAX_LENGTH}
@@ -217,7 +223,9 @@ export default function IssueComments({
                 size="sm"
                 disabled={createComment.isPending || !draft.trim()}
               >
-                {createComment.isPending ? "Comentando..." : "Comentar"}
+                {createComment.isPending
+                  ? t("issues.comments.submitting")
+                  : t("issues.comments.submit")}
               </Button>
             </div>
             {createComment.isError && (
@@ -229,10 +237,10 @@ export default function IssueComments({
 
       <ConfirmDialogComponent
         open={commentToDelete !== null}
-        title="¿Eliminar comentario?"
-        description="Esta acción no se puede deshacer."
-        confirmLabel="Eliminar comentario"
-        pendingLabel="Eliminando..."
+        title={t("issues.comments.deleteDialog.title")}
+        description={t("issues.comments.deleteDialog.description")}
+        confirmLabel={t("issues.comments.deleteDialog.confirm")}
+        pendingLabel={t("common.deleting")}
         isPending={deleteComment.isPending}
         destructive
         onClose={() => setCommentToDelete(null)}

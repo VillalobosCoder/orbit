@@ -4,6 +4,7 @@ import type { TokenService } from "../../application/auth/ports/token-service.po
 import type { RouteControllers } from "./routes/index.js";
 import { createApiRoutes } from "./routes/index.js";
 import { errorHandler } from "./middleware/error-handler.middleware.js";
+import { makeLocaleMiddleware } from "./middleware/locale.middleware.js";
 import { makeAuthMiddleware } from "./middleware/auth.middleware.js";
 import type { UserPermissionRepository } from "../../application/auth/ports/user-permission-repository.port.js";
 
@@ -15,6 +16,7 @@ export function createHttpApp(
   const app = express();
 
   app.disable("x-powered-by");
+  app.use(makeLocaleMiddleware());
   app.use(express.json({ limit: "16kb" }));
   app.use(cookieParser());
   app.use("/api", createApiRoutes(

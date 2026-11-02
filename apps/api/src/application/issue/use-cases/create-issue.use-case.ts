@@ -72,7 +72,7 @@ export class CreateIssueUseCase {
       const sprint = await this.sprints.findById({ id: input.id, sprintId });
 
       if (!sprint) {
-        throw new InvalidIssueReferenceError("El sprint");
+        throw new InvalidIssueReferenceError("sprint");
       }
 
       sprint.assertAcceptsIssues();
@@ -86,7 +86,7 @@ export class CreateIssueUseCase {
         : columns.find((item) => item.category === BoardColumnCategory.TODO);
 
     if (!column) {
-      throw new InvalidIssueReferenceError("La columna");
+      throw new InvalidIssueReferenceError("column");
     }
 
     return this.transaction.run(async () => {

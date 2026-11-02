@@ -13,6 +13,7 @@ import type {
   SaveCommentRequestDto,
 } from "@orbit/shared";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { t } from "@/i18n/locale-store";
 
 const commentsKey = ({ id, issueId }: IssueRequestDto) =>
   [PROJECTS, id, "issues", issueId, "comments"] as const;
@@ -37,7 +38,7 @@ export function useGetComments(issue: IssueRequestDto) {
         injectQuery<CommentDto[]>(commentsPath(issue), {
           method: HttpMethod.GET,
         }),
-        "La API no devolvió los comentarios.",
+        t("api.emptyComments"),
       ),
     staleTime: 0,
     refetchOnMount: true,

@@ -1,26 +1,45 @@
 import { DomainError } from "../shared/domain-error.js";
 
+export type IssueReference =
+  | "priority"
+  | "difficulty"
+  | "type"
+  | "parent"
+  | "column"
+  | "sprint"
+  | "neighbor";
+
+export type IssueParentReason =
+  | "onlySubtasks"
+  | "subtaskNeedsParent"
+  | "ownParent"
+  | "subtaskAsParent"
+  | "withChildren"
+  | "followsParentSprint";
+
+export type IssueAction = "move" | "changeSprint";
+
 export class IssueNotFoundError extends DomainError {
   readonly statusCode = 404;
 
   constructor(issueId: number) {
-    super(`No se encontró el issue ${issueId}.`);
+    super("errors.issue.notFound", { issueId });
   }
 }
 
 export class InvalidIssueReferenceError extends DomainError {
   readonly statusCode = 400;
 
-  constructor(reference: string) {
-    super(`${reference} no pertenece a este proyecto.`);
+  constructor(reference: IssueReference) {
+    super(`errors.issue.reference.${reference}`);
   }
 }
 
 export class InvalidIssueParentError extends DomainError {
   readonly statusCode = 400;
 
-  constructor(message: string) {
-    super(message);
+  constructor(reason: IssueParentReason) {
+    super(`errors.issue.parent.${reason}`);
   }
 }
 
@@ -28,14 +47,14 @@ export class InvalidIssueAssigneeError extends DomainError {
   readonly statusCode = 400;
 
   constructor(userId: number) {
-    super(`El usuario ${userId} no es miembro del proyecto.`);
+    super("errors.issue.assigneeNotMember", { userId });
   }
 }
 
 export class IssueActionNotAllowedError extends DomainError {
   readonly statusCode = 403;
 
-  constructor(action: string) {
-    super(`No tienes permiso para ${action}.`);
+  constructor(action: IssueAction) {
+    super(`errors.issue.actionNotAllowed.${action}`);
   }
 }

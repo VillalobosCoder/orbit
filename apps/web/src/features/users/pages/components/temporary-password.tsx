@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "@/i18n/use-i18n";
 
 interface TemporaryPasswordProps {
   title: string;
@@ -24,6 +25,7 @@ export default function TemporaryPassword({
   password,
   onClose,
 }: TemporaryPasswordProps) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -44,7 +46,7 @@ export default function TemporaryPassword({
       </DialogHeader>
       <div className="flex flex-col gap-2 rounded-lg border border-warning/40 bg-warning/10 p-4">
         <Label htmlFor="temporaryPassword" className="text-warning">
-          Contraseña temporal · se muestra una sola vez
+          {t("users.temporary.label")}
         </Label>
         <div className="flex gap-2">
           <Input
@@ -57,16 +59,16 @@ export default function TemporaryPassword({
           />
           <Button type="button" variant="outline" onClick={copyPassword}>
             {copied ? <Check /> : <Copy />}
-            {copied ? "Copiado" : "Copiar"}
+            {copied ? t("users.temporary.copied") : t("users.temporary.copy")}
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          La persona deberá cambiarla en su próximo inicio de sesión.
+          {t("users.temporary.hint")}
         </p>
       </div>
       <DialogFooter>
         <Button type="button" onClick={onClose}>
-          Listo
+          {t("users.temporary.done")}
         </Button>
       </DialogFooter>
     </>

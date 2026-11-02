@@ -2,6 +2,7 @@ import type { NextFunction, Response } from "express";
 import type { HomeSummaryDto } from "@orbit/shared";
 import type { GetHomeSummaryUseCase } from "../../../application/home/use-cases/get-home-summary.use-case.js";
 import type { AuthedRequest } from "../middleware/auth.middleware.js";
+import { sendError } from "../middleware/locale.middleware.js";
 
 export class HomeController {
   constructor(private readonly getHomeSummaryUseCase: GetHomeSummaryUseCase) {}
@@ -15,7 +16,7 @@ export class HomeController {
       const actorUserId = req.auth?.id;
 
       if (actorUserId === undefined) {
-        res.status(401).json({ error: "No autenticado." });
+        sendError(res, 401, "errors.http.notAuthenticated");
         return;
       }
 

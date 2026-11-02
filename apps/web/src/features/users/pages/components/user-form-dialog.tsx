@@ -28,6 +28,8 @@ import type {
   UserDetailDto,
   UserPermissionDto,
 } from "@orbit/shared";
+import { useI18n } from "@/i18n/use-i18n";
+import { moduleLabel } from "@/i18n/catalog";
 
 type PermissionFlags = Pick<UserPermissionDto, "canRead" | "canWrite">;
 
@@ -94,6 +96,7 @@ function UserForm({
   isSelf: boolean;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const isEditing = user !== undefined;
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
@@ -170,8 +173,8 @@ function UserForm({
   if (temporaryPassword) {
     return (
       <TemporaryPassword
-        title="Usuario creado"
-        description="Comparte esta contraseña temporal con el usuario. No se volverá a mostrar después de cerrar este diálogo."
+        title={t("users.form.createdTitle")}
+        description={t("users.form.createdDescription")}
         password={temporaryPassword}
         onClose={onClose}
       />
@@ -182,18 +185,20 @@ function UserForm({
     <form onSubmit={handleSubmit}>
       <DialogHeader>
         <DialogTitle>
-          {isEditing ? "Editar usuario" : "Nuevo usuario"}
+          {t(isEditing ? "users.form.editTitle" : "users.form.newTitle")}
         </DialogTitle>
         <DialogDescription>
           {isEditing
-            ? `Modifica los datos y permisos de ${user.name} ${user.lastName}.`
-            : "Ingresa los datos de la persona. El sistema generará una contraseña temporal que verás una sola vez."}
+            ? t("users.form.editDescription", {
+                name: `${user.name} ${user.lastName}`,
+              })
+            : t("users.form.newDescription")}
         </DialogDescription>
       </DialogHeader>
       <FieldGroup className="py-5">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field>
-            <Label htmlFor="name">Nombre</Label>
+            <Label htmlFor="name">{t("common.name")}</Label>
             <Input
               id="name"
               name="name"
@@ -204,7 +209,7 @@ function UserForm({
             />
           </Field>
           <Field>
-            <Label htmlFor="lastName">Apellido</Label>
+            <Label htmlFor="lastName">{t("common.lastName")}</Label>
             <Input
               id="lastName"
               name="lastName"
@@ -216,7 +221,7 @@ function UserForm({
           </Field>
         </div>
         <Field>
-          <Label htmlFor="email">Correo electrónico</Label>
+          <Label htmlFor="email">{t("common.email")}</Label>
           <Input
             id="email"
             name="email"
@@ -230,16 +235,16 @@ function UserForm({
 
         {isSelf ? (
           <p className="rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-muted-foreground">
-            No puedes modificar tus propios permisos.
+            {t("users.form.ownPermissions")}
           </p>
         ) : (
           <fieldset className="flex flex-col gap-2">
             <div className="flex items-baseline justify-between">
               <legend className="text-sm font-medium">
-                Permisos por módulo
+                {t("users.form.permissionsLegend")}
               </legend>
               <span className="text-xs text-muted-foreground">
-                Escribir incluye leer
+                {t("users.form.writeIncludesRead")}
               </span>
             </div>
             {modulesQuery.isPending && (
@@ -248,21 +253,20 @@ function UserForm({
                 className="flex items-center gap-2 text-sm text-muted-foreground"
               >
                 <Spinner />
-                Cargando módulos...
+                {t("users.form.loadingModules")}
               </p>
             )}
             {modulesQuery.isError && (
               <ErrorMessage>
-                No se pudieron cargar los módulos. Intenta de nuevo antes de
-                guardar.
+                {t("users.form.modulesError")}
               </ErrorMessage>
             )}
             {modulesQuery.data && (
               <div className="max-h-80 overflow-y-auto rounded-lg border border-border">
                 <div className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] items-center bg-muted/60 px-4 py-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                  <span>Módulo</span>
-                  <span className="text-center">Leer</span>
-                  <span className="text-center">Escribir</span>
+                  <span>{t("users.form.moduleColumn")}</span>
+                  <span className="text-center">{t("users.form.read")}</span>
+                  <span className="text-center">{t("users.form.write")}</span>
                 </div>
                 {modulesQuery.data.map((module) => {
                   const flags = permissions[module.key] ?? {
@@ -276,7 +280,7 @@ function UserForm({
                   const parentGranted = Boolean(
                     parentFlags?.canRead || parentFlags?.canWrite,
                   );
-                  const label = module.name;
+                  const label = moduleLabel(t, module.key, module.name);
 
                   return (
                     <div
@@ -302,7 +306,7 @@ function UserForm({
                           </span>
                         ) : (
                           <Checkbox
-                            aria-label={`${label}: leer`}
+                            aria-label={t("users.form.readOf", { label })}
                             checked={flags.canRead}
                             onCheckedChange={(checked) =>
                               setFlag(module.key, "canRead", checked)
@@ -312,7 +316,7 @@ function UserForm({
                       </span>
                       <span className="flex justify-center">
                         <Checkbox
-                          aria-label={`${label}: escribir`}
+                          aria-label={t("users.form.writeOf", { label })}
                           checked={flags.canWrite}
                           disabled={isChild && !parentGranted}
                           onCheckedChange={(checked) =>
@@ -326,9 +330,7 @@ function UserForm({
               </div>
             )}
             <p className="text-xs text-muted-foreground">
-              Las subsecciones de Proyectos solo se activan si la persona puede
-              leer Proyectos. Editar proyectos y comentar requieren Escribir en
-              Proyectos.
+              {t("users.form.subsectionsHint")}
             </p>
           </fieldset>
         )}
@@ -336,7 +338,7 @@ function UserForm({
       </FieldGroup>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>
-          Cancelar
+          {t("common.cancel")}
         </Button>
         <Button
           type="submit"
@@ -347,11 +349,11 @@ function UserForm({
         >
           {isEditing
             ? mutation.isPending
-              ? "Guardando..."
-              : "Guardar cambios"
+              ? t("common.saving")
+              : t("common.saveChanges")
             : mutation.isPending
-              ? "Creando usuario..."
-              : "Crear usuario"}
+              ? t("users.form.creating")
+              : t("users.form.create")}
         </Button>
       </DialogFooter>
     </form>

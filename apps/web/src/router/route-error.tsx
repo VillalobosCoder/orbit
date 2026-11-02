@@ -3,18 +3,21 @@ import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { StatusPageComponent } from "@/shared/ui/custom-components/status-page-component";
+import { useI18n } from "@/i18n/use-i18n";
 
 export default function RouteErrorPage() {
+  const { t } = useI18n();
+
   return (
     <div className="flex min-h-svh bg-background p-6">
       <StatusPageComponent
         code="500"
-        title="Algo salió de órbita."
-        description="Ocurrió un error inesperado al mostrar esta pantalla. Intenta recargar la página."
+        title={t("shell.routeError.title")}
+        description={t("shell.routeError.description")}
       >
         <Button size="lg" onClick={() => window.location.reload()}>
           <RotateCw />
-          Recargar
+          {t("common.reload")}
         </Button>
         <Button
           size="lg"
@@ -23,7 +26,7 @@ export default function RouteErrorPage() {
           render={<Link to="/" reloadDocument />}
         >
           <House />
-          Volver al inicio
+          {t("common.goHome")}
         </Button>
       </StatusPageComponent>
     </div>

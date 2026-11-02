@@ -23,6 +23,7 @@ import {
   type SprintDto,
 } from "@orbit/shared";
 import { countDays } from "../utils/format-date";
+import { useI18n } from "@/i18n/use-i18n";
 
 interface SprintFormDialogProps {
   project: ProjectDto;
@@ -36,6 +37,7 @@ export default function SprintFormDialog({
   sprint,
   onClose,
 }: SprintFormDialogProps) {
+  const { t } = useI18n();
   const isEditing = sprint !== undefined;
   const createSprint = useCreateSprint();
   const updateSprint = useUpdateSprint();
@@ -85,17 +87,17 @@ export default function SprintFormDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>
-              {isEditing ? "Editar sprint" : "Nuevo sprint"}
+              {t(isEditing ? "sprints.form.editTitle" : "sprints.form.newTitle")}
             </DialogTitle>
             <DialogDescription>
               {isEditing
-                ? `Modifica los datos de ${sprint.name}.`
-                : "Nace como «Planeado». Solo puede haber un sprint activo a la vez."}
+                ? t("sprints.form.editDescription", { name: sprint.name })
+                : t("sprints.form.newDescription")}
             </DialogDescription>
           </DialogHeader>
           <FieldGroup className="py-5">
             <Field>
-              <Label htmlFor="name">Nombre</Label>
+              <Label htmlFor="name">{t("common.name")}</Label>
               <Input
                 id="name"
                 name="name"
@@ -106,9 +108,9 @@ export default function SprintFormDialog({
             </Field>
             <Field>
               <Label htmlFor="goal">
-                Objetivo
+                {t("sprints.form.goal")}
                 <span className="font-normal text-muted-foreground">
-                  opcional
+                  {t("common.optional")}
                 </span>
               </Label>
               <Textarea
@@ -124,7 +126,7 @@ export default function SprintFormDialog({
             </Field>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field>
-                <Label htmlFor="startDate">Inicio</Label>
+                <Label htmlFor="startDate">{t("sprints.form.startDate")}</Label>
                 <Input
                   id="startDate"
                   type="date"
@@ -133,7 +135,7 @@ export default function SprintFormDialog({
                 />
               </Field>
               <Field>
-                <Label htmlFor="endDate">Fin</Label>
+                <Label htmlFor="endDate">{t("sprints.form.endDate")}</Label>
                 <Input
                   id="endDate"
                   type="date"
@@ -150,13 +152,13 @@ export default function SprintFormDialog({
                 className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
               >
                 <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
-                La fecha de fin no puede ser anterior a la de inicio.
+                {t("sprints.form.invalidRange")}
               </p>
             ) : (
               days !== null && (
                 <p className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-muted-foreground">
                   <Clock className="size-4 shrink-0 text-info" aria-hidden="true" />
-                  Duración: {days} {days === 1 ? "día" : "días"}
+                  {t("sprints.form.duration", { count: days })}
                 </p>
               )
             )}
@@ -172,16 +174,16 @@ export default function SprintFormDialog({
           </FieldGroup>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={mutation.isPending || hasInvalidRange}>
               {isEditing
                 ? mutation.isPending
-                  ? "Guardando..."
-                  : "Guardar cambios"
+                  ? t("common.saving")
+                  : t("common.saveChanges")
                 : mutation.isPending
-                  ? "Creando sprint..."
-                  : "Crear sprint"}
+                  ? t("sprints.form.creating")
+                  : t("sprints.form.create")}
             </Button>
           </DialogFooter>
         </form>

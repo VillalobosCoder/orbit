@@ -15,6 +15,7 @@ import type {
   UpdateProjectRequestDto,
 } from "@orbit/shared";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { t } from "@/i18n/locale-store";
 
 function invalidateProjects() {
   queryClient.invalidateQueries({ queryKey: [PROJECTS] });
@@ -27,7 +28,7 @@ export function useGetProjects({ enabled = true }: { enabled?: boolean } = {}) {
     queryFn: () =>
       requireData(
         injectQuery<ProjectDto[]>([PROJECTS], { method: HttpMethod.GET }),
-        "La API no devolvió los proyectos.",
+        t("api.emptyProjects"),
       ),
   });
 }
@@ -40,7 +41,7 @@ export function useGetProject(id: number) {
         injectQuery<ProjectDto>([PROJECTS, `/${id}`], {
           method: HttpMethod.GET,
         }),
-        "La API no devolvió el proyecto.",
+        t("api.emptyProject"),
       ),
   });
 }
@@ -53,7 +54,7 @@ export function useGetProjectMembers(id: number) {
         injectQuery<ProjectMemberDto[]>([PROJECTS, `/${id}`, MEMBERS], {
           method: HttpMethod.GET,
         }),
-        "La API no devolvió los miembros.",
+        t("api.emptyMembers"),
       ),
   });
 }
@@ -68,7 +69,7 @@ export function useGetAvailableUsers(id: number, { enabled }: { enabled: boolean
           [PROJECTS, `/${id}`, AVAILABLE_USERS],
           { method: HttpMethod.GET },
         ),
-        "La API no devolvió los usuarios disponibles.",
+        t("api.emptyAvailableUsers"),
       ),
   });
 }

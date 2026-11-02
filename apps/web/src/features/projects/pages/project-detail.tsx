@@ -16,8 +16,10 @@ import {
 } from "../api/queries";
 import ProjectFormDialog from "./components/project-form-dialog";
 import ProjectMembers from "./components/project-members";
+import { useI18n } from "@/i18n/use-i18n";
 
 export default function ProjectDetailPage() {
+  const { t } = useI18n();
   const { id } = useParams();
   const projectId = Number(id);
   const { user } = useAuth();
@@ -48,7 +50,7 @@ export default function ProjectDetailPage() {
   if (error || !project) {
     return (
       <div className="m-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-        <p role="alert">{error?.message ?? "Proyecto no encontrado."}</p>
+        <p role="alert">{error?.message ?? t("projects.detail.notFound")}</p>
         {error && (
           <Button
             type="button"
@@ -57,7 +59,7 @@ export default function ProjectDetailPage() {
             disabled={isRefetching}
             onClick={() => void refetch()}
           >
-            {isRefetching ? "Reintentando..." : "Reintentar"}
+            {t(isRefetching ? "projects.detail.retrying" : "projects.detail.retry")}
           </Button>
         )}
       </div>
@@ -113,7 +115,7 @@ export default function ProjectDetailPage() {
             onClick={() => setView("members")}
           >
             <Users />
-            Miembros
+            {t("projects.detail.members")}
             {members.data && (
               <span className="text-muted-foreground">
                 · {members.data.length}
@@ -127,7 +129,7 @@ export default function ProjectDetailPage() {
               onClick={() => setIsEditing(true)}
             >
               <Pencil />
-              Editar proyecto
+              {t("projects.detail.editProject")}
             </Button>
           )}
           {canWrite && isOwner && (
@@ -137,7 +139,7 @@ export default function ProjectDetailPage() {
               onClick={() => setIsConfirmingDelete(true)}
             >
               <Trash2 />
-              Eliminar
+              {t("projects.detail.deleteProject")}
             </Button>
           )}
         </div>
@@ -152,19 +154,18 @@ export default function ProjectDetailPage() {
       )}
       <ConfirmDialogComponent
         open={isConfirmingDelete}
-        title="¿Eliminar proyecto?"
+        title={t("projects.deleteDialog.title")}
         description={
           <>
-            Se eliminará{" "}
+            {t("projects.deleteDialog.before")}{" "}
             <strong className="font-medium text-foreground">
               {project.projectKey} · {project.name}
             </strong>{" "}
-            y dejará de estar disponible para todos sus miembros. No hay forma
-            de recuperarlo desde la aplicación.
+            {t("projects.deleteDialog.after")}
           </>
         }
-        confirmLabel="Eliminar proyecto"
-        pendingLabel="Eliminando..."
+        confirmLabel={t("projects.deleteDialog.confirm")}
+        pendingLabel={t("common.deleting")}
         isPending={deleteProject.isPending}
         destructive
         onClose={() => setIsConfirmingDelete(false)}

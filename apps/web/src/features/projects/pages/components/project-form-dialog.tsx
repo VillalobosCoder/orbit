@@ -24,6 +24,7 @@ import {
   type ProjectDto,
   type UpdateProjectRequestDto,
 } from "@orbit/shared";
+import { useI18n } from "@/i18n/use-i18n";
 
 interface ProjectFormDialogProps {
   project?: ProjectDto;
@@ -37,6 +38,7 @@ export default function ProjectFormDialog({
   onClose,
   onCreated,
 }: ProjectFormDialogProps) {
+  const { t } = useI18n();
   const isEditing = project !== undefined;
   const createProject = useCreateProject();
   const updateProject = useUpdateProject();
@@ -81,18 +83,20 @@ export default function ProjectFormDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>
-              {isEditing ? "Editar proyecto" : "Nuevo proyecto"}
+              {t(isEditing ? "projects.form.editTitle" : "projects.form.newTitle")}
             </DialogTitle>
             <DialogDescription>
-              {isEditing
-                ? "Cambia el nombre o la descripción. La clave es permanente."
-                : "Serás el propietario y el primer miembro. Nace con las columnas y los tipos de issue por defecto."}
+              {t(
+                isEditing
+                  ? "projects.form.editDescription"
+                  : "projects.form.newDescription",
+              )}
             </DialogDescription>
           </DialogHeader>
           <FieldGroup className="py-5">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-[9rem_minmax(0,1fr)]">
               <Field>
-                <Label htmlFor="projectKey">Clave</Label>
+                <Label htmlFor="projectKey">{t("projects.form.key")}</Label>
                 <div className="relative">
                   <Input
                     id="projectKey"
@@ -113,17 +117,17 @@ export default function ProjectFormDialog({
                   />
                   {isEditing && (
                     <Lock
-                      aria-label="Solo lectura"
+                      aria-label={t("projects.form.keyReadOnly")}
                       className="absolute top-1/2 right-3 size-3.5 -translate-y-1/2 text-muted-foreground"
                     />
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {isEditing ? "Inmutable" : "2–10 letras o números"}
+                  {t(isEditing ? "projects.form.keyImmutable" : "projects.form.keyHint")}
                 </p>
               </Field>
               <Field>
-                <Label htmlFor="name">Nombre</Label>
+                <Label htmlFor="name">{t("common.name")}</Label>
                 <Input
                   id="name"
                   name="name"
@@ -137,17 +141,16 @@ export default function ProjectFormDialog({
             {!isEditing && (
               <p className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-muted-foreground">
                 <span className="font-mono text-info">
-                  {projectKey || "CLAVE"}-1
+                  {projectKey || t("projects.form.keyPlaceholder")}-1
                 </span>
-                Así se verán las claves de tus issues. No se podrá cambiar
-                después.
+                {t("projects.form.keyPreview")}
               </p>
             )}
             <Field>
               <Label htmlFor="description">
-                Descripción
+                {t("projects.form.description")}
                 <span className="font-normal text-muted-foreground">
-                  opcional
+                  {t("common.optional")}
                 </span>
               </Label>
               <Textarea
@@ -173,16 +176,16 @@ export default function ProjectFormDialog({
           </FieldGroup>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={mutation.isPending}>
               {isEditing
                 ? mutation.isPending
-                  ? "Guardando..."
-                  : "Guardar cambios"
+                  ? t("common.saving")
+                  : t("common.saveChanges")
                 : mutation.isPending
-                  ? "Creando proyecto..."
-                  : "Crear proyecto"}
+                  ? t("projects.form.creating")
+                  : t("projects.form.create")}
             </Button>
           </DialogFooter>
         </form>

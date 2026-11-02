@@ -14,6 +14,7 @@ import {
   IssueTypeIcon,
   PriorityIcon,
 } from "./issue-visuals";
+import { useI18n } from "@/i18n/use-i18n";
 
 interface IssueCardProps {
   issue: IssueDto;
@@ -51,6 +52,8 @@ export default function IssueCard({
   onDragEnd,
   onDragOver,
 }: IssueCardProps) {
+  const { t } = useI18n();
+
   return (
     <li
       draggable={draggable}
@@ -71,7 +74,7 @@ export default function IssueCard({
         {parentKey && (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <CornerDownRight className="size-3" aria-hidden="true" />
-            Subtarea de {parentKey}
+            {t("issues.board.subtaskOf", { key: parentKey })}
           </span>
         )}
         <span

@@ -8,8 +8,10 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/context/auth/use-auth";
 import { useLogin } from "@/features/auth/api/queries";
+import { useI18n } from "@/i18n/use-i18n";
 
 export default function Login() {
+  const { t } = useI18n();
   const { isLoading, sessionError } = useAuth();
   const loginMutation = useLogin();
 
@@ -38,20 +40,19 @@ export default function Login() {
           Orbit
         </div>
         <h1 className="mt-7 text-4xl leading-tight font-bold tracking-tight">
-          Tu equipo, en la misma órbita.
+          {t("auth.login.tagline")}
         </h1>
         <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-          Proyectos, tableros y sprints en un solo lugar. Inicia sesión con la
-          cuenta que te creó tu administrador.
+          {t("auth.login.intro")}
         </p>
       </section>
 
       <main className="w-full max-w-md flex-1 basis-96">
         <div className="rounded-2xl border bg-card p-8 shadow-lg">
           <div>
-            <h2 className="text-xl font-semibold">Iniciar sesión</h2>
+            <h2 className="text-xl font-semibold">{t("auth.login.title")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Bienvenido de vuelta.
+              {t("auth.login.welcomeBack")}
             </p>
           </div>
 
@@ -66,19 +67,19 @@ export default function Login() {
             <form onSubmit={handleSubmit} className="mt-6">
               <FieldGroup>
                 <Field>
-                  <FieldLabel htmlFor="email">Correo electrónico</FieldLabel>
+                  <FieldLabel htmlFor="email">{t("common.email")}</FieldLabel>
                   <Input
                     id="email"
                     name="email"
                     type="email"
                     autoComplete="email"
-                    placeholder="tu@correo.com"
+                    placeholder={t("auth.login.emailPlaceholder")}
                     aria-invalid={errorMessage ? true : undefined}
                     required
                   />
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="password">Contraseña</FieldLabel>
+                  <FieldLabel htmlFor="password">{t("common.password")}</FieldLabel>
                   <PasswordInput
                     id="password"
                     name="password"
@@ -108,14 +109,14 @@ export default function Login() {
                   type="submit"
                   disabled={loginMutation.isPending}
                 >
-                  {loginMutation.isPending ? <Spinner /> : "Iniciar sesión"}
+                  {loginMutation.isPending ? <Spinner /> : t("auth.login.submit")}
                 </Button>
               </FieldGroup>
             </form>
           )}
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            ¿Sin cuenta o sin acceso? Pide a un administrador que la cree.
+            {t("auth.login.noAccess")}
           </p>
         </div>
       </main>

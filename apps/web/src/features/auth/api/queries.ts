@@ -8,6 +8,7 @@ import type {
   UpdateProfileRequestDto,
 } from "@orbit/shared";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { t } from "@/i18n/locale-store";
 
 export function useLogin() {
   const { login } = useAuth();
@@ -20,7 +21,7 @@ export function useLogin() {
       });
 
       if (!response) {
-        throw new Error("La API no devolvió los datos de la sesión.");
+        throw new Error(t("api.emptySession"));
       }
 
       return response;
@@ -41,7 +42,7 @@ export function useUpdateProfile() {
       });
 
       if (!response) {
-        throw new Error("La API no devolvió los datos de la sesión.");
+        throw new Error(t("api.emptySession"));
       }
 
       return response;
@@ -63,7 +64,7 @@ export function useUploadAvatar() {
       });
 
       if (!response) {
-        throw new Error("La API no devolvió los datos de la sesión.");
+        throw new Error(t("api.emptySession"));
       }
 
       return response;
@@ -83,7 +84,7 @@ export function useRemoveAvatar() {
       });
 
       if (!response) {
-        throw new Error("La API no devolvió los datos de la sesión.");
+        throw new Error(t("api.emptySession"));
       }
 
       return response;
@@ -104,7 +105,7 @@ export function useChangePassword() {
       });
 
       if (!response) {
-        throw new Error("La API no devolvió los datos de la sesión.");
+        throw new Error(t("api.emptySession"));
       }
 
       return response;

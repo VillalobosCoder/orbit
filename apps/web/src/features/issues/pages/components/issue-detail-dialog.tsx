@@ -16,8 +16,10 @@ import {
 import { useGetPlanning } from "@/features/sprints/api/queries";
 import { useGetBoard, useGetIssueOptions } from "../../api/queries";
 import IssueDialog from "./issue-dialog";
+import { useI18n } from "@/i18n/use-i18n";
 
 export default function IssueDetailDialog() {
+  const { t } = useI18n();
   const params = useParams();
   const projectId = Number(params.id);
   const issueId = Number(params.issueId);
@@ -44,7 +46,7 @@ export default function IssueDetailDialog() {
               {title}
             </DialogTitle>
             <DialogDescription className="sr-only">
-              Cargando los datos del issue.
+              {t("issues.loader.loadingDescription")}
             </DialogDescription>
           </DialogHeader>
         )}
@@ -58,7 +60,7 @@ export default function IssueDetailDialog() {
     options.isLoading ||
     members.isLoading
   ) {
-    return shell("Cargando issue...", null);
+    return shell(t("issues.loader.loading"), null);
   }
 
   const loadError = [project, board, options, members].find(
@@ -67,12 +69,12 @@ export default function IssueDetailDialog() {
 
   if (loadError) {
     return shell(
-      "No se pudo cargar el issue",
+      t("issues.loader.loadFailed"),
       <>
         <DialogHeader>
-          <DialogTitle>No se pudo cargar el issue</DialogTitle>
+          <DialogTitle>{t("issues.loader.loadFailed")}</DialogTitle>
           <DialogDescription className="sr-only">
-            Ocurrió un error al cargar los datos del issue.
+            {t("issues.loader.loadFailedDescription")}
           </DialogDescription>
         </DialogHeader>
         <p role="alert" className="text-sm text-destructive">
@@ -90,16 +92,16 @@ export default function IssueDetailDialog() {
 
   if (!issue) {
     return shell(
-      "Issue no encontrado",
+      t("issues.loader.notFound"),
       <>
         <DialogHeader>
-          <DialogTitle>Issue no encontrado</DialogTitle>
+          <DialogTitle>{t("issues.loader.notFound")}</DialogTitle>
           <DialogDescription className="sr-only">
-            El issue solicitado no existe.
+            {t("issues.loader.notFoundDescription")}
           </DialogDescription>
         </DialogHeader>
         <p role="alert" className="text-sm text-destructive">
-          Este issue no existe o fue eliminado.
+          {t("issues.loader.notFoundBody")}
         </p>
       </>,
     );
