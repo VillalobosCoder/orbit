@@ -17,6 +17,8 @@ export const toasts = {
   issueUpdated: "Issue actualizado.",
   issueDeleted: "Issue eliminado.",
   commentDeleted: "Comentario eliminado.",
+  attachmentAdded: "Archivo adjuntado.",
+  attachmentDeleted: "Adjunto eliminado.",
   columnsUpdated: "Columnas actualizadas.",
 };
 

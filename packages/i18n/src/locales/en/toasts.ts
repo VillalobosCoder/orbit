@@ -19,6 +19,8 @@ export const toasts: Messages["toasts"] = {
   issueUpdated: "Issue updated.",
   issueDeleted: "Issue deleted.",
   commentDeleted: "Comment deleted.",
+  attachmentAdded: "File attached.",
+  attachmentDeleted: "Attachment removed.",
   columnsUpdated: "Columns updated.",
 };
 

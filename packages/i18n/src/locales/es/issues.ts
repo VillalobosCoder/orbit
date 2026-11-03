@@ -30,6 +30,18 @@ export const issues = {
     notFoundDescription: "El issue solicitado no existe.",
     notFoundBody: "Este issue no existe o fue eliminado.",
   },
+  attachments: {
+    title: "Fotos y videos",
+    add: "Adjuntar",
+    empty: "Sin fotos ni videos.",
+    limit: "Un issue admite como máximo {max} adjuntos.",
+    invalidType: "«{name}» no es una imagen (PNG, JPG, WebP, GIF) ni un video (MP4, WebM).",
+    tooLarge: "«{name}» supera el máximo de {max} MB.",
+    remove: "Quitar {name}",
+    deleteTitle: "Quitar adjunto",
+    deleteDescription: "«{name}» se eliminará del issue. Esta acción no se puede deshacer.",
+    deleteConfirm: "Quitar",
+  },
   dialog: {
     newTitle: "Nuevo issue",
     editingTitle: "Editando {key}",

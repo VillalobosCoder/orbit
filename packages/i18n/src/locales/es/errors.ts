@@ -24,6 +24,12 @@ export const errors = {
     notFound: "No se encontró el comentario {commentId}.",
     onlyAuthor: "Solo el autor puede modificar o borrar su comentario.",
   },
+  attachment: {
+    notFound: "No se encontró el adjunto {attachmentId}.",
+    invalid: "El archivo debe ser una imagen (PNG, JPG, WebP, GIF) o un video (MP4, WebM) válido.",
+    tooLarge: "El archivo no puede superar los {maxMegabytes} MB.",
+    tooMany: "Un issue admite como máximo {max} adjuntos.",
+  },
   boardColumn: {
     notFound: "No se encontró la columna {columnId}.",
     nameExists: 'Ya existe una columna llamada "{name}" en este proyecto.',

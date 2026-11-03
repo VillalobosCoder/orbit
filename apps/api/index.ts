@@ -8,6 +8,7 @@ import { JwtTokenService } from "./src/infrastructure/security/jwt-token-service
 import { DBUserPermissionRepository } from "./src/infrastructure/db/repositories/db-user-permission.repository.js";
 import { DBBoardColumnRepository } from "./src/infrastructure/db/repositories/db-board-column.repository.js";
 import { DBSprintRepository } from "./src/infrastructure/db/repositories/db-sprint.repository.js";
+import { DBAttachmentRepository } from "./src/infrastructure/db/repositories/db-attachment.repository.js";
 import { DBCommentRepository } from "./src/infrastructure/db/repositories/db-comment.repository.js";
 import { DBIssueCatalogRepository } from "./src/infrastructure/db/repositories/db-issue-catalog.repository.js";
 import { DBIssueRepository } from "./src/infrastructure/db/repositories/db-issue.repository.js";
@@ -31,6 +32,7 @@ const projectMemberRepository = new DBProjectMemberRepository(dbContext);
 const issueRepository = new DBIssueRepository(dbContext);
 const issueCatalogRepository = new DBIssueCatalogRepository(dbContext);
 const commentRepository = new DBCommentRepository(dbContext);
+const attachmentRepository = new DBAttachmentRepository(dbContext);
 const sprintRepository = new DBSprintRepository(dbContext);
 const boardColumnRepository = new DBBoardColumnRepository(dbContext);
 const fileRepository = new DBFileRepository(dbContext);
@@ -52,6 +54,7 @@ const controllers = createControllers({
   commentRepository,
   sprintRepository,
   boardColumnRepository,
+  attachmentRepository,
   fileRepository,
   fileStorage,
   homeRepository,

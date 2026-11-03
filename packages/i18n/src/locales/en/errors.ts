@@ -26,6 +26,12 @@ export const errors: Messages["errors"] = {
     notFound: "Comment {commentId} was not found.",
     onlyAuthor: "Only the author can edit or delete their comment.",
   },
+  attachment: {
+    notFound: "Attachment {attachmentId} was not found.",
+    invalid: "The file must be a valid image (PNG, JPG, WebP, GIF) or video (MP4, WebM).",
+    tooLarge: "The file cannot exceed {maxMegabytes} MB.",
+    tooMany: "An issue can have at most {max} attachments.",
+  },
   boardColumn: {
     notFound: "Column {columnId} was not found.",
     nameExists: 'A column named "{name}" already exists in this project.',

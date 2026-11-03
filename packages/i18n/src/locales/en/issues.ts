@@ -32,6 +32,18 @@ export const issues: Messages["issues"] = {
     notFoundDescription: "The requested issue does not exist.",
     notFoundBody: "This issue doesn't exist or was deleted.",
   },
+  attachments: {
+    title: "Photos and videos",
+    add: "Attach",
+    empty: "No photos or videos.",
+    limit: "An issue can have at most {max} attachments.",
+    invalidType: "“{name}” is not an image (PNG, JPG, WebP, GIF) or a video (MP4, WebM).",
+    tooLarge: "“{name}” exceeds the {max} MB limit.",
+    remove: "Remove {name}",
+    deleteTitle: "Remove attachment",
+    deleteDescription: "“{name}” will be removed from the issue. This cannot be undone.",
+    deleteConfirm: "Remove",
+  },
   dialog: {
     newTitle: "New issue",
     editingTitle: "Editing {key}",

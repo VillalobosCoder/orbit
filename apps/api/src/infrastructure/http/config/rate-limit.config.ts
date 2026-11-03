@@ -9,4 +9,5 @@ export const RATE_LIMITS = {
   login: { windowMs: FIFTEEN_MINUTES_MS, limit: 5 },
   changePassword: { windowMs: FIFTEEN_MINUTES_MS, limit: 10 },
   uploadAvatar: { windowMs: FIFTEEN_MINUTES_MS, limit: 20 },
+  uploadAttachment: { windowMs: FIFTEEN_MINUTES_MS, limit: 50 },
 } as const satisfies Record<string, RateLimitConfig>;

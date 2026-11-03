@@ -1,0 +1,44 @@
+import type { AttachmentRequestDto } from "@orbit/shared";
+import { AttachmentNotFoundError } from "../../../domain/attachment/attachment.errors.js";
+import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
+import type { FileRepository } from "../../file/ports/file-repository.port.js";
+import type { FileStorage } from "../../file/ports/file-storage.port.js";
+import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
+import type { Actor } from "../../shared/actor.js";
+import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
+import type { AttachmentRepository } from "../ports/attachment-repository.port.js";
+
+export type DeleteAttachmentInput = AttachmentRequestDto & Actor;
+
+export class DeleteAttachmentUseCase {
+  constructor(
+    private readonly projects: ProjectRepository,
+    private readonly attachments: AttachmentRepository,
+    private readonly fileRepository: FileRepository,
+    private readonly storage: FileStorage,
+    private readonly transaction: TransactionManager,
+  ) {}
+
+  async execute(input: DeleteAttachmentInput): Promise<void> {
+    const project = await this.projects.findByIdForMember({
+      id: input.id,
+      userId: input.actorUserId,
+    });
+
+    if (!project) {
+      throw new ProjectNotFoundError(input.id);
+    }
+
+    const file = await this.attachments.findFileById(input);
+
+    if (!file) {
+      throw new AttachmentNotFoundError(input.attachmentId);
+    }
+
+    await this.transaction.run(async () => {
+      await this.attachments.delete(input);
+      await this.fileRepository.delete({ id: file.fileId });
+    });
+    await this.storage.delete(file.storageKey).catch(() => undefined);
+  }
+}

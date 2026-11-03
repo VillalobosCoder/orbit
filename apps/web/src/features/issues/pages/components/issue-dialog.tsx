@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { UserMultiSelectComponent } from "@/components/ui/user-multi-select-component";
 import { useAuth } from "@/context/auth/use-auth";
 import { usePermission } from "@/context/auth/use-permission";
+import IssueAttachments from "./issue-attachments";
 import IssueComments from "@/features/comments/pages/components/issue-comments";
 import {
   useCreateIssue,
@@ -395,6 +396,13 @@ export default function IssueDialog({
                 </p>
               )}
             </section>
+
+            {issue && (
+              <IssueAttachments
+                issue={{ id: project.id, issueId: issue.id }}
+                canWrite={canWriteIssues && isEditing}
+              />
+            )}
 
             {issue && (subtasks.length > 0 || canAddSubtask) && (
               <section className="flex flex-col gap-3">

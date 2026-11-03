@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { RequestHandler } from "express";
 import type { AuthController } from "../controllers/auth.controller.js";
 import type { UserController } from "../controllers/user.controller.js";
+import type { AttachmentController } from "../controllers/attachment.controller.js";
 import type { CommentController } from "../controllers/comment.controller.js";
 import type { SprintController } from "../controllers/sprint.controller.js";
 import type { BoardColumnController } from "../controllers/board-column.controller.js";
@@ -13,6 +14,7 @@ import { createHomeRoutes } from "./home.routes.js";
 import { createAuthRoutes } from "./auth.routes.js";
 import { UserRoutes } from "./user.routes.js";
 import { createModuleRoutes } from "./module.routes.js";
+import { createAttachmentRoutes } from "./attachment.routes.js";
 import { createCommentRoutes } from "./comment.routes.js";
 import { createBoardColumnRoutes } from "./board-column.routes.js";
 import { createIssueRoutes } from "./issue.routes.js";
@@ -29,6 +31,7 @@ export interface RouteControllers {
   projects: ProjectController;
   issues: IssueController;
   comments: CommentController;
+  attachments: AttachmentController;
   sprints: SprintController;
   boardColumns: BoardColumnController;
 }
@@ -53,6 +56,14 @@ export function createApiRoutes(
   router.use(
     "/projects/:id/issues/:issueId/comments",
     createCommentRoutes(controllers.comments, authenticateReady, permissions),
+  );
+  router.use(
+    "/projects/:id/issues/:issueId/attachments",
+    createAttachmentRoutes(
+      controllers.attachments,
+      authenticateReady,
+      permissions,
+    ),
   );
   router.use(
     "/projects/:id",

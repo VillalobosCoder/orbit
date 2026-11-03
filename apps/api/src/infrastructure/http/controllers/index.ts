@@ -53,6 +53,12 @@ import { DeleteCommentUseCase } from "../../../application/comment/use-cases/del
 import { GetCommentsUseCase } from "../../../application/comment/use-cases/get-comments.use-case.js";
 import { UpdateCommentUseCase } from "../../../application/comment/use-cases/update-comment.use-case.js";
 import { CommentController } from "./comment.controller.js";
+import type { AttachmentRepository } from "../../../application/attachment/ports/attachment-repository.port.js";
+import { DeleteAttachmentUseCase } from "../../../application/attachment/use-cases/delete-attachment.use-case.js";
+import { GetAttachmentContentUseCase } from "../../../application/attachment/use-cases/get-attachment-content.use-case.js";
+import { GetAttachmentsUseCase } from "../../../application/attachment/use-cases/get-attachments.use-case.js";
+import { UploadAttachmentUseCase } from "../../../application/attachment/use-cases/upload-attachment.use-case.js";
+import { AttachmentController } from "./attachment.controller.js";
 import type { SprintRepository } from "../../../application/sprint/ports/sprint-repository.port.js";
 import { AssignIssueSprintUseCase } from "../../../application/sprint/use-cases/assign-issue-sprint.use-case.js";
 import { CloseSprintUseCase } from "../../../application/sprint/use-cases/close-sprint.use-case.js";
@@ -81,6 +87,7 @@ export interface ControllerDependencies {
   issueRepository: IssueRepository;
   issueCatalogRepository: IssueCatalogRepository;
   commentRepository: CommentRepository;
+  attachmentRepository: AttachmentRepository;
   sprintRepository: SprintRepository;
   boardColumnRepository: BoardColumnRepository;
   fileRepository: FileRepository;
@@ -252,6 +259,33 @@ export function createControllers(dependencies: ControllerDependencies) {
       new DeleteCommentUseCase(
         dependencies.projectRepository,
         dependencies.commentRepository,
+      ),
+    ),
+    attachments: new AttachmentController(
+      new GetAttachmentsUseCase(
+        dependencies.projectRepository,
+        dependencies.issueRepository,
+        dependencies.attachmentRepository,
+      ),
+      new UploadAttachmentUseCase(
+        dependencies.projectRepository,
+        dependencies.issueRepository,
+        dependencies.attachmentRepository,
+        dependencies.fileRepository,
+        dependencies.fileStorage,
+        dependencies.transaction,
+      ),
+      new GetAttachmentContentUseCase(
+        dependencies.projectRepository,
+        dependencies.attachmentRepository,
+        dependencies.fileStorage,
+      ),
+      new DeleteAttachmentUseCase(
+        dependencies.projectRepository,
+        dependencies.attachmentRepository,
+        dependencies.fileRepository,
+        dependencies.fileStorage,
+        dependencies.transaction,
       ),
     ),
     sprints: new SprintController(

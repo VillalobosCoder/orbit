@@ -29,6 +29,7 @@ export const ISSUE_OPTIONS = '/issue-options';
 export const PLANNING = '/planning';
 export const ISSUES = '/issues';
 export const COMMENTS = '/comments';
+export const ATTACHMENTS = '/attachments';
 export const SPRINTS = '/sprints';
 export const SPRINT = '/sprint';
 export const START = '/start';
