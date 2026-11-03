@@ -1,10 +1,9 @@
 import { useState, type SubmitEvent } from "react";
-import { Check, CircleAlert } from "lucide-react";
+import { Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/context/auth/use-auth";
 import { useUpdateProfile } from "@/features/auth/api/queries";
 import ChangePasswordForm from "@/features/auth/pages/components/change-password-form";
@@ -94,15 +93,6 @@ export default function ProfilePage() {
               </p>
             </Field>
 
-            {updateProfile.error instanceof Error && !saved && (
-              <div
-                role="alert"
-                className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-              >
-                <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
-                {updateProfile.error.message}
-              </div>
-            )}
             {saved && (
               <p
                 role="status"
@@ -117,9 +107,10 @@ export default function ProfilePage() {
               type="submit"
               size="lg"
               className="self-start"
-              disabled={!hasChanges || updateProfile.isPending}
+              loading={updateProfile.isPending}
+              disabled={!hasChanges}
             >
-              {updateProfile.isPending ? <Spinner /> : t("common.saveChanges")}
+              {t("common.saveChanges")}
             </Button>
           </FieldGroup>
         </form>

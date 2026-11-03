@@ -1,5 +1,4 @@
 import { useState, type SubmitEvent } from "react";
-import { CircleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,18 +22,6 @@ interface IssueCommentsProps {
   issue: IssueRequestDto;
   currentUserId?: number;
   canWrite: boolean;
-}
-
-function ErrorAlert({ children }: { children: string }) {
-  return (
-    <p
-      role="alert"
-      className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-    >
-      <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
-      {children}
-    </p>
-  );
 }
 
 export default function IssueComments({
@@ -99,7 +86,6 @@ export default function IssueComments({
           <Skeleton className="h-14 w-full" />
         </div>
       )}
-      {comments.isError && <ErrorAlert>{comments.error.message}</ErrorAlert>}
       {comments.data?.length === 0 && (
         <p className="rounded-lg border border-dashed border-border px-3 py-5 text-center text-sm text-muted-foreground">
           {t("issues.comments.empty")}
@@ -169,9 +155,9 @@ export default function IssueComments({
                       <Button
                         type="submit"
                         size="sm"
-                        disabled={updateComment.isPending}
+                        loading={updateComment.isPending}
                       >
-                        {updateComment.isPending ? t("common.saving") : t("common.save")}
+                        {t("common.save")}
                       </Button>
                       <Button
                         type="button"
@@ -182,9 +168,6 @@ export default function IssueComments({
                         {t("common.cancel")}
                       </Button>
                     </div>
-                    {updateComment.isError && (
-                      <ErrorAlert>{updateComment.error.message}</ErrorAlert>
-                    )}
                   </form>
                 ) : (
                   <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere] text-foreground/90">
@@ -196,10 +179,6 @@ export default function IssueComments({
           );
         })}
       </ul>
-
-      {deleteComment.isError && (
-        <ErrorAlert>{deleteComment.error.message}</ErrorAlert>
-      )}
 
       {canWrite && (
         <form onSubmit={handleCreate} className="flex gap-3">
@@ -221,16 +200,12 @@ export default function IssueComments({
               <Button
                 type="submit"
                 size="sm"
-                disabled={createComment.isPending || !draft.trim()}
+                loading={createComment.isPending}
+                disabled={!draft.trim()}
               >
-                {createComment.isPending
-                  ? t("issues.comments.submitting")
-                  : t("issues.comments.submit")}
+                {t("issues.comments.submit")}
               </Button>
             </div>
-            {createComment.isError && (
-              <ErrorAlert>{createComment.error.message}</ErrorAlert>
-            )}
           </div>
         </form>
       )}
@@ -240,7 +215,6 @@ export default function IssueComments({
         title={t("issues.comments.deleteDialog.title")}
         description={t("issues.comments.deleteDialog.description")}
         confirmLabel={t("issues.comments.deleteDialog.confirm")}
-        pendingLabel={t("common.deleting")}
         isPending={deleteComment.isPending}
         destructive
         onClose={() => setCommentToDelete(null)}

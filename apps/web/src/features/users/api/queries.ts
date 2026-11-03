@@ -56,6 +56,7 @@ export function useUpdateUser() {
     Error,
     SaveUserRequestDto & { id: number }
   >({
+    meta: { successMessage: "toasts.userUpdated" },
     mutationFn: ({ id, ...payload }) =>
       injectQuery([USERS, `/${id}`], {
         method: HttpMethod.PATCH,
@@ -100,6 +101,7 @@ export function useResetUserPassword() {
 
 export function useDeleteUser() {
   return useMutation({
+    meta: { successMessage: "toasts.userDeleted" },
     mutationFn: (id: number) =>
       injectQuery([USERS, `/${id}`], {
         method: HttpMethod.DELETE,

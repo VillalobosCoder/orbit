@@ -5,6 +5,7 @@ import { home } from "./home.js";
 import { catalog, issues } from "./issues.js";
 import { projects } from "./projects.js";
 import { settings } from "./settings.js";
+import { notifications, toasts } from "./toasts.js";
 import { dates, sprints } from "./sprints.js";
 import { modules, users } from "./users.js";
 import { shell } from "./shell.js";
@@ -26,4 +27,6 @@ export const en: Messages = {
   home,
   issues,
   catalog,
+  toasts,
+  notifications,
 };

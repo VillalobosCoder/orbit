@@ -31,7 +31,6 @@ export const users = {
     after:
       ". La actual dejará de funcionar y la persona deberá cambiarla al volver a entrar.",
     confirm: "Restablecer contraseña",
-    pending: "Restableciendo...",
   },
   resetDone: {
     title: "Contraseña restablecida",
@@ -68,7 +67,6 @@ export const users = {
     subsectionsHint:
       "Las subsecciones de Proyectos solo se activan si la persona puede leer Proyectos. Editar proyectos y comentar requieren Escribir en Proyectos.",
     create: "Crear usuario",
-    creating: "Creando usuario...",
   },
 };
 

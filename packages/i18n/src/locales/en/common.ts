@@ -3,10 +3,8 @@ import type { Messages } from "../../translate.js";
 export const common: Messages["common"] = {
   save: "Save",
   saveChanges: "Save changes",
-  saving: "Saving...",
   cancel: "Cancel",
   delete: "Delete",
-  deleting: "Deleting...",
   edit: "Edit",
   close: "Close",
   loading: "Loading",
@@ -25,7 +23,8 @@ export const common: Messages["common"] = {
   backlog: "Backlog",
   actions: "Actions",
   confirm: "Confirm",
-  processing: "Processing...",
+  loadFailed: "The data could not be loaded.",
+  retry: "Retry",
   none: "—",
 };
 

@@ -56,6 +56,5 @@ export const sprints = {
       other: "Duración: {count} días",
     },
     create: "Crear sprint",
-    creating: "Creando sprint...",
   },
 };

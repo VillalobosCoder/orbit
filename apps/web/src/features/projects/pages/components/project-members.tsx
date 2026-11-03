@@ -1,5 +1,5 @@
 import { useState, type SubmitEvent } from "react";
-import { CircleAlert, Trash2, UserPlus } from "lucide-react";
+import { Trash2, UserPlus } from "lucide-react";
 import { createColumnHelper } from "@tanstack/react-table";
 import type { ProjectDto, ProjectMemberDto } from "@orbit/shared";
 
@@ -21,18 +21,6 @@ import {
 import { useI18n } from "@/i18n/use-i18n";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ProjectMemberDto>();
-
-function ErrorAlert({ children }: { children: string }) {
-  return (
-    <p
-      role="alert"
-      className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-    >
-      <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
-      {children}
-    </p>
-  );
-}
 
 export default function ProjectMembers({
   project,
@@ -153,33 +141,22 @@ export default function ProjectMembers({
             />
             <Button
               type="submit"
-              disabled={selectedUserId === null || addMember.isPending}
+              loading={addMember.isPending}
+              disabled={selectedUserId === null}
             >
               <UserPlus />
-              {addMember.isPending ? t("projects.members.adding") : t("common.add")}
+              {t("common.add")}
             </Button>
           </form>
         )}
       </PageHeaderComponent>
 
-      {availableUsers.isError && (
-        <ErrorAlert>{availableUsers.error.message}</ErrorAlert>
-      )}
-      {addMember.isError && <ErrorAlert>{addMember.error.message}</ErrorAlert>}
-      {removeMember.isError && (
-        <ErrorAlert>{removeMember.error.message}</ErrorAlert>
-      )}
-
-      {membersQuery.isError ? (
-        <ErrorAlert>{membersQuery.error.message}</ErrorAlert>
-      ) : (
-        <TableComponent
-          data={membersQuery.data ?? []}
-          columns={columns}
-          isLoading={membersQuery.isLoading}
-          emptyMessage={t("projects.members.empty")}
-        />
-      )}
+      <TableComponent
+        data={membersQuery.data ?? []}
+        columns={columns}
+        isLoading={membersQuery.isLoading}
+        emptyMessage={t("projects.members.empty")}
+      />
 
       <ConfirmDialogComponent
         open={memberToRemove !== null}
@@ -197,7 +174,6 @@ export default function ProjectMembers({
           </>
         }
         confirmLabel={t("projects.members.removeDialog.confirm")}
-        pendingLabel={t("projects.members.removeDialog.pending")}
         isPending={removeMember.isPending}
         destructive
         onClose={() => setMemberToRemove(null)}

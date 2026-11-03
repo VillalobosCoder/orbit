@@ -32,7 +32,6 @@ export const projects: Messages["projects"] = {
       "This is how your issue keys will look. It can't be changed later.",
     description: "Description",
     create: "Create project",
-    creating: "Creating project...",
   },
   members: {
     section: "Project members",
@@ -48,13 +47,11 @@ export const projects: Messages["projects"] = {
     removeTitle: "Remove from project",
     selectUser: "Select a user",
     addMember: "Add member",
-    adding: "Adding...",
     empty: "This project has no members yet.",
     removeDialog: {
       title: "Remove from the project?",
       leaves: "will no longer see the project",
       confirm: "Remove from project",
-      pending: "Removing...",
     },
   },
 };

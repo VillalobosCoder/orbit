@@ -12,7 +12,6 @@ export const shell: Messages["shell"] = {
     myProfile: "My profile",
     settings: "Settings",
     signOut: "Sign out",
-    signingOut: "Signing out...",
     title: "Sidebar",
     mobileDescription: "Displays the mobile sidebar.",
     toggle: "Toggle sidebar",

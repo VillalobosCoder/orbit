@@ -17,6 +17,7 @@ import {
 import ProjectFormDialog from "./components/project-form-dialog";
 import ProjectMembers from "./components/project-members";
 import { useI18n } from "@/i18n/use-i18n";
+import { LoadFailedComponent } from "@/components/ui/load-failed-component";
 
 export default function ProjectDetailPage() {
   const { t } = useI18n();
@@ -49,20 +50,11 @@ export default function ProjectDetailPage() {
   }
   if (error || !project) {
     return (
-      <div className="m-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-        <p role="alert">{error?.message ?? t("projects.detail.notFound")}</p>
-        {error && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={isRefetching}
-            onClick={() => void refetch()}
-          >
-            {t(isRefetching ? "projects.detail.retrying" : "projects.detail.retry")}
-          </Button>
-        )}
-      </div>
+      <LoadFailedComponent
+        message={error ? undefined : t("projects.detail.notFound")}
+        onRetry={error ? () => void refetch() : undefined}
+        isRetrying={isRefetching}
+      />
     );
   }
 
@@ -144,14 +136,6 @@ export default function ProjectDetailPage() {
           )}
         </div>
       </header>
-      {deleteProject.isError && (
-        <p
-          role="alert"
-          className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-        >
-          {deleteProject.error.message}
-        </p>
-      )}
       <ConfirmDialogComponent
         open={isConfirmingDelete}
         title={t("projects.deleteDialog.title")}
@@ -165,7 +149,6 @@ export default function ProjectDetailPage() {
           </>
         }
         confirmLabel={t("projects.deleteDialog.confirm")}
-        pendingLabel={t("common.deleting")}
         isPending={deleteProject.isPending}
         destructive
         onClose={() => setIsConfirmingDelete(false)}

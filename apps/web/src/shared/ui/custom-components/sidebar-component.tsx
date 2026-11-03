@@ -48,6 +48,7 @@ import ProjectFormDialog from "@/features/projects/pages/components/project-form
 import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
 import { useI18n } from "@/i18n/use-i18n";
 import { moduleLabel } from "@/i18n/catalog";
+import { Spinner } from "@/components/ui/spinner";
 
 const MODULE_ROUTES: Record<string, string> = {
   home: "/",
@@ -300,12 +301,8 @@ export default function SidebarComponent() {
                 disabled={logoutMutation.isPending}
                 onClick={() => logoutMutation.mutate()}
               >
-                <LogOut />
-                {t(
-                  logoutMutation.isPending
-                    ? "shell.sidebar.signingOut"
-                    : "shell.sidebar.signOut",
-                )}
+                {logoutMutation.isPending ? <Spinner /> : <LogOut />}
+                {t("shell.sidebar.signOut")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

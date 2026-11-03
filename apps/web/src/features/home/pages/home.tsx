@@ -1,5 +1,4 @@
 import { NavLink } from "react-router-dom";
-import { CircleAlert } from "lucide-react";
 import { BoardColumnCategory, HOME_ASSIGNED_ISSUES_LIMIT } from "@orbit/shared";
 
 import { Badge } from "@/components/ui/badge";
@@ -69,7 +68,6 @@ export default function HomePage() {
   const { hasAccess } = usePermission("projects");
   const summary = useGetHomeSummary({ enabled: hasAccess });
   const isLoading = summary.isLoading;
-  const loadError = summary.error;
   const projects = summary.data?.projects ?? [];
   const assigned = summary.data?.assigned ?? {
     total: 0,
@@ -101,16 +99,6 @@ export default function HomePage() {
         </p>
       ) : (
         <>
-          {loadError && (
-            <p
-              role="alert"
-              className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-            >
-              <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
-              {loadError.message}
-            </p>
-          )}
-
           <div className="grid gap-4 sm:grid-cols-3">
             <SummaryCard
               label={t("home.summary.projects")}

@@ -14,6 +14,9 @@ export const issues: Messages["issues"] = {
     columns: "Columns",
     newIssue: "New issue",
     emptyColumn: "No issues in this column",
+    keyboardHelp: "Move the card with Alt and the arrow keys: left and right change column, up and down change the order.",
+    movedToColumn: "{key} moved to “{column}”, position {position} of {total}.",
+    reordered: "{key} moved to position {position} of {total}.",
     subtaskOf: "Subtask of {key}",
   },
   visuals: {
@@ -33,7 +36,6 @@ export const issues: Messages["issues"] = {
     newTitle: "New issue",
     editingTitle: "Editing {key}",
     create: "Create issue",
-    creating: "Creating...",
     titleLabel: "Title",
     titlePlaceholder: "Issue title",
     createdIn: "It will be created in {key} · {name}.",
@@ -79,7 +81,6 @@ export const issues: Messages["issues"] = {
     newLabel: "New comment",
     placeholder: "Write a comment…",
     submit: "Comment",
-    submitting: "Commenting...",
     deleteDialog: {
       title: "Delete comment?",
       description: "This action cannot be undone.",
@@ -95,7 +96,7 @@ export const issues: Messages["issues"] = {
     formDuplicate: "A column with this name already exists.",
     applyFailed: "The changes could not be applied.",
     partialSaved:
-      "{message} The changes made before this error were saved; review the list and try again.",
+      "The changes made before this error were saved; review the list and try again.",
     add: "Add column",
     namePlaceholder: "E.g. In testing",
     category: "Category",
@@ -104,14 +105,12 @@ export const issues: Messages["issues"] = {
     addHint:
       "Names are unique per project. The limit is saved but not enforced on the board yet.",
     pendingChanges: "You have unapplied changes.",
-    applying: "Applying...",
     done: "Done",
     discard: {
       title: "Discard the changes?",
       description:
         "The columns won't be modified and you'll lose the changes you made in this window.",
       confirm: "Discard changes",
-      pending: "Discarding...",
     },
     row: {
       moveUp: "Move {name} up",

@@ -12,6 +12,9 @@ export const issues = {
     columns: "Columnas",
     newIssue: "Nuevo issue",
     emptyColumn: "Sin issues en esta columna",
+    keyboardHelp: "Mueve la tarjeta con Alt y las flechas: izquierda y derecha cambian de columna, arriba y abajo cambian el orden.",
+    movedToColumn: "{key} movida a «{column}», posición {position} de {total}.",
+    reordered: "{key} movida a la posición {position} de {total}.",
     subtaskOf: "Subtarea de {key}",
   },
   visuals: {
@@ -31,7 +34,6 @@ export const issues = {
     newTitle: "Nuevo issue",
     editingTitle: "Editando {key}",
     create: "Crear issue",
-    creating: "Creando...",
     titleLabel: "Título",
     titlePlaceholder: "Título del issue",
     createdIn: "Se creará en {key} · {name}.",
@@ -77,7 +79,6 @@ export const issues = {
     newLabel: "Nuevo comentario",
     placeholder: "Escribe un comentario…",
     submit: "Comentar",
-    submitting: "Comentando...",
     deleteDialog: {
       title: "¿Eliminar comentario?",
       description: "Esta acción no se puede deshacer.",
@@ -93,7 +94,7 @@ export const issues = {
     formDuplicate: "Ya hay una columna con este nombre.",
     applyFailed: "No se pudieron aplicar los cambios.",
     partialSaved:
-      "{message} Los cambios anteriores a este error sí se guardaron; revisa la lista y vuelve a intentarlo.",
+      "Los cambios anteriores a este error sí se guardaron; revisa la lista y vuelve a intentarlo.",
     add: "Agregar columna",
     namePlaceholder: "Ej. En pruebas",
     category: "Categoría",
@@ -102,14 +103,12 @@ export const issues = {
     addHint:
       "Los nombres son únicos por proyecto. El límite se guarda; aún no se aplica en el tablero.",
     pendingChanges: "Tienes cambios sin aplicar.",
-    applying: "Aplicando...",
     done: "Listo",
     discard: {
       title: "¿Descartar los cambios?",
       description:
         "Las columnas no se modificarán y perderás los cambios que hiciste en esta ventana.",
       confirm: "Descartar cambios",
-      pending: "Descartando...",
     },
     row: {
       moveUp: "Subir {name}",

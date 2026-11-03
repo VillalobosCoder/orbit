@@ -80,6 +80,7 @@ export function useUpdateComment() {
 
 export function useDeleteComment() {
   return useMutation<unknown, Error, CommentRequestDto>({
+    meta: { successMessage: "toasts.commentDeleted" },
     mutationFn: ({ commentId, ...issue }) =>
       injectQuery([...commentsPath(issue), `/${commentId}`], {
         method: HttpMethod.DELETE,

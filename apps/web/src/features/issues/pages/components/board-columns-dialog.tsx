@@ -1,5 +1,5 @@
 import { useState, type SubmitEvent } from "react";
-import { ChevronDown, ChevronUp, CircleAlert, Plus } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ import {
 import { boardKey } from "../../api/queries";
 import { useI18n } from "@/i18n/use-i18n";
 import { columnLabel } from "@/i18n/catalog";
+import { notifyError } from "@/notifications/notify";
 
 const CATEGORY_DOT: Record<BoardColumnCategory, string> = {
   [BoardColumnCategory.TODO]: "bg-muted-foreground",
@@ -67,18 +68,6 @@ function normalizeName(name: string) {
   return name.trim().toLowerCase();
 }
 
-function ErrorAlert({ children }: { children: string }) {
-  return (
-    <p
-      role="alert"
-      className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-    >
-      <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
-      {children}
-    </p>
-  );
-}
-
 interface BoardColumnsDialogProps {
   project: ProjectDto;
   columns: BoardColumnDto[];
@@ -93,21 +82,18 @@ export default function BoardColumnsDialog({
   const [session, setSession] = useState<{
     columns: BoardColumnDto[];
     version: number;
-    error: string | null;
-  }>({ columns, version: 0, error: null });
+  }>({ columns, version: 0 });
 
   return (
     <ColumnsEditor
       key={session.version}
       project={project}
       columns={session.columns}
-      initialError={session.error}
       onClose={onClose}
-      onFailed={(freshColumns, message) =>
+      onFailed={(freshColumns) =>
         setSession((current) => ({
           columns: freshColumns,
           version: current.version + 1,
-          error: message,
         }))
       }
     />
@@ -117,12 +103,10 @@ export default function BoardColumnsDialog({
 function ColumnsEditor({
   project,
   columns,
-  initialError,
   onClose,
   onFailed,
 }: BoardColumnsDialogProps & {
-  initialError: string | null;
-  onFailed: (columns: BoardColumnDto[], message: string) => void;
+  onFailed: (columns: BoardColumnDto[]) => void;
 }) {
   const { t } = useI18n();
   const applyChanges = useApplyBoardColumnChanges();
@@ -132,8 +116,6 @@ function ColumnsEditor({
   );
   const [deletions, setDeletions] = useState<Deletion[]>([]);
   const [newColumnCount, setNewColumnCount] = useState(0);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [applyError, setApplyError] = useState<string | null>(initialError);
   const [isConfirmingDiscard, setIsConfirmingDiscard] = useState(false);
 
   const originalById = new Map(
@@ -235,11 +217,10 @@ function ColumnsEditor({
     if (
       drafts.some((draft) => normalizeName(draft.name) === normalizeName(name))
     ) {
-      setFormError(t("issues.columns.formDuplicate"));
+      notifyError(t("issues.columns.formDuplicate"));
       return;
     }
 
-    setFormError(null);
     setDrafts((current) => [
       ...current,
       {
@@ -297,27 +278,17 @@ function ColumnsEditor({
       reorder: orderChanged || interleaved,
     };
 
-    setApplyError(null);
-
     try {
       await applyChanges.mutateAsync(plan);
       onClose();
-    } catch (error) {
+    } catch {
       const freshBoard = queryClient.getQueryData<BoardDto>(
         boardKey(project.id),
       );
-      const message =
-        error instanceof Error
-          ? error.message
-          : t("issues.columns.applyFailed");
 
       if (freshBoard) {
-        onFailed(
-          freshBoard.columns,
-          t("issues.columns.partialSaved", { message }),
-        );
-      } else {
-        setApplyError(message);
+        onFailed(freshBoard.columns);
+        notifyError(t("issues.columns.partialSaved"));
       }
     }
   }
@@ -347,12 +318,6 @@ function ColumnsEditor({
             {t("issues.columns.description", { key: project.projectKey })}
           </DialogDescription>
         </DialogHeader>
-
-        {applyError && (
-          <div className="shrink-0">
-            <ErrorAlert>{applyError}</ErrorAlert>
-          </div>
-        )}
 
         <ul className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1">
           {drafts.map((draft, index) => {
@@ -439,7 +404,6 @@ function ColumnsEditor({
           <p className="text-xs text-muted-foreground">
             {t("issues.columns.addHint")}
           </p>
-          {formError && <ErrorAlert>{formError}</ErrorAlert>}
         </form>
 
         <DialogFooter className="shrink-0 items-center">
@@ -456,12 +420,11 @@ function ColumnsEditor({
           </Button>
           <Button
             type="button"
-            disabled={applyChanges.isPending || hasErrors}
+            loading={applyChanges.isPending}
+            disabled={hasErrors}
             onClick={() => void handleApply()}
           >
-            {applyChanges.isPending
-              ? t("issues.columns.applying")
-              : t("issues.columns.done")}
+            {t("issues.columns.done")}
           </Button>
         </DialogFooter>
 
@@ -470,7 +433,6 @@ function ColumnsEditor({
           title={t("issues.columns.discard.title")}
           description={t("issues.columns.discard.description")}
           confirmLabel={t("issues.columns.discard.confirm")}
-          pendingLabel={t("issues.columns.discard.pending")}
           isPending={false}
           destructive
           onClose={() => setIsConfirmingDiscard(false)}

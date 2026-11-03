@@ -16,7 +16,6 @@ interface ConfirmDialogComponentProps {
   title: string;
   description: ReactNode;
   confirmLabel?: string;
-  pendingLabel?: string;
   isPending?: boolean;
   destructive?: boolean;
   onConfirm: () => void;
@@ -28,7 +27,6 @@ export function ConfirmDialogComponent({
   title,
   description,
   confirmLabel,
-  pendingLabel,
   isPending = false,
   destructive = false,
   onConfirm,
@@ -60,12 +58,10 @@ export function ConfirmDialogComponent({
           <Button
             type="button"
             variant={destructive ? "destructive" : "default"}
-            disabled={isPending}
+            loading={isPending}
             onClick={onConfirm}
           >
-            {isPending
-              ? (pendingLabel ?? t("common.processing"))
-              : (confirmLabel ?? t("common.confirm"))}
+            {confirmLabel ?? t("common.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -58,6 +58,5 @@ export const sprints: Messages["sprints"] = {
       other: "Duration: {count} days",
     },
     create: "Create sprint",
-    creating: "Creating sprint...",
   },
 };

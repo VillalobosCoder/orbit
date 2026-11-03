@@ -1,0 +1,31 @@
+export const toasts = {
+  errorTitle: "No se pudo completar la acción",
+  successTitle: "Listo",
+  userUpdated: "Usuario actualizado.",
+  userDeleted: "Usuario eliminado.",
+  projectCreated: "Proyecto creado.",
+  projectUpdated: "Proyecto actualizado.",
+  projectDeleted: "Proyecto eliminado.",
+  memberAdded: "Miembro agregado al proyecto.",
+  memberRemoved: "Miembro quitado del proyecto.",
+  sprintCreated: "Sprint creado.",
+  sprintUpdated: "Sprint actualizado.",
+  sprintDeleted: "Sprint eliminado.",
+  sprintStarted: "Sprint iniciado.",
+  sprintClosed: "Sprint completado.",
+  issueCreated: "Issue creado.",
+  issueUpdated: "Issue actualizado.",
+  issueDeleted: "Issue eliminado.",
+  commentDeleted: "Comentario eliminado.",
+  columnsUpdated: "Columnas actualizadas.",
+};
+
+export const notifications = {
+  title: "Avisos",
+  hint: "Los avisos de confirmación aparecen en una esquina cuando una acción se completa. Los errores siempre se muestran.",
+  group: "Avisos de confirmación",
+  on: "Mostrar avisos",
+  onDescription: "Verás una confirmación al guardar, crear o eliminar.",
+  off: "Ocultar avisos",
+  offDescription: "Solo verás los avisos de error.",
+};

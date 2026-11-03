@@ -4,7 +4,11 @@ import {
   injectQuery,
   requireData,
 } from "@/api/config";
-import { POLL_INTERVAL_MS, queryClient } from "@/api/tanstack-query-config";
+import {
+  DEBOUNCE_MS,
+  POLL_INTERVAL_MS,
+  queryClient,
+} from "@/api/tanstack-query-config";
 import { BOARD, ISSUES, ISSUE_OPTIONS, MOVE, PROJECTS } from "@/api/uris";
 import {
   computeBoardPosition,
@@ -17,6 +21,7 @@ import {
   type SaveIssueRequestDto,
 } from "@orbit/shared";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 import { t } from "@/i18n/locale-store";
 
 export const boardKey = (projectId: number) => [PROJECTS, projectId, "board"] as const;
@@ -65,6 +70,7 @@ export function useCreateIssue() {
     Error,
     SaveIssueRequestDto & ProjectIdRequestDto
   >({
+    meta: { successMessage: "toasts.issueCreated" },
     mutationFn: ({ id, ...payload }) =>
       injectQuery<IssueDto>([PROJECTS, `/${id}`, ISSUES], {
         method: HttpMethod.POST,
@@ -81,6 +87,7 @@ export function useUpdateIssue() {
     Error,
     SaveIssueRequestDto & IssueRequestDto
   >({
+    meta: { successMessage: "toasts.issueUpdated" },
     mutationFn: ({ id, issueId, ...payload }) =>
       injectQuery([PROJECTS, `/${id}`, ISSUES, `/${issueId}`], {
         method: HttpMethod.PATCH,
@@ -93,6 +100,7 @@ export function useUpdateIssue() {
 
 export function useDeleteIssue() {
   return useMutation<unknown, Error, IssueRequestDto>({
+    meta: { successMessage: "toasts.issueDeleted" },
     mutationFn: ({ id, issueId }) =>
       injectQuery([PROJECTS, `/${id}`, ISSUES, `/${issueId}`], {
         method: HttpMethod.DELETE,
@@ -102,7 +110,11 @@ export function useDeleteIssue() {
   });
 }
 
-type MoveIssueVariables = MoveIssueRequestDto & IssueRequestDto;
+type MoveIssueVariables = MoveIssueRequestDto &
+  IssueRequestDto & {
+    /** Tablero previo a una ráfaga de movimientos locales; es donde se vuelve si el servidor rechaza. */
+    rollbackTo?: BoardDto;
+  };
 
 function applyMove(board: BoardDto, move: MoveIssueVariables): BoardDto {
   const positionOf = (issueId: number | null | undefined) =>
@@ -129,14 +141,16 @@ export function useMoveIssue() {
     MoveIssueVariables,
     { previous?: BoardDto }
   >({
-    mutationFn: ({ id, issueId, ...payload }) =>
+    mutationFn: ({ id, issueId, columnId, previousIssueId, nextIssueId }) =>
       injectQuery([PROJECTS, `/${id}`, ISSUES, `/${issueId}`, MOVE], {
         method: HttpMethod.PATCH,
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ columnId, previousIssueId, nextIssueId }),
       }),
     onMutate: async (move) => {
       await queryClient.cancelQueries({ queryKey: boardKey(move.id) });
-      const previous = queryClient.getQueryData<BoardDto>(boardKey(move.id));
+      const previous =
+        move.rollbackTo ??
+        queryClient.getQueryData<BoardDto>(boardKey(move.id));
 
       if (previous) {
         queryClient.setQueryData<BoardDto>(
@@ -155,4 +169,62 @@ export function useMoveIssue() {
     },
     onSettled: (_data, _error, { id }) => invalidateBoard(id),
   });
+}
+
+/**
+ * Para movimientos repetidos (teclado): el tablero cambia al instante, pero al
+ * servidor solo llega la última posición cuando el usuario deja de moverla.
+ */
+export function useDebouncedMoveIssue() {
+  const moveIssue = useMoveIssue();
+  const pending = useRef<{
+    snapshot: BoardDto;
+    move: MoveIssueVariables;
+  } | null>(null);
+  const timer = useRef<number | null>(null);
+
+  function flush() {
+    if (timer.current !== null) {
+      window.clearTimeout(timer.current);
+      timer.current = null;
+    }
+
+    const request = pending.current;
+
+    if (!request) return;
+
+    pending.current = null;
+    moveIssue.mutate({ ...request.move, rollbackTo: request.snapshot });
+  }
+
+  function schedule(move: MoveIssueVariables) {
+    const current = queryClient.getQueryData<BoardDto>(boardKey(move.id));
+
+    if (!current) return;
+
+    void queryClient.cancelQueries({ queryKey: boardKey(move.id) });
+    queryClient.setQueryData<BoardDto>(
+      boardKey(move.id),
+      applyMove(current, move),
+    );
+
+    pending.current = {
+      snapshot: pending.current?.snapshot ?? current,
+      move,
+    };
+
+    if (timer.current !== null) window.clearTimeout(timer.current);
+
+    timer.current = window.setTimeout(flush, DEBOUNCE_MS);
+  }
+
+  const latestFlush = useRef(flush);
+
+  useEffect(() => {
+    latestFlush.current = flush;
+  });
+
+  useEffect(() => () => latestFlush.current(), []);
+
+  return { schedule, flush };
 }

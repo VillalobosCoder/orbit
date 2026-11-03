@@ -93,6 +93,7 @@ export type ColumnChangePlan = {
 
 export function useApplyBoardColumnChanges() {
   return useMutation<void, Error, ColumnChangePlan>({
+    meta: { successMessage: "toasts.columnsUpdated" },
     mutationFn: async (plan) => {
       const columnsUri = [PROJECTS, `/${plan.projectId}`, COLUMNS];
 

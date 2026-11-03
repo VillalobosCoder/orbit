@@ -1,4 +1,4 @@
-import type { DragEvent } from "react";
+import type { DragEvent, TouchEvent } from "react";
 import { CornerDownRight, ListTree } from "lucide-react";
 import type {
   DifficultyDto,
@@ -16,6 +16,15 @@ import {
 } from "./issue-visuals";
 import { useI18n } from "@/i18n/use-i18n";
 
+export type KeyboardMoveDirection = "left" | "right" | "up" | "down";
+
+const KEY_DIRECTIONS: Record<string, KeyboardMoveDirection | undefined> = {
+  ArrowLeft: "left",
+  ArrowRight: "right",
+  ArrowUp: "up",
+  ArrowDown: "down",
+};
+
 interface IssueCardProps {
   issue: IssueDto;
   type?: IssueTypeDto;
@@ -30,8 +39,12 @@ interface IssueCardProps {
   parentKey?: string;
   subtasks: { done: number; total: number };
   draggable: boolean;
+  nativeDrag: boolean;
   isDragging: boolean;
+  keyboardHintId: string;
   onOpen: () => void;
+  onTouchStart: (event: TouchEvent<HTMLElement>) => void;
+  onKeyboardMove: (direction: KeyboardMoveDirection) => void;
   onDragStart: (event: DragEvent<HTMLElement>) => void;
   onDragEnd: () => void;
   onDragOver: (event: DragEvent<HTMLElement>) => void;
@@ -46,8 +59,12 @@ export default function IssueCard({
   parentKey,
   subtasks,
   draggable,
+  nativeDrag,
   isDragging,
+  keyboardHintId,
   onOpen,
+  onTouchStart,
+  onKeyboardMove,
   onDragStart,
   onDragEnd,
   onDragOver,
@@ -56,12 +73,22 @@ export default function IssueCard({
 
   return (
     <li
-      draggable={draggable}
+      data-issue-id={issue.id}
+      draggable={draggable && nativeDrag}
       className={cn(
         "min-w-0 rounded-xl border border-border bg-card shadow-xs transition-colors hover:border-primary/60",
-        draggable && "cursor-grab active:cursor-grabbing",
+        draggable &&
+          "cursor-grab select-none active:cursor-grabbing [-webkit-touch-callout:none]",
         isDragging && "opacity-40",
       )}
+      onTouchStart={onTouchStart}
+      onContextMenu={(event) => {
+        const nativeEvent = event.nativeEvent as PointerEvent;
+
+        if (draggable && nativeEvent.pointerType === "touch") {
+          event.preventDefault();
+        }
+      }}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onDragOver={onDragOver}
@@ -69,6 +96,18 @@ export default function IssueCard({
       <button
         type="button"
         onClick={onOpen}
+        aria-describedby={draggable ? keyboardHintId : undefined}
+        aria-keyshortcuts={draggable ? "Alt+ArrowLeft Alt+ArrowRight Alt+ArrowUp Alt+ArrowDown" : undefined}
+        onKeyDown={(event) => {
+          if (!draggable || !event.altKey) return;
+
+          const direction = KEY_DIRECTIONS[event.key];
+
+          if (!direction) return;
+
+          event.preventDefault();
+          onKeyboardMove(direction);
+        }}
         className="flex w-full min-w-0 flex-col gap-3 overflow-hidden rounded-xl p-3 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {parentKey && (

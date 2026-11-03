@@ -1,5 +1,5 @@
 import { useState, type SubmitEvent } from "react";
-import { CircleAlert, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -164,28 +164,13 @@ export default function ProjectFormDialog({
                 {description.length} / {PROJECT_DESCRIPTION_MAX_LENGTH}
               </span>
             </Field>
-            {mutation.isError && (
-              <p
-                role="alert"
-                className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-              >
-                <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
-                {mutation.error.message}
-              </p>
-            )}
           </FieldGroup>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               {t("common.cancel")}
             </Button>
-            <Button type="submit" disabled={mutation.isPending}>
-              {isEditing
-                ? mutation.isPending
-                  ? t("common.saving")
-                  : t("common.saveChanges")
-                : mutation.isPending
-                  ? t("projects.form.creating")
-                  : t("projects.form.create")}
+            <Button type="submit" loading={mutation.isPending}>
+              {t(isEditing ? "common.saveChanges" : "projects.form.create")}
             </Button>
           </DialogFooter>
         </form>

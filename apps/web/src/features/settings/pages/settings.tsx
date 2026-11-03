@@ -1,4 +1,4 @@
-import { Languages, Moon, Sun, type LucideIcon } from "lucide-react";
+import { Bell, BellOff, Languages, Moon, Sun, type LucideIcon } from "lucide-react";
 import { LOCALES, type Locale, type MessageKey } from "@orbit/i18n";
 import { cn } from "cn";
 
@@ -6,6 +6,10 @@ import { useTheme } from "@/context/theme/use-theme";
 import type { Theme } from "@/context/theme/theme-context";
 import { PageHeaderComponent } from "@/components/ui/page-header-component";
 import { useI18n } from "@/i18n/use-i18n";
+import {
+  setSuccessToastsEnabled,
+  useSuccessToastsEnabled,
+} from "@/notifications/notification-preference";
 
 const THEME_OPTIONS: {
   value: Theme;
@@ -81,6 +85,7 @@ function OptionButton({
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { t, locale, setLocale } = useI18n();
+  const successToasts = useSuccessToastsEnabled();
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6">
@@ -140,6 +145,36 @@ export default function SettingsPage() {
               description={t(LOCALE_OPTIONS[value].description)}
             />
           ))}
+        </div>
+      </section>
+
+      <section
+        aria-label={t("notifications.title")}
+        className="rounded-xl border border-border bg-card p-6"
+      >
+        <h2 className="text-lg font-semibold">{t("notifications.title")}</h2>
+        <p className="mt-1 mb-5 text-sm text-muted-foreground">
+          {t("notifications.hint")}
+        </p>
+        <div
+          role="radiogroup"
+          aria-label={t("notifications.group")}
+          className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+        >
+          <OptionButton
+            selected={successToasts}
+            onSelect={() => setSuccessToastsEnabled(true)}
+            icon={Bell}
+            label={t("notifications.on")}
+            description={t("notifications.onDescription")}
+          />
+          <OptionButton
+            selected={!successToasts}
+            onSelect={() => setSuccessToastsEnabled(false)}
+            icon={BellOff}
+            label={t("notifications.off")}
+            description={t("notifications.offDescription")}
+          />
         </div>
       </section>
     </div>

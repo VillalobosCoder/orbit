@@ -76,6 +76,7 @@ export function useGetAvailableUsers(id: number, { enabled }: { enabled: boolean
 
 export function useCreateProject() {
   return useMutation<ProjectDto | null, Error, CreateProjectRequestDto>({
+    meta: { successMessage: "toasts.projectCreated" },
     mutationFn: (payload) =>
       injectQuery<ProjectDto>([PROJECTS], {
         method: HttpMethod.POST,
@@ -92,6 +93,7 @@ export function useUpdateProject() {
     Error,
     UpdateProjectRequestDto & { id: number }
   >({
+    meta: { successMessage: "toasts.projectUpdated" },
     mutationFn: ({ id, ...payload }) =>
       injectQuery([PROJECTS, `/${id}`], {
         method: HttpMethod.PATCH,
@@ -104,6 +106,7 @@ export function useUpdateProject() {
 
 export function useDeleteProject() {
   return useMutation<unknown, Error, number>({
+    meta: { successMessage: "toasts.projectDeleted" },
     mutationFn: (id) =>
       injectQuery([PROJECTS, `/${id}`], { method: HttpMethod.DELETE }),
     onSuccess: invalidateProjects,
@@ -113,6 +116,7 @@ export function useDeleteProject() {
 
 export function useAddProjectMember() {
   return useMutation<unknown, Error, ProjectMemberRequestDto>({
+    meta: { successMessage: "toasts.memberAdded" },
     mutationFn: ({ id, userId }) => {
       const payload: AddProjectMemberRequestDto = { userId };
 
@@ -128,6 +132,7 @@ export function useAddProjectMember() {
 
 export function useRemoveProjectMember() {
   return useMutation<unknown, Error, ProjectMemberRequestDto>({
+    meta: { successMessage: "toasts.memberRemoved" },
     mutationFn: ({ id, userId }) =>
       injectQuery([PROJECTS, `/${id}`, MEMBERS, `/${userId}`], {
         method: HttpMethod.DELETE,

@@ -1,4 +1,4 @@
-import { CircleAlert, Orbit } from "lucide-react";
+import { Orbit } from "lucide-react";
 import type { LoginRequestDto } from "@orbit/shared";
 
 import { Button } from "@/components/ui/button";
@@ -90,26 +90,13 @@ export default function Login() {
                   />
                 </Field>
 
-                {errorMessage && (
-                  <div
-                    role="alert"
-                    className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-                  >
-                    <CircleAlert
-                      className="size-4 shrink-0"
-                      aria-hidden="true"
-                    />
-                    {errorMessage}
-                  </div>
-                )}
-
                 <Button
                   className="w-full"
                   size="lg"
                   type="submit"
-                  disabled={loginMutation.isPending}
+                  loading={loginMutation.isPending}
                 >
-                  {loginMutation.isPending ? <Spinner /> : t("auth.login.submit")}
+                  {t("auth.login.submit")}
                 </Button>
               </FieldGroup>
             </form>

@@ -33,7 +33,6 @@ export const users: Messages["users"] = {
     after:
       ". The current one will stop working and the person will have to change it when signing in again.",
     confirm: "Reset password",
-    pending: "Resetting...",
   },
   resetDone: {
     title: "Password reset",
@@ -69,7 +68,6 @@ export const users: Messages["users"] = {
     subsectionsHint:
       "Project subsections are only enabled if the person can read Projects. Editing projects and commenting require Write on Projects.",
     create: "Create user",
-    creating: "Creating user...",
   },
 };
 

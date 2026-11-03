@@ -1,5 +1,5 @@
 import { useState, type SubmitEvent } from "react";
-import { CircleAlert, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -147,11 +147,7 @@ export default function SprintFormDialog({
               </Field>
             </div>
             {hasInvalidRange ? (
-              <p
-                role="alert"
-                className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-              >
-                <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
+              <p role="alert" className="text-xs text-destructive">
                 {t("sprints.form.invalidRange")}
               </p>
             ) : (
@@ -162,28 +158,17 @@ export default function SprintFormDialog({
                 </p>
               )
             )}
-            {mutation.isError && (
-              <p
-                role="alert"
-                className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-              >
-                <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
-                {mutation.error.message}
-              </p>
-            )}
           </FieldGroup>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               {t("common.cancel")}
             </Button>
-            <Button type="submit" disabled={mutation.isPending || hasInvalidRange}>
-              {isEditing
-                ? mutation.isPending
-                  ? t("common.saving")
-                  : t("common.saveChanges")
-                : mutation.isPending
-                  ? t("sprints.form.creating")
-                  : t("sprints.form.create")}
+            <Button
+              type="submit"
+              loading={mutation.isPending}
+              disabled={hasInvalidRange}
+            >
+              {t(isEditing ? "common.saveChanges" : "sprints.form.create")}
             </Button>
           </DialogFooter>
         </form>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useParams } from "react-router-dom";
-import { ArrowLeft, CircleAlert, ListTree, Plus } from "lucide-react";
+import { ArrowLeft, ListTree, Plus } from "lucide-react";
 import {
   BoardColumnCategory,
   ModuleKey,
@@ -42,6 +42,7 @@ import { formatDateRange } from "./utils/format-date";
 import { useI18n } from "@/i18n/use-i18n";
 import type { MessageKey } from "@orbit/i18n";
 import { columnLabel } from "@/i18n/catalog";
+import { LoadFailedComponent } from "@/components/ui/load-failed-component";
 
 type SprintDialogState = { sprint?: SprintDto } | null;
 type ConfirmState = { kind: "close" | "delete"; sprint: SprintDto } | null;
@@ -51,18 +52,6 @@ const STATUS_MESSAGES: Record<SprintStatus, MessageKey> = {
   [SprintStatus.ACTIVE]: "sprints.status.active",
   [SprintStatus.CLOSED]: "sprints.status.closed",
 };
-
-function ErrorAlert({ children }: { children: string }) {
-  return (
-    <p
-      role="alert"
-      className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-    >
-      <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
-      {children}
-    </p>
-  );
-}
 
 export default function PlanningPage() {
   const { t } = useI18n();
@@ -91,18 +80,14 @@ export default function PlanningPage() {
       </div>
     );
   }
-  if (project.isError) {
+  if (project.isError || planning.isError) {
     return (
-      <div className="p-6">
-        <ErrorAlert>{project.error.message}</ErrorAlert>
-      </div>
-    );
-  }
-  if (planning.isError) {
-    return (
-      <div className="p-6">
-        <ErrorAlert>{planning.error.message}</ErrorAlert>
-      </div>
+      <LoadFailedComponent
+        onRetry={() => {
+          void project.refetch();
+          void planning.refetch();
+        }}
+      />
     );
   }
   if (!project.data || !planning.data) return null;
@@ -125,7 +110,6 @@ export default function PlanningPage() {
     BoardColumnCategory.DONE;
   const doneCount = (sprintId: number) =>
     issuesIn(sprintId).filter(isDone).length;
-  const mutations = [startSprint, closeSprint, deleteSprint, assignSprint];
 
   function renderIssueRow(issue: IssueDto) {
     const subtasks = issues.filter((item) => item.parentId === issue.id).length;
@@ -261,13 +245,6 @@ export default function PlanningPage() {
           )}
         </PageHeaderComponent>
       </div>
-
-      {mutations.map(
-        (mutation, index) =>
-          mutation.isError && (
-            <ErrorAlert key={index}>{mutation.error.message}</ErrorAlert>
-          ),
-      )}
 
       {openSprints.map((sprint) => {
         const total = issuesIn(sprint.id).length;
@@ -460,7 +437,6 @@ export default function PlanningPage() {
             ? t("sprints.planning.completeDialog.confirm")
             : t("sprints.planning.deleteDialog.confirm")
         }
-        pendingLabel={t("common.processing")}
         isPending={closeSprint.isPending || deleteSprint.isPending}
         destructive={confirm?.kind === "delete"}
         onClose={() => setConfirm(null)}

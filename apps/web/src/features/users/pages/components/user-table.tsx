@@ -34,7 +34,7 @@ export default function UserTable({
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [page, setPage] = useState(1);
   const search = useDebouncedValue(searchText.trim(), SEARCH_DEBOUNCE_MS);
-  const { data, isLoading, error } = useGetUsers({
+  const { data, isLoading } = useGetUsers({
     search,
     sortBy,
     sortDirection,
@@ -78,22 +78,6 @@ export default function UserTable({
 
   return (
     <>
-      {error && (
-        <p
-          role="alert"
-          className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-        >
-          {error.message}
-        </p>
-      )}
-      {resetPassword.isError && (
-        <p
-          role="alert"
-          className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-        >
-          {resetPassword.error.message}
-        </p>
-      )}
       <div className="relative max-w-sm">
         <Search
           aria-hidden="true"
@@ -139,7 +123,6 @@ export default function UserTable({
           </>
         }
         confirmLabel={t("users.deleteDialog.confirm")}
-        pendingLabel={t("common.deleting")}
         isPending={deleteUser.isPending}
         destructive
         onClose={() => setUserToDelete(null)}
@@ -163,7 +146,6 @@ export default function UserTable({
           </>
         }
         confirmLabel={t("users.resetDialog.confirm")}
-        pendingLabel={t("users.resetDialog.pending")}
         isPending={resetPassword.isPending}
         onClose={() => setUserToReset(null)}
         onConfirm={() => {

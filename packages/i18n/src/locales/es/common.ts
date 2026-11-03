@@ -1,10 +1,8 @@
 export const common = {
   save: "Guardar",
   saveChanges: "Guardar cambios",
-  saving: "Guardando...",
   cancel: "Cancelar",
   delete: "Eliminar",
-  deleting: "Eliminando...",
   edit: "Editar",
   close: "Cerrar",
   loading: "Cargando",
@@ -23,7 +21,8 @@ export const common = {
   backlog: "Backlog",
   actions: "Acciones",
   confirm: "Confirmar",
-  processing: "Procesando...",
+  loadFailed: "No se pudieron cargar los datos.",
+  retry: "Reintentar",
   none: "—",
 };
 

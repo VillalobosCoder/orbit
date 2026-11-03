@@ -77,9 +77,6 @@ export default function IssueDetailDialog() {
             {t("issues.loader.loadFailedDescription")}
           </DialogDescription>
         </DialogHeader>
-        <p role="alert" className="text-sm text-destructive">
-          {loadError.message}
-        </p>
       </>,
     );
   }
@@ -100,7 +97,7 @@ export default function IssueDetailDialog() {
             {t("issues.loader.notFoundDescription")}
           </DialogDescription>
         </DialogHeader>
-        <p role="alert" className="text-sm text-destructive">
+        <p className="text-sm text-muted-foreground">
           {t("issues.loader.notFoundBody")}
         </p>
       </>,

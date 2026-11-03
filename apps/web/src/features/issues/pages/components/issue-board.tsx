@@ -1,4 +1,4 @@
-import { Fragment, useState, type DragEvent } from "react";
+import { Fragment, useEffect, useId, useRef, useState, type DragEvent } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Columns3, Plus } from "lucide-react";
 
@@ -10,24 +10,41 @@ import {
   BoardColumnCategory,
   ModuleKey,
   type BoardColumnDto,
+  type BoardDto,
   type IssueDto,
   type ProjectDto,
 } from "@orbit/shared";
 import { cn } from "cn";
 import {
+  boardKey,
+  useDebouncedMoveIssue,
   useGetBoard,
   useGetIssueOptions,
   useMoveIssue,
 } from "../../api/queries";
 import BoardColumnsDialog from "./board-columns-dialog";
-import IssueCard from "./issue-card";
+import IssueCard, { type KeyboardMoveDirection } from "./issue-card";
+import { useTouchDrag, type DropTarget } from "./use-touch-drag";
+import { useCoarsePointer } from "@/hooks/use-coarse-pointer";
 import IssueDialog from "./issue-dialog";
 import { useI18n } from "@/i18n/use-i18n";
 import { getLocale, t as translateNow } from "@/i18n/locale-store";
 import { describeDays } from "@/features/sprints/pages/utils/format-date";
 import { columnLabel } from "@/i18n/catalog";
+import { LoadFailedComponent } from "@/components/ui/load-failed-component";
+import { queryClient } from "@/api/tanstack-query-config";
 
-type DropTarget = { columnId: number; beforeIssueId: number | null };
+function sortedIssuesIn(
+  issues: IssueDto[],
+  columnId: number,
+  excludeIssueId: number | null = null,
+) {
+  return issues
+    .filter(
+      (issue) => issue.columnId === columnId && issue.id !== excludeIssueId,
+    )
+    .sort((a, b) => a.boardPosition - b.boardPosition || a.id - b.id);
+}
 
 const CATEGORY_DOT: Record<BoardColumnCategory, string> = {
   [BoardColumnCategory.TODO]: "bg-muted-foreground",
@@ -77,11 +94,81 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
   const options = useGetIssueOptions(project.id);
   const members = useGetProjectMembers(project.id);
   const moveIssue = useMoveIssue();
+  const debouncedMove = useDebouncedMoveIssue();
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
   const [isEditingColumns, setIsEditingColumns] = useState(false);
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
+  const [announcement, setAnnouncement] = useState("");
+  const focusIssueId = useRef<number | null>(null);
+  const keyboardHintId = useId();
+  const coarsePointer = useCoarsePointer();
+  const boardIssues = board.data?.issues;
+
+  useEffect(() => {
+    const issueId = focusIssueId.current;
+
+    if (issueId === null) return;
+
+    focusIssueId.current = null;
+    document
+      .querySelector<HTMLElement>(`[data-issue-id="${issueId}"] button`)
+      ?.focus();
+  }, [boardIssues]);
+
+  function resetDrag() {
+    setDraggingId(null);
+    setDropTarget(null);
+  }
+
+  function commitMove(
+    issueId: number,
+    columnId: number,
+    beforeIssueId: number | null,
+    debounce = false,
+  ) {
+    const freshIssues =
+      queryClient.getQueryData<BoardDto>(boardKey(project.id))?.issues ??
+      boardIssues ??
+      [];
+    const column = sortedIssuesIn(freshIssues, columnId, issueId);
+    const beforeIndex =
+      beforeIssueId === null
+        ? -1
+        : column.findIndex((issue) => issue.id === beforeIssueId);
+    const index = beforeIndex === -1 ? column.length : beforeIndex;
+
+    const move = {
+      id: project.id,
+      issueId,
+      columnId,
+      previousIssueId: column[index - 1]?.id ?? null,
+      nextIssueId: column[index]?.id ?? null,
+    };
+
+    if (debounce) {
+      debouncedMove.schedule(move);
+      return;
+    }
+
+    debouncedMove.flush();
+    moveIssue.mutate(move);
+  }
+
+  const touchDrag = useTouchDrag({
+    enabled: canMoveIssues,
+    getColumnIssueIds: (columnId, excludeIssueId) =>
+      sortedIssuesIn(boardIssues ?? [], columnId, excludeIssueId).map(
+        (issue) => issue.id,
+      ),
+    onStart: setDraggingId,
+    onTarget: setDropTarget,
+    onDrop: (issueId, target) => {
+      if (target) commitMove(issueId, target.columnId, target.beforeIssueId);
+    },
+    onEnd: resetDrag,
+  });
 
   if (board.isLoading) {
     return (
@@ -93,14 +180,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
     );
   }
   if (board.isError) {
-    return (
-      <p
-        role="alert"
-        className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-      >
-        {board.error.message}
-      </p>
-    );
+    return <LoadFailedComponent onRetry={() => void board.refetch()} />;
   }
   if (!board.data) return null;
 
@@ -111,13 +191,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
       .map((column) => column.id),
   );
   const issuesIn = (columnId: number, withoutDragged = false) =>
-    issues
-      .filter(
-        (issue) =>
-          issue.columnId === columnId &&
-          !(withoutDragged && issue.id === draggingId),
-      )
-      .sort((a, b) => a.boardPosition - b.boardPosition || a.id - b.id);
+    sortedIssuesIn(issues, columnId, withoutDragged ? draggingId : null);
   const parentKey = (issue: IssueDto) =>
     issues.find((candidate) => candidate.id === issue.parentId)?.issueKey;
   const subtasksOf = (issue: IssueDto) => {
@@ -135,11 +209,6 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
     issue.assigneeIds
       .map((userId) => members.data?.find((member) => member.id === userId))
       .filter((member) => member !== undefined);
-
-  function resetDrag() {
-    setDraggingId(null);
-    setDropTarget(null);
-  }
 
   function handleCardDragOver(event: DragEvent<HTMLElement>, issue: IssueDto) {
     event.preventDefault();
@@ -162,20 +231,65 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
   function handleDrop(columnId: number) {
     if (draggingId === null || !canMoveIssues) return resetDrag();
 
-    const column = issuesIn(columnId, true);
-    const beforeIndex = column.findIndex(
-      (issue) => issue.id === dropTarget?.beforeIssueId,
-    );
-    const index = beforeIndex === -1 ? column.length : beforeIndex;
-
-    moveIssue.mutate({
-      id: project.id,
-      issueId: draggingId,
-      columnId,
-      previousIssueId: column[index - 1]?.id ?? null,
-      nextIssueId: column[index]?.id ?? null,
-    });
+    commitMove(draggingId, columnId, dropTarget?.beforeIssueId ?? null);
     resetDrag();
+  }
+
+  function handleKeyboardMove(
+    issue: IssueDto,
+    direction: KeyboardMoveDirection,
+  ) {
+    if (!canMoveIssues) return;
+
+    const freshBoard = queryClient.getQueryData<BoardDto>(
+      boardKey(project.id),
+    );
+    const freshIssues = freshBoard?.issues ?? issues;
+    const current = freshIssues.find((item) => item.id === issue.id) ?? issue;
+    const orderedColumns = [...columns].sort(
+      (a, b) => a.position - b.position || a.id - b.id,
+    );
+
+    if (direction === "left" || direction === "right") {
+      const currentIndex = orderedColumns.findIndex(
+        (column) => column.id === current.columnId,
+      );
+      const target = orderedColumns[currentIndex + (direction === "left" ? -1 : 1)];
+
+      if (!target) return;
+
+      const total = sortedIssuesIn(freshIssues, target.id).length + 1;
+
+      commitMove(issue.id, target.id, null, true);
+      setAnnouncement(
+        t("issues.board.movedToColumn", {
+          key: issue.issueKey,
+          column: columnLabel(t, target),
+          position: total,
+          total,
+        }),
+      );
+    } else {
+      const list = sortedIssuesIn(freshIssues, current.columnId);
+      const index = list.findIndex((item) => item.id === issue.id);
+      const targetIndex = index + (direction === "up" ? -1 : 1);
+
+      if (targetIndex < 0 || targetIndex >= list.length) return;
+
+      const beforeIssueId =
+        direction === "up" ? list[index - 1]!.id : (list[index + 2]?.id ?? null);
+
+      commitMove(issue.id, current.columnId, beforeIssueId, true);
+      setAnnouncement(
+        t("issues.board.reordered", {
+          key: issue.issueKey,
+          position: targetIndex + 1,
+          total: list.length,
+        }),
+      );
+    }
+
+    focusIssueId.current = issue.id;
   }
 
   const dropIndicator = (
@@ -187,15 +301,12 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
       aria-label={t("issues.board.section")}
       className="flex min-h-0 flex-1 flex-col gap-4"
     >
-      {moveIssue.isError && (
-        <p
-          role="alert"
-          className="shrink-0 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-        >
-          {moveIssue.error.message}
-        </p>
-      )}
-
+      <p id={keyboardHintId} className="sr-only">
+        {t("issues.board.keyboardHelp")}
+      </p>
+      <p role="status" aria-live="polite" className="sr-only">
+        {announcement}
+      </p>
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card">
         <div
           className={cn(
@@ -261,7 +372,10 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-1 gap-4 overflow-x-auto p-4">
+        <div
+          data-board-scroll
+          className="flex min-h-0 flex-1 gap-4 overflow-x-auto p-4"
+        >
           {columns.map((column) => {
             const columnIssues = issuesIn(column.id);
             const isOverLimit =
@@ -272,6 +386,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
             return (
               <div
                 key={column.id}
+                data-column-id={column.id}
                 className={cn(
                   "flex h-full min-h-40 w-72 shrink-0 flex-col gap-2 rounded-xl border bg-muted/40 p-2.5 transition-colors",
                   isDropColumn
@@ -302,7 +417,10 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
                     {column.wipLimit !== null && ` / ${column.wipLimit}`}
                   </span>
                 </h3>
-                <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto pr-1">
+                <ul
+                  data-column-list
+                  className="flex min-h-0 flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto pr-1"
+                >
                   {columnIssues.map((issue) => (
                     <Fragment key={issue.id}>
                       {isDropColumn &&
@@ -323,9 +441,19 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
                         parentKey={parentKey(issue)}
                         subtasks={subtasksOf(issue)}
                         draggable={canMoveIssues}
+                        nativeDrag={!coarsePointer}
                         isDragging={draggingId === issue.id}
-                        onOpen={() =>
-                          navigate(`/projects/${project.id}/issues/${issue.id}`)
+                        keyboardHintId={keyboardHintId}
+                        onOpen={() => {
+                          if (touchDrag.shouldSuppressClick()) return;
+
+                          navigate(`/projects/${project.id}/issues/${issue.id}`);
+                        }}
+                        onTouchStart={(event) =>
+                          touchDrag.onTouchStart(event, issue.id)
+                        }
+                        onKeyboardMove={(direction) =>
+                          handleKeyboardMove(issue, direction)
                         }
                         onDragStart={(event) => {
                           event.dataTransfer.effectAllowed = "move";

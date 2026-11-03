@@ -2,7 +2,6 @@ import { useState, type ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import {
   Circle,
-  CircleAlert,
   CircleCheck,
   CornerDownRight,
   Pencil,
@@ -275,16 +274,11 @@ export default function IssueDialog({
                 <Button
                   type="button"
                   size="sm"
+                  loading={mutation.isPending}
                   disabled={isSaveDisabled}
                   onClick={handleSave}
                 >
-                  {mutation.isPending
-                    ? issue
-                      ? t("common.saving")
-                      : t("issues.dialog.creating")
-                    : issue
-                      ? t("common.saveChanges")
-                      : t("issues.dialog.create")}
+                  {t(issue ? "common.saveChanges" : "issues.dialog.create")}
                 </Button>
               </div>
             ) : (
@@ -369,20 +363,6 @@ export default function IssueDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {mutation.isError && isEditing && (
-          <p
-            role="alert"
-            className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-          >
-            <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
-            {mutation.error.message}
-          </p>
-        )}
-        {deleteIssue.isError && (
-          <p role="alert" className="text-sm text-destructive">
-            {deleteIssue.error.message}
-          </p>
-        )}
 
         <div className="grid min-h-0 flex-1 gap-6 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_16rem] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden">
           <div className="flex min-w-0 flex-col gap-7 lg:overflow-y-auto lg:pr-2">
@@ -726,7 +706,6 @@ export default function IssueDialog({
                 : t("issues.dialog.deleteDialog.simple")
             }
             confirmLabel={t("issues.dialog.deleteDialog.confirm")}
-            pendingLabel={t("common.deleting")}
             isPending={deleteIssue.isPending}
             destructive
             onClose={() => setIsConfirmingDelete(false)}

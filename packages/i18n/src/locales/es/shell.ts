@@ -10,7 +10,6 @@ export const shell = {
     myProfile: "Mi perfil",
     settings: "Configuración",
     signOut: "Cerrar sesión",
-    signingOut: "Cerrando sesión...",
     title: "Barra lateral",
     mobileDescription: "Muestra la barra lateral en móvil.",
     toggle: "Alternar barra lateral",

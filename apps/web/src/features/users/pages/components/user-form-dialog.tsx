@@ -1,5 +1,4 @@
 import { useState, type SubmitEvent } from "react";
-import { CircleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -64,26 +63,11 @@ export default function UserFormDialog({
             <Spinner />
           </p>
         )}
-        {isEditing && userQuery.isError && (
-          <ErrorMessage>{userQuery.error.message}</ErrorMessage>
-        )}
         {(!isEditing || userQuery.data) && (
           <UserForm user={userQuery.data} isSelf={isSelf} onClose={onClose} />
         )}
       </DialogContent>
     </Dialog>
-  );
-}
-
-function ErrorMessage({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      role="alert"
-      className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-    >
-      <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
-      {children}
-    </div>
   );
 }
 
@@ -256,11 +240,6 @@ function UserForm({
                 {t("users.form.loadingModules")}
               </p>
             )}
-            {modulesQuery.isError && (
-              <ErrorMessage>
-                {t("users.form.modulesError")}
-              </ErrorMessage>
-            )}
             {modulesQuery.data && (
               <div className="max-h-80 overflow-y-auto rounded-lg border border-border">
                 <div className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] items-center bg-muted/60 px-4 py-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
@@ -334,7 +313,6 @@ function UserForm({
             </p>
           </fieldset>
         )}
-        {mutation.isError && <ErrorMessage>{mutation.error.message}</ErrorMessage>}
       </FieldGroup>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>
@@ -342,18 +320,10 @@ function UserForm({
         </Button>
         <Button
           type="submit"
-          disabled={
-            mutation.isPending ||
-            (!isSelf && (modulesQuery.isPending || modulesQuery.isError))
-          }
+          loading={mutation.isPending}
+          disabled={!isSelf && (modulesQuery.isPending || modulesQuery.isError)}
         >
-          {isEditing
-            ? mutation.isPending
-              ? t("common.saving")
-              : t("common.saveChanges")
-            : mutation.isPending
-              ? t("users.form.creating")
-              : t("users.form.create")}
+          {t(isEditing ? "common.saveChanges" : "users.form.create")}
         </Button>
       </DialogFooter>
     </form>

@@ -46,6 +46,7 @@ export function useCreateSprint() {
     Error,
     SaveSprintRequestDto & ProjectIdRequestDto
   >({
+    meta: { successMessage: "toasts.sprintCreated" },
     mutationFn: ({ id, ...payload }) =>
       injectQuery<SprintDto>([PROJECTS, `/${id}`, SPRINTS], {
         method: HttpMethod.POST,
@@ -62,6 +63,7 @@ export function useUpdateSprint() {
     Error,
     SaveSprintRequestDto & SprintRequestDto
   >({
+    meta: { successMessage: "toasts.sprintUpdated" },
     mutationFn: ({ id, sprintId, ...payload }) =>
       injectQuery([PROJECTS, `/${id}`, SPRINTS, `/${sprintId}`], {
         method: HttpMethod.PATCH,
@@ -74,6 +76,7 @@ export function useUpdateSprint() {
 
 export function useDeleteSprint() {
   return useMutation<unknown, Error, SprintRequestDto>({
+    meta: { successMessage: "toasts.sprintDeleted" },
     mutationFn: ({ id, sprintId }) =>
       injectQuery([PROJECTS, `/${id}`, SPRINTS, `/${sprintId}`], {
         method: HttpMethod.DELETE,
@@ -85,6 +88,7 @@ export function useDeleteSprint() {
 
 export function useStartSprint() {
   return useMutation<unknown, Error, SprintRequestDto>({
+    meta: { successMessage: "toasts.sprintStarted" },
     mutationFn: ({ id, sprintId }) =>
       injectQuery([PROJECTS, `/${id}`, SPRINTS, `/${sprintId}`, START], {
         method: HttpMethod.POST,
@@ -96,6 +100,7 @@ export function useStartSprint() {
 
 export function useCloseSprint() {
   return useMutation<unknown, Error, SprintRequestDto>({
+    meta: { successMessage: "toasts.sprintClosed" },
     mutationFn: ({ id, sprintId }) =>
       injectQuery([PROJECTS, `/${id}`, SPRINTS, `/${sprintId}`, CLOSE], {
         method: HttpMethod.POST,

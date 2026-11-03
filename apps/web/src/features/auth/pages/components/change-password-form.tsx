@@ -1,11 +1,10 @@
 import { useState, type SubmitEvent } from "react";
-import { Check, Circle, CircleAlert } from "lucide-react";
+import { Check, Circle } from "lucide-react";
 import { cn } from "cn";
 
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { PasswordInput } from "@/components/ui/password-input";
-import { Spinner } from "@/components/ui/spinner";
 import { useChangePassword } from "@/features/auth/api/queries";
 import { useI18n } from "@/i18n/use-i18n";
 
@@ -169,16 +168,6 @@ export default function ChangePasswordForm({
           )}
         </Field>
 
-        {changePassword.error instanceof Error && !succeeded && (
-          <div
-            role="alert"
-            className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-          >
-            <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
-            {changePassword.error.message}
-          </div>
-        )}
-
         {succeeded && successMessage && (
           <p
             role="status"
@@ -193,9 +182,10 @@ export default function ChangePasswordForm({
           type="submit"
           size="lg"
           className={cn(fullWidthSubmit ? "w-full" : "self-start")}
-          disabled={!canSubmit || changePassword.isPending}
+          loading={changePassword.isPending}
+          disabled={!canSubmit}
         >
-          {changePassword.isPending ? <Spinner /> : submitLabel}
+          {submitLabel}
         </Button>
       </FieldGroup>
     </form>

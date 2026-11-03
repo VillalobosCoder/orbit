@@ -30,7 +30,6 @@ export const projects = {
       "Así se verán las claves de tus issues. No se podrá cambiar después.",
     description: "Descripción",
     create: "Crear proyecto",
-    creating: "Creando proyecto...",
   },
   members: {
     section: "Miembros del proyecto",
@@ -46,13 +45,11 @@ export const projects = {
     removeTitle: "Quitar del proyecto",
     selectUser: "Selecciona un usuario",
     addMember: "Agregar miembro",
-    adding: "Agregando...",
     empty: "Este proyecto aún no tiene miembros.",
     removeDialog: {
       title: "¿Quitar del proyecto?",
       leaves: "dejará de ver el proyecto",
       confirm: "Quitar del proyecto",
-      pending: "Quitando...",
     },
   },
 };

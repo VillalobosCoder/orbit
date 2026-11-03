@@ -1,12 +1,12 @@
-import { useRef, useState, type ChangeEvent } from "react";
-import { Camera, CircleAlert, Trash2 } from "lucide-react";
+import { useRef, type ChangeEvent } from "react";
+import { Camera, Trash2 } from "lucide-react";
 import { AVATAR_MAX_BYTES, AVATAR_MIME_TYPES } from "@orbit/shared";
 
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
 import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
 import { useRemoveAvatar, useUploadAvatar } from "@/features/auth/api/queries";
 import { useI18n } from "@/i18n/use-i18n";
+import { notifyError } from "@/notifications/notify";
 
 const MAX_MEGABYTES = AVATAR_MAX_BYTES / (1024 * 1024);
 
@@ -29,12 +29,7 @@ export default function ProfilePhoto({
   const inputRef = useRef<HTMLInputElement>(null);
   const uploadAvatar = useUploadAvatar();
   const removeAvatar = useRemoveAvatar();
-  const [validationError, setValidationError] = useState<string | null>(null);
   const isBusy = uploadAvatar.isPending || removeAvatar.isPending;
-  const requestError = [uploadAvatar.error, removeAvatar.error].find(
-    (error) => error instanceof Error,
-  );
-  const errorMessage = validationError ?? requestError?.message ?? null;
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const input = event.currentTarget;
@@ -47,21 +42,19 @@ export default function ProfilePhoto({
     uploadAvatar.reset();
 
     if (!isAvatarType(file.type)) {
-      setValidationError(t("profile.photo.invalidType"));
+      notifyError(t("profile.photo.invalidType"));
       return;
     }
 
     if (file.size > AVATAR_MAX_BYTES) {
-      setValidationError(t("profile.photo.tooLarge", { size: MAX_MEGABYTES }));
+      notifyError(t("profile.photo.tooLarge", { size: MAX_MEGABYTES }));
       return;
     }
 
-    setValidationError(null);
     uploadAvatar.mutate(file);
   }
 
   function handleRemove() {
-    setValidationError(null);
     uploadAvatar.reset();
     removeAvatar.mutate();
   }
@@ -90,10 +83,11 @@ export default function ProfilePhoto({
               type="button"
               variant="outline"
               size="sm"
+              loading={uploadAvatar.isPending}
               disabled={isBusy}
               onClick={() => inputRef.current?.click()}
             >
-              {uploadAvatar.isPending ? <Spinner /> : <Camera />}
+              <Camera />
               {t(avatarUrl ? "profile.photo.change" : "profile.photo.upload")}
             </Button>
             {avatarUrl && (
@@ -101,10 +95,11 @@ export default function ProfilePhoto({
                 type="button"
                 variant="ghost"
                 size="sm"
+                loading={removeAvatar.isPending}
                 disabled={isBusy}
                 onClick={handleRemove}
               >
-                {removeAvatar.isPending ? <Spinner /> : <Trash2 />}
+                <Trash2 />
                 {t("profile.photo.remove")}
               </Button>
             )}
@@ -115,15 +110,6 @@ export default function ProfilePhoto({
         </div>
       </div>
 
-      {errorMessage && (
-        <div
-          role="alert"
-          className="flex items-center gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-        >
-          <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
-          {errorMessage}
-        </div>
-      )}
     </div>
   );
 }
