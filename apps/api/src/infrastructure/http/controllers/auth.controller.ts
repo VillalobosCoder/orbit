@@ -19,16 +19,11 @@ import {
 } from "../schemas/auth.schema.js";
 import type { AuthedRequest } from "../middleware/auth.middleware.js";
 import { sendError } from "../middleware/locale.middleware.js";
-
-const ACCESS_TOKEN_MAX_AGE_MS = 15 * 60 * 1000;
-const isProduction = process.env.NODE_ENV === "production";
-
-const accessTokenCookieOptions = {
-  httpOnly: true,
-  secure: isProduction,
-  sameSite: "strict" as const,
-  path: "/",
-};
+import {
+  ACCESS_TOKEN_COOKIE,
+  accessTokenCookieOptions,
+  accessTokenSetOptions,
+} from "../config/cookie.config.js";
 
 export class AuthController {
   constructor(
@@ -170,10 +165,7 @@ export class AuthController {
       const input: LoginRequestDto = loginSchema.parse(req.body);
       const result = await this.loginUseCase.execute(input);
 
-      res.cookie("access_token", result.token, {
-        ...accessTokenCookieOptions,
-        maxAge: ACCESS_TOKEN_MAX_AGE_MS,
-      });
+      res.cookie(ACCESS_TOKEN_COOKIE, result.token, accessTokenSetOptions);
 
       const response: LoginResponseDto = { user: result.user };
       res.status(200).json(response);
@@ -209,10 +201,7 @@ export class AuthController {
         return;
       }
 
-      res.cookie("access_token", token, {
-        ...accessTokenCookieOptions,
-        maxAge: ACCESS_TOKEN_MAX_AGE_MS,
-      });
+      res.cookie(ACCESS_TOKEN_COOKIE, token, accessTokenSetOptions);
 
       const response: LoginResponseDto = { user };
       res.status(200).json(response);
@@ -222,7 +211,7 @@ export class AuthController {
   };
 
   logout = (_req: Request, res: Response): void => {
-    res.clearCookie("access_token", accessTokenCookieOptions);
+    res.clearCookie(ACCESS_TOKEN_COOKIE, accessTokenCookieOptions);
     
     res.status(204).end();
   };

@@ -10,7 +10,10 @@ export function createAuthRoutes(
   authenticate: RequestHandler,
 ) {
   const router = Router();
-  const loginRateLimit = makeRateLimitMiddleware(RATE_LIMITS.login);
+  const loginRateLimit = makeRateLimitMiddleware(RATE_LIMITS.login, {
+    perEmail: true,
+  });
+  const loginIpRateLimit = makeRateLimitMiddleware(RATE_LIMITS.loginByIp);
   const changePasswordRateLimit = makeRateLimitMiddleware(
     RATE_LIMITS.changePassword,
   );
@@ -19,7 +22,7 @@ export function createAuthRoutes(
     RATE_LIMITS.uploadAvatar,
   );
 
-  router.post("/login", loginRateLimit, controller.login);
+  router.post("/login", loginIpRateLimit, loginRateLimit, controller.login);
   router.get("/me", authenticate, controller.me);
   router.patch("/me", authenticate, controller.updateProfile);
   router.patch(

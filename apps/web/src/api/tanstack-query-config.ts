@@ -1,6 +1,8 @@
 import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
 import type { MessageKey } from "@orbit/i18n";
 
+import { ApiRequestError } from "@/api/config";
+import { authSessionQueryKey } from "@/features/auth/api/auth.api";
 import { notifyError, notifySuccess } from "@/notifications/notify";
 
 declare module "@tanstack/react-query" {
@@ -27,9 +29,21 @@ function shouldRetry(failureCount: number, error: unknown) {
   return failureCount < 2;
 }
 
+function handleSessionExpired(error: unknown) {
+  if (!(error instanceof ApiRequestError) || error.status !== 401) return false;
+  if (!queryClient.getQueryData(authSessionQueryKey)) return false;
+
+  queryClient.clear();
+  queryClient.setQueryData(authSessionQueryKey, null);
+  notifyError(error.message);
+
+  return true;
+}
+
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error, query) => {
+      if (handleSessionExpired(error)) return;
       if (query.state.data !== undefined) return;
 
       notifyError(error.message);
@@ -41,7 +55,11 @@ export const queryClient = new QueryClient({
 
       if (message) notifySuccess(message);
     },
-    onError: (error) => notifyError(error.message),
+    onError: (error) => {
+      if (handleSessionExpired(error)) return;
+
+      notifyError(error.message);
+    },
   }),
   defaultOptions: {
     queries: {

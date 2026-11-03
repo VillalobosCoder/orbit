@@ -1,27 +1,42 @@
 import cookieParser from "cookie-parser";
 import express from "express";
+import helmet from "helmet";
 import type { TokenService } from "../../application/auth/ports/token-service.port.js";
 import type { RouteControllers } from "./routes/index.js";
 import { createApiRoutes } from "./routes/index.js";
 import { errorHandler } from "./middleware/error-handler.middleware.js";
 import { makeLocaleMiddleware } from "./middleware/locale.middleware.js";
 import { makeAuthMiddleware } from "./middleware/auth.middleware.js";
+import type { UserRepository } from "../../application/user/ports/user-repository.port.js";
 import type { UserPermissionRepository } from "../../application/auth/ports/user-permission-repository.port.js";
 
 export function createHttpApp(
   controllers: RouteControllers,
   tokenService: TokenService,
   userPermissionRepository: UserPermissionRepository,
+  userRepository: UserRepository,
 ) {
   const app = express();
 
   app.disable("x-powered-by");
+
+  const proxyHops = Number(process.env.TRUST_PROXY);
+
+  if (Number.isInteger(proxyHops) && proxyHops > 0) {
+    app.set("trust proxy", proxyHops);
+  }
+
+  app.use(helmet({ crossOriginResourcePolicy: { policy: "same-site" } }));
+  app.use((_req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    next();
+  });
   app.use(makeLocaleMiddleware());
   app.use(express.json({ limit: "16kb" }));
   app.use(cookieParser());
   app.use("/api", createApiRoutes(
     controllers,
-    makeAuthMiddleware(tokenService),
+    makeAuthMiddleware(tokenService, userRepository),
     userPermissionRepository,
   ));
   app.use(errorHandler);

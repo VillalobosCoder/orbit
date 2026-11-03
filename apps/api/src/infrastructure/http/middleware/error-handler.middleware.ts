@@ -19,7 +19,7 @@ function getParserErrorType(error: unknown): string | undefined {
 
 export function errorHandler(
   err: unknown,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction,
 ) {
@@ -61,5 +61,6 @@ export function errorHandler(
     return sendError(res, 415, "errors.http.unsupportedFormat");
   }
 
+  console.error(`Unhandled error on ${req.method} ${req.path}`, err);
   sendError(res, 500, "errors.http.internal");
 }

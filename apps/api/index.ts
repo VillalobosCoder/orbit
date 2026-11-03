@@ -64,7 +64,12 @@ const controllers = createControllers({
   fileStorage,
   homeRepository,
 });
-const app = createHttpApp(controllers, tokenService, userPermissionRepository);
+const app = createHttpApp(
+  controllers,
+  tokenService,
+  userPermissionRepository,
+  userRepository,
+);
 
 await pool.query("SELECT 1");
 
