@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-table";
 import { cn } from "cn";
 
-import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/i18n/use-i18n";
 
 const features = tableFeatures({});
@@ -23,6 +23,7 @@ interface DataTableProps<TData extends RowData> {
 }
 
 const ROW_HEIGHT_REM = 4;
+const SKELETON_ROWS = 5;
 
 export function TableComponent<TData extends RowData>({
   data,
@@ -38,7 +39,8 @@ export function TableComponent<TData extends RowData>({
     columns,
   });
   const rows = table.getRowModel().rows;
-  const showPlaceholder = isLoading || rows.length === 0;
+  const showPlaceholder = rows.length === 0;
+  const skeletonRows = minRows ?? SKELETON_ROWS;
   const rowHeight = minRows ? "h-16" : undefined;
   const fillerCount = minRows ? Math.max(0, minRows - rows.length) : 0;
 
@@ -65,7 +67,21 @@ export function TableComponent<TData extends RowData>({
           ))}
         </thead>
         <tbody>
-          {showPlaceholder ? (
+          {isLoading ? (
+            Array.from({ length: skeletonRows }, (_, index) => (
+              <tr
+                key={`skeleton-${index}`}
+                aria-hidden="true"
+                className={cn("border-t border-border", rowHeight)}
+              >
+                {columns.map((_column, columnIndex) => (
+                  <td key={columnIndex} className="px-5 py-3">
+                    <Skeleton className="h-4 w-3/4" />
+                  </td>
+                ))}
+              </tr>
+            ))
+          ) : showPlaceholder ? (
             <tr
               className="border-t border-border"
               style={
@@ -78,11 +94,7 @@ export function TableComponent<TData extends RowData>({
                 colSpan={columns.length}
                 className="px-5 py-10 text-center text-muted-foreground"
               >
-                {isLoading ? (
-                  <Spinner className="mx-auto size-6" />
-                ) : (
-                  (emptyMessage ?? t("common.noRecords"))
-                )}
+                {emptyMessage ?? t("common.noRecords")}
               </td>
             </tr>
           ) : (

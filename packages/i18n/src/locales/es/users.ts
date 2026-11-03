@@ -56,7 +56,6 @@ export const users = {
     ownPermissions: "No puedes modificar tus propios permisos.",
     permissionsLegend: "Permisos por módulo",
     writeIncludesRead: "Escribir incluye leer",
-    loadingModules: "Cargando módulos...",
     modulesError:
       "No se pudieron cargar los módulos. Intenta de nuevo antes de guardar.",
     moduleColumn: "Módulo",

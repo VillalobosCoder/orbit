@@ -13,7 +13,7 @@ import {
 import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "cn";
 import { useGetModules } from "@/features/modules/api/queries";
 import {
@@ -44,6 +44,7 @@ export default function UserFormDialog({
   isSelf = false,
   onClose,
 }: UserFormDialogProps) {
+  const { t } = useI18n();
   const isEditing = userId !== undefined;
   const userQuery = useGetUser(isEditing ? userId : null);
 
@@ -56,12 +57,18 @@ export default function UserFormDialog({
     >
       <DialogContent className="sm:max-w-xl">
         {isEditing && userQuery.isPending && (
-          <p
-            role="status"
-            className="flex items-center gap-2 py-6 text-sm text-muted-foreground"
-          >
-            <Spinner />
-          </p>
+          <div aria-busy="true" className="flex flex-col gap-4 py-2">
+            <DialogTitle className="sr-only">
+              {t("users.form.editTitle")}
+            </DialogTitle>
+            <Skeleton className="h-6 w-40" />
+            <div className="grid grid-cols-2 gap-4">
+              <Skeleton className="h-10" />
+              <Skeleton className="h-10" />
+            </div>
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-48 w-full rounded-lg" />
+          </div>
         )}
         {(!isEditing || userQuery.data) && (
           <UserForm user={userQuery.data} isSelf={isSelf} onClose={onClose} />
@@ -232,13 +239,7 @@ function UserForm({
               </span>
             </div>
             {modulesQuery.isPending && (
-              <p
-                role="status"
-                className="flex items-center gap-2 text-sm text-muted-foreground"
-              >
-                <Spinner />
-                {t("users.form.loadingModules")}
-              </p>
+              <Skeleton aria-hidden="true" className="h-48 w-full rounded-lg" />
             )}
             {modulesQuery.data && (
               <div className="max-h-80 overflow-y-auto rounded-lg border border-border">

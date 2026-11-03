@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import { BoardColumnCategory, HOME_ASSIGNED_ISSUES_LIMIT } from "@orbit/shared";
 
 import { Badge } from "@/components/ui/badge";
-import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/auth/use-auth";
 import { usePermission } from "@/context/auth/use-permission";
 import { useGetHomeSummary } from "@/features/home/api/queries";
@@ -50,14 +50,19 @@ function SummaryCard({
       <p className="text-[0.6875rem] font-semibold tracking-wider text-muted-foreground uppercase">
         {label}
       </p>
-      <p className="mt-2 flex h-9 items-center text-3xl font-bold tracking-tight">
-        {isLoading ? (
-          <Spinner className="size-5 text-muted-foreground" />
-        ) : (
-          value
-        )}
-      </p>
-      <p className="mt-0.5 text-xs text-muted-foreground">{caption}</p>
+      {isLoading ? (
+        <>
+          <Skeleton className="mt-2 h-9 w-16" />
+          <Skeleton className="mt-1.5 h-3.5 w-28" />
+        </>
+      ) : (
+        <>
+          <p className="mt-2 flex h-9 items-center text-3xl font-bold tracking-tight">
+            {value}
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{caption}</p>
+        </>
+      )}
     </div>
   );
 }
@@ -134,16 +139,25 @@ export default function HomePage() {
               <h2 className="flex h-13 items-center px-5 text-[0.6875rem] font-semibold tracking-wider text-muted-foreground uppercase">
                 {t("home.assigned.title")}
               </h2>
-              {isLoading || assigned.items.length === 0 ? (
+              {isLoading ? (
+                <ul aria-hidden="true">
+                  {Array.from({ length: HOME_ASSIGNED_ISSUES_LIMIT }, (_, index) => (
+                    <li
+                      key={index}
+                      className="flex h-14 items-center gap-3 border-t border-border px-5"
+                    >
+                      <Skeleton className="h-3.5 w-20 shrink-0" />
+                      <Skeleton className="h-4 flex-1" />
+                      <Skeleton className="h-5 w-16 shrink-0 rounded-full" />
+                    </li>
+                  ))}
+                </ul>
+              ) : assigned.items.length === 0 ? (
                 <div
                   className="flex items-center justify-center border-t border-border text-sm text-muted-foreground"
                   style={{ height: `${HOME_ASSIGNED_ISSUES_LIMIT * ROW_HEIGHT_REM}rem` }}
                 >
-                  {isLoading ? (
-                    <Spinner className="size-6" />
-                  ) : (
-                    t("common.noRecords")
-                  )}
+                  {t("common.noRecords")}
                 </div>
               ) : (
                 <ul>
@@ -205,9 +219,10 @@ export default function HomePage() {
               </h2>
               <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
                 {isLoading ? (
-                  <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-border p-6">
-                    <Spinner className="size-6 text-muted-foreground" />
-                  </div>
+                  <>
+                    <Skeleton className="h-28 shrink-0 rounded-xl" />
+                    <Skeleton className="h-20 shrink-0 rounded-xl" />
+                  </>
                 ) : projects.length === 0 ? (
                   <p className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
                     {t("common.noRecords")}

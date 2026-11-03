@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   useGetProject,
   useGetProjectMembers,
@@ -40,15 +40,31 @@ export default function IssueDetailDialog() {
     >
       <DialogContent className="flex h-[min(90vh,50rem)] flex-col gap-4 overflow-hidden sm:max-w-4xl">
         {content ?? (
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Spinner />
-              {title}
-            </DialogTitle>
-            <DialogDescription className="sr-only">
-              {t("issues.loader.loadingDescription")}
-            </DialogDescription>
-          </DialogHeader>
+          <>
+            <DialogHeader className="shrink-0 pr-8">
+              <DialogTitle className="sr-only">{title}</DialogTitle>
+              <DialogDescription className="sr-only">
+                {t("issues.loader.loadingDescription")}
+              </DialogDescription>
+              <div aria-hidden="true" className="flex flex-col gap-3">
+                <Skeleton className="h-5 w-28" />
+                <Skeleton className="h-8 w-2/3" />
+              </div>
+            </DialogHeader>
+            <div
+              aria-busy="true"
+              aria-hidden="true"
+              className="grid min-h-0 flex-1 gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]"
+            >
+              <div className="flex flex-col gap-4">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-14 w-full" />
+              </div>
+              <Skeleton className="h-64 w-full rounded-xl" />
+            </div>
+          </>
         )}
       </DialogContent>
     </Dialog>

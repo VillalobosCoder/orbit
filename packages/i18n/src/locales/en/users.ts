@@ -58,7 +58,6 @@ export const users: Messages["users"] = {
     ownPermissions: "You can't change your own permissions.",
     permissionsLegend: "Permissions by module",
     writeIncludesRead: "Write includes read",
-    loadingModules: "Loading modules...",
     modulesError: "The modules could not be loaded. Try again before saving.",
     moduleColumn: "Module",
     read: "Read",

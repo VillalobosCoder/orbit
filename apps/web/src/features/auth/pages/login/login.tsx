@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
-import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/auth/use-auth";
 import { useLogin } from "@/features/auth/api/queries";
 import { useI18n } from "@/i18n/use-i18n";
@@ -57,12 +57,11 @@ export default function Login() {
           </div>
 
           {isLoading ? (
-            <p
-              role="status"
-              className="mt-6 flex items-center gap-2 text-sm text-muted-foreground"
-            >
-              <Spinner />
-            </p>
+            <div aria-busy="true" aria-hidden="true" className="mt-6 flex flex-col gap-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
           ) : (
             <form onSubmit={handleSubmit} className="mt-6">
               <FieldGroup>
