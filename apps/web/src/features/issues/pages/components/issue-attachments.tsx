@@ -1,8 +1,9 @@
 import { useRef, useState } from "react";
-import { ImagePlus, Trash2 } from "lucide-react";
+import { ImagePlus, Maximize2, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
+import { MediaViewerComponent } from "@/components/ui/media-viewer-component";
 import { Skeleton } from "@/components/ui/skeleton";
 import { notifyError } from "@/notifications/notify";
 import { useI18n } from "@/i18n/use-i18n";
@@ -38,6 +39,7 @@ export default function IssueAttachments({
   const upload = useUploadAttachment();
   const remove = useDeleteAttachment();
   const [toDelete, setToDelete] = useState<AttachmentDto | null>(null);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const items = attachments.data ?? [];
   const isFull = items.length >= ATTACHMENTS_PER_ISSUE_MAX;
 
@@ -75,6 +77,7 @@ export default function IssueAttachments({
         await upload.mutateAsync({ ...issue, file });
         remaining -= 1;
       } catch {
+        continue;
       }
     }
 
@@ -132,7 +135,7 @@ export default function IssueAttachments({
         </p>
       ) : (
         <ul className="grid grid-cols-2 gap-3">
-          {items.map((attachment) => {
+          {items.map((attachment, index) => {
             const url = attachmentContentUrl({
               ...issue,
               attachmentId: attachment.id,
@@ -144,6 +147,19 @@ export default function IssueAttachments({
                 className="group relative overflow-hidden rounded-lg border border-border bg-muted/40"
               >
                 {attachment.kind === "video" ? (
+                  <div className="relative">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon-xs"
+                      aria-label={t("issues.attachments.open", {
+                        name: attachment.originalName,
+                      })}
+                      className="absolute top-1.5 right-1.5 z-10"
+                      onClick={() => setViewerIndex(index)}
+                    >
+                      <Maximize2 />
+                    </Button>
                   <video
                     src={url}
                     controls
@@ -151,15 +167,23 @@ export default function IssueAttachments({
                     aria-label={attachment.originalName}
                     className="aspect-video w-full bg-black object-contain"
                   />
+                  </div>
                 ) : (
-                  <a href={url} target="_blank" rel="noreferrer">
+                  <button
+                    type="button"
+                    aria-label={t("issues.attachments.open", {
+                      name: attachment.originalName,
+                    })}
+                    className="block w-full cursor-zoom-in"
+                    onClick={() => setViewerIndex(index)}
+                  >
                     <img
                       src={url}
-                      alt={attachment.originalName}
+                      alt=""
                       loading="lazy"
                       className="aspect-video w-full object-cover"
                     />
-                  </a>
+                  </button>
                 )}
                 <div className="flex items-center justify-between gap-2 px-2.5 py-1.5">
                   <span
@@ -187,6 +211,17 @@ export default function IssueAttachments({
           })}
         </ul>
       )}
+
+      <MediaViewerComponent
+        items={items.map((attachment) => ({
+          id: attachment.id,
+          kind: attachment.kind,
+          src: attachmentContentUrl({ ...issue, attachmentId: attachment.id }),
+          name: attachment.originalName,
+        }))}
+        index={viewerIndex}
+        onIndexChange={setViewerIndex}
+      />
 
       <ConfirmDialogComponent
         open={toDelete !== null}

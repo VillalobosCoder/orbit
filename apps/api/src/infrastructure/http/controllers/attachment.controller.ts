@@ -24,9 +24,13 @@ function readFileName(header: string | string[] | undefined): string {
     return DEFAULT_FILE_NAME;
   }
 
-  let decoded = raw;
+  let decoded: string;
 
-  decoded = decodeURIComponent(raw);
+  try {
+    decoded = decodeURIComponent(raw);
+  } catch {
+    decoded = raw;
+  }
 
   const clean = Array.from(decoded, (char) => {
     const code = char.charCodeAt(0);

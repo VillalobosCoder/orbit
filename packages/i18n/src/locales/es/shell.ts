@@ -38,6 +38,10 @@ export const shell = {
   },
   ui: {
     closeDialog: "Cerrar",
+    mediaViewer: "Visor de fotos y videos",
+    closeMediaViewer: "Cerrar visor",
+    previous: "Anterior",
+    next: "Siguiente",
     closeToast: "Cerrar aviso",
     showPassword: "Mostrar contraseña",
     hidePassword: "Ocultar contraseña",

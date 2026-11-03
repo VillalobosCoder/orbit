@@ -40,6 +40,7 @@ export const issues = {
     remove: "Quitar {name}",
     deleteTitle: "Quitar adjunto",
     deleteDescription: "«{name}» se eliminará del issue. Esta acción no se puede deshacer.",
+    open: "Ver {name} en pantalla completa",
     deleteConfirm: "Quitar",
   },
   dialog: {

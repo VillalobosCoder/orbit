@@ -42,6 +42,7 @@ export const issues: Messages["issues"] = {
     remove: "Remove {name}",
     deleteTitle: "Remove attachment",
     deleteDescription: "“{name}” will be removed from the issue. This cannot be undone.",
+    open: "View {name} full screen",
     deleteConfirm: "Remove",
   },
   dialog: {

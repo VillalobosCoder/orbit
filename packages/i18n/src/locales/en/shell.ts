@@ -40,6 +40,10 @@ export const shell: Messages["shell"] = {
   },
   ui: {
     closeDialog: "Close",
+    mediaViewer: "Photo and video viewer",
+    closeMediaViewer: "Close viewer",
+    previous: "Previous",
+    next: "Next",
     closeToast: "Dismiss notification",
     showPassword: "Show password",
     hidePassword: "Hide password",
