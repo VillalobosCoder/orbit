@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { ImagePlus, Maximize2, Trash2 } from "lucide-react";
 
+import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
 import { MediaViewerComponent } from "@/components/ui/media-viewer-component";
@@ -11,10 +12,12 @@ import {
   ATTACHMENT_IMAGE_MAX_BYTES,
   ATTACHMENT_MIME_TYPES,
   ATTACHMENT_VIDEO_MAX_BYTES,
+  ATTACHMENTS_PER_COMMENT_MAX,
   ATTACHMENTS_PER_ISSUE_MAX,
   type AttachmentDto,
   type IssueRequestDto,
 } from "@orbit/shared";
+import { formatDuration, readMediaMetadata } from "../../utils/media-metadata";
 import {
   attachmentContentUrl,
   useDeleteAttachment,
@@ -26,11 +29,13 @@ const MEGABYTE = 1024 * 1024;
 
 interface IssueAttachmentsProps {
   issue: IssueRequestDto;
+  commentId?: number;
   canWrite: boolean;
 }
 
 export default function IssueAttachments({
   issue,
+  commentId,
   canWrite,
 }: IssueAttachmentsProps) {
   const { t } = useI18n();
@@ -40,16 +45,20 @@ export default function IssueAttachments({
   const remove = useDeleteAttachment();
   const [toDelete, setToDelete] = useState<AttachmentDto | null>(null);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
-  const items = attachments.data ?? [];
-  const isFull = items.length >= ATTACHMENTS_PER_ISSUE_MAX;
+  const isComment = commentId !== undefined;
+  const max = isComment ? ATTACHMENTS_PER_COMMENT_MAX : ATTACHMENTS_PER_ISSUE_MAX;
+  const items = (attachments.data ?? []).filter(
+    (attachment) => (attachment.commentId ?? undefined) === commentId,
+  );
+  const isFull = items.length >= max;
 
   async function handleFiles(files: FileList | null) {
     const selected = Array.from(files ?? []);
-    let remaining = ATTACHMENTS_PER_ISSUE_MAX - items.length;
+    let remaining = max - items.length;
 
     for (const file of selected) {
       if (remaining <= 0) {
-        notifyError(t("issues.attachments.limit", { max: ATTACHMENTS_PER_ISSUE_MAX }));
+        notifyError(t("issues.attachments.limit", { max }));
         break;
       }
 
@@ -74,7 +83,8 @@ export default function IssueAttachments({
       }
 
       try {
-        await upload.mutateAsync({ ...issue, file });
+        const metadata = await readMediaMetadata(file);
+        await upload.mutateAsync({ ...issue, commentId, file, metadata });
         remaining -= 1;
       } catch {
         continue;
@@ -88,14 +98,23 @@ export default function IssueAttachments({
     return null;
   }
 
+  if (isComment && attachments.isPending) {
+    return null;
+  }
+
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold">
+        <h2
+          className={cn(
+            "font-semibold",
+            isComment ? "text-xs text-muted-foreground" : "text-sm",
+          )}
+        >
           {t("issues.attachments.title")}
           {items.length > 0 && (
             <span className="ml-1.5 font-normal text-muted-foreground">
-              {items.length} / {ATTACHMENTS_PER_ISSUE_MAX}
+              {items.length} / {max}
             </span>
           )}
         </h2>
@@ -130,11 +149,18 @@ export default function IssueAttachments({
           <Skeleton className="aspect-video w-full rounded-lg" />
         </div>
       ) : items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          {t("issues.attachments.empty")}
-        </p>
+        !isComment && (
+          <p className="text-sm text-muted-foreground">
+            {t("issues.attachments.empty")}
+          </p>
+        )
       ) : (
-        <ul className="grid grid-cols-2 gap-3">
+        <ul
+          className={cn(
+            "grid grid-cols-2 gap-3",
+            isComment && "sm:grid-cols-4",
+          )}
+        >
           {items.map((attachment, index) => {
             const url = attachmentContentUrl({
               ...issue,
@@ -186,11 +212,28 @@ export default function IssueAttachments({
                   </button>
                 )}
                 <div className="flex items-center justify-between gap-2 px-2.5 py-1.5">
-                  <span
-                    className="min-w-0 truncate text-xs text-muted-foreground"
-                    title={attachment.originalName}
-                  >
-                    {attachment.originalName}
+                  <span className="flex min-w-0 flex-col">
+                    <span
+                      className="truncate text-xs text-muted-foreground"
+                      title={attachment.originalName}
+                    >
+                      {attachment.originalName}
+                    </span>
+                    {(attachment.width !== null ||
+                      attachment.durationSeconds !== null) && (
+                      <span className="truncate text-[0.7rem] text-muted-foreground/70">
+                        {[
+                          attachment.width !== null && attachment.height !== null
+                            ? `${attachment.width}×${attachment.height}`
+                            : null,
+                          attachment.durationSeconds !== null
+                            ? formatDuration(attachment.durationSeconds)
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                    )}
                   </span>
                   {canWrite && (
                     <Button
@@ -236,7 +279,7 @@ export default function IssueAttachments({
         onConfirm={() => {
           if (!toDelete) return;
           remove.mutate(
-            { ...issue, attachmentId: toDelete.id },
+            { ...issue, commentId, attachmentId: toDelete.id },
             { onSettled: () => setToDelete(null) },
           );
         }}

@@ -7,6 +7,7 @@ export const issues: Messages["issues"] = {
     done: "Done",
   },
   board: {
+    storyPoints: "{count} story points",
     section: "Board",
     activeSprint: "Active sprint",
     noActiveSprint: "No active sprint: backlog issues are shown.",
@@ -46,6 +47,9 @@ export const issues: Messages["issues"] = {
     deleteConfirm: "Remove",
   },
   dialog: {
+    estimate: "Estimate",
+    estimateHours: "Hours",
+    storyPoints: "Story points",
     newTitle: "New issue",
     editingTitle: "Editing {key}",
     create: "Create issue",

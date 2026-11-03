@@ -26,10 +26,10 @@ export const toasts: Messages["toasts"] = {
 
 export const notifications: Messages["notifications"] = {
   title: "Notifications",
-  hint: "We let you know when one of your tasks is about to be due or already overdue. Notifications are saved and shown in the bell of the side menu.",
-  group: "Due date notifications",
+  hint: "We let you know when one of your tasks is about to be due or already overdue, when a task is assigned to you and when someone comments on one of yours. Notifications are saved and shown under Notifications, in your profile menu.",
+  group: "Task notifications",
   on: "Receive notifications",
-  onDescription: "You'll be notified about tasks due within the next {days} days and overdue ones.",
+  onDescription: "You'll be notified about tasks due within the next {days} days, overdue ones, assignments and comments.",
   off: "Don't receive notifications",
   offDescription: "No new notifications will be created. The ones you already have are kept.",
   page: {
@@ -51,6 +51,8 @@ export const notifications: Messages["notifications"] = {
     status: { unread: "Unread", read: "Read" },
     dueSoon: "Due on {date}",
     overdue: "Was due on {date}",
+    assigned: "{name} assigned you this task",
+    commented: "{name} commented on this task",
   },
   menu: {
     title: "Notifications",

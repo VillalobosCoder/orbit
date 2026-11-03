@@ -1,6 +1,8 @@
 import * as z from "zod";
 import {
   ISSUE_DESCRIPTION_MAX_LENGTH,
+  ISSUE_ESTIMATE_MAX_MINUTES,
+  ISSUE_STORY_POINTS_MAX,
   ISSUE_TITLE_MAX_LENGTH,
 } from "@orbit/shared";
 
@@ -13,6 +15,8 @@ export const saveIssueSchema = z.object({
   description: z.string().trim().max(ISSUE_DESCRIPTION_MAX_LENGTH).nullish(),
   startDate: isoDate.nullish(),
   dueDate: isoDate.nullish(),
+  estimateMinutes: z.number().int().min(0).max(ISSUE_ESTIMATE_MAX_MINUTES).nullish(),
+  storyPoints: z.number().int().min(1).max(ISSUE_STORY_POINTS_MAX).nullish(),
   typeId: id,
   priorityId: id.nullish(),
   difficultyId: id.nullish(),

@@ -1,0 +1,1 @@
+ALTER TABLE "issues" ADD CONSTRAINT "issues_story_points_positive_check" CHECK ("story_points" is null or "story_points" >= 1);

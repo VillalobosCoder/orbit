@@ -149,6 +149,14 @@ export default function IssueCard({
             </span>
           )}
           <span className="flex-1" />
+          {issue.storyPoints !== null && (
+            <span
+              title={t("issues.board.storyPoints", { count: issue.storyPoints })}
+              className="flex h-5 min-w-5 items-center justify-center rounded-full bg-muted px-1.5 text-xs font-medium text-muted-foreground"
+            >
+              {issue.storyPoints}
+            </span>
+          )}
           <DifficultyPill difficulty={difficulty} />
           <PriorityIcon priority={priority} />
           <AssigneeStack people={assignees} />

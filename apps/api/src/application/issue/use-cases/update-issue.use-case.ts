@@ -1,4 +1,5 @@
 import {
+  NotificationType,
   BoardColumnCategory,
   positionAfter,
   type IssueRequestDto,
@@ -180,6 +181,21 @@ export class UpdateIssueUseCase {
           issueId: input.issueId,
           userIds: assigneeIds,
           actorUserId: input.actorUserId,
+        });
+        await this.notifications.notify({
+          recipientIds: assigneeIds.filter(
+            (userId) => !issue.assigneeIds.includes(userId),
+          ),
+          actorUserId: input.actorUserId,
+          type: NotificationType.ISSUE_ASSIGNED,
+          entityType: "issue",
+          entityId: input.issueId,
+          payload: {
+            projectId: input.id,
+            issueId: input.issueId,
+            issueKey: `${isMember.projectKey}-${issue.issueNumber}`,
+            issueTitle: updated.title,
+          },
         });
       }
     });

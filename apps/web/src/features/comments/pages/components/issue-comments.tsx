@@ -16,6 +16,7 @@ import {
   useGetComments,
   useUpdateComment,
 } from "../../api/queries";
+import IssueAttachments from "@/features/issues/pages/components/issue-attachments";
 import { useI18n } from "@/i18n/use-i18n";
 
 interface IssueCommentsProps {
@@ -174,6 +175,13 @@ export default function IssueComments({
                     {comment.body}
                   </p>
                 )}
+                <div className="mt-2">
+                  <IssueAttachments
+                    issue={issue}
+                    commentId={comment.id}
+                    canWrite={canWrite && isAuthor && editingId === comment.id}
+                  />
+                </div>
               </div>
             </li>
           );

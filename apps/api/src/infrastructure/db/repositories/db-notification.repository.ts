@@ -7,7 +7,10 @@ import {
   type NotificationDto,
   type NotificationListQueryDto,
 } from "@orbit/shared";
-import type { NotificationRepository } from "../../../application/notification/ports/notification-repository.port.js";
+import type {
+  NotificationRepository,
+  NotifyCommand,
+} from "../../../application/notification/ports/notification-repository.port.js";
 import type { ActorUserId } from "../../../application/shared/actor.js";
 import type { DbContext } from "../db-context.js";
 import { notifications } from "../schema/notifications.js";
@@ -17,11 +20,12 @@ import { findStatusId } from "./find-status-id.js";
 const ISSUE_ENTITY = "issue";
 const DUE_TYPES = [NotificationType.ISSUE_DUE_SOON, NotificationType.ISSUE_OVERDUE];
 
-type DuePayload = {
+type NotificationPayload = {
   projectId: number;
+  issueId?: number;
   issueKey: string;
   issueTitle: string;
-  dueDate: string;
+  dueDate?: string;
 };
 
 export class DBNotificationRepository implements NotificationRepository {
@@ -43,24 +47,30 @@ export class DBNotificationRepository implements NotificationRepository {
       .where(where);
     const currentPage = Math.min(page, Math.max(1, Math.ceil(total / pageSize)));
     const rows = await this.db
-      .select()
+      .select({
+        notification: notifications,
+        actorName: users.name,
+        actorLastName: users.lastName,
+      })
       .from(notifications)
+      .leftJoin(users, eq(users.id, notifications.actorId))
       .where(where)
       .orderBy(desc(notifications.createdAt), desc(notifications.id))
       .limit(pageSize)
       .offset((currentPage - 1) * pageSize);
 
-    const items = rows.map((row) => {
-      const payload = row.payload as DuePayload;
+    const items = rows.map(({ notification: row, actorName, actorLastName }) => {
+      const payload = row.payload as NotificationPayload;
 
       return {
         id: row.id,
         type: row.type as NotificationType,
         projectId: payload.projectId,
-        issueId: row.entityId,
+        issueId: payload.issueId ?? row.entityId,
         issueKey: payload.issueKey,
         issueTitle: payload.issueTitle,
-        dueDate: payload.dueDate,
+        actorName: actorName ? `${actorName} ${actorLastName}` : null,
+        dueDate: payload.dueDate ?? null,
         readAt: row.readAt?.toISOString() ?? null,
         createdAt: row.createdAt.toISOString(),
       } satisfies NotificationDto;
@@ -138,6 +148,62 @@ export class DBNotificationRepository implements NotificationRepository {
         updatedByUserId: userId,
       })
       .where(eq(users.id, userId));
+  }
+
+  async notify({
+    recipientIds,
+    actorUserId,
+    type,
+    entityType,
+    entityId,
+    payload,
+  }: NotifyCommand): Promise<void> {
+    const candidates = [...new Set(recipientIds)].filter(
+      (userId) => userId !== actorUserId,
+    );
+
+    if (candidates.length === 0) {
+      return;
+    }
+
+    const enabled = await this.db
+      .select({ id: users.id })
+      .from(users)
+      .where(
+        and(inArray(users.id, candidates), eq(users.notificationsEnabled, true)),
+      );
+
+    if (enabled.length === 0) {
+      return;
+    }
+
+    await this.db
+      .insert(notifications)
+      .values(
+        enabled.map(({ id }) => ({
+          recipientId: id,
+          actorId: actorUserId,
+          type,
+          entityType,
+          entityId,
+          payload,
+          createdByUserId: actorUserId,
+        })),
+      )
+      .onConflictDoUpdate({
+        target: [
+          notifications.recipientId,
+          notifications.type,
+          notifications.entityType,
+          notifications.entityId,
+        ],
+        set: {
+          actorId: actorUserId,
+          payload,
+          readAt: null,
+          createdAt: new Date(),
+        },
+      });
   }
 
   async generateDue({ soonDays }: { soonDays: number }): Promise<number> {

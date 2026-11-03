@@ -1,4 +1,5 @@
 import {
+  NotificationType,
   BoardColumnCategory,
   positionAfter,
   type IssueDto,
@@ -23,6 +24,7 @@ import {
   normalizeAssignees,
 } from "../utils/validate-issue-references.js";
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
+import type { NotificationRepository } from "../../notification/ports/notification-repository.port.js";
 import type { Actor } from "../../shared/actor.js";
 
 export type CreateIssueInput = SaveIssueRequestDto &
@@ -35,6 +37,7 @@ export class CreateIssueUseCase {
     private readonly members: ProjectMemberRepository,
     private readonly issues: IssueRepository,
     private readonly catalog: IssueCatalogRepository,
+    private readonly notifications: NotificationRepository,
     private readonly transaction: TransactionManager,
   ) {}
 
@@ -111,6 +114,20 @@ export class CreateIssueUseCase {
         issueId,
         userIds: assigneeIds,
         actorUserId: input.actorUserId,
+      });
+
+      await this.notifications.notify({
+        recipientIds: assigneeIds,
+        actorUserId: input.actorUserId,
+        type: NotificationType.ISSUE_ASSIGNED,
+        entityType: "issue",
+        entityId: issueId,
+        payload: {
+          projectId: input.id,
+          issueId,
+          issueKey: `${project.projectKey}-${issueNumber}`,
+          issueTitle: issue.title,
+        },
       });
 
       return toIssueDto(

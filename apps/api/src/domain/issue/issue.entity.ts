@@ -9,6 +9,8 @@ export type IssueDetails = {
   parentId?: number | null;
   startDate?: string | null;
   dueDate?: string | null;
+  estimateMinutes?: number | null;
+  storyPoints?: number | null;
 };
 
 export type IssuePrimitives = {
@@ -26,6 +28,8 @@ export type IssuePrimitives = {
   description: string | null;
   startDate: string | null;
   dueDate: string | null;
+  estimateMinutes: number | null;
+  storyPoints: number | null;
   boardPosition: number;
   resolvedAt: Date | null;
   assigneeIds: number[];
@@ -79,6 +83,8 @@ export class Issue {
       parentId: input.parentId ?? null,
       startDate: input.startDate || null,
       dueDate: input.dueDate || null,
+      estimateMinutes: input.estimateMinutes ?? null,
+      storyPoints: input.storyPoints ?? null,
     };
   }
 
@@ -165,6 +171,14 @@ export class Issue {
 
   get dueDate(): string | null {
     return this.props.dueDate;
+  }
+
+  get estimateMinutes(): number | null {
+    return this.props.estimateMinutes;
+  }
+
+  get storyPoints(): number | null {
+    return this.props.storyPoints;
   }
 
   get boardPosition(): number {

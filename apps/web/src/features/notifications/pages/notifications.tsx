@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createColumnHelper } from "@tanstack/react-table";
-import { CalendarClock, CalendarX2, CheckCheck, Eye } from "lucide-react";
+import {
+  CalendarClock,
+  CalendarX2,
+  CheckCheck,
+  Eye,
+  MessageSquare,
+  UserPlus,
+  type LucideIcon,
+} from "lucide-react";
 import {
   NotificationType,
   type NotificationDto,
@@ -24,6 +32,20 @@ import {
 } from "../api/queries";
 
 const PAGE_SIZE = 10;
+
+const NOTICE_ICONS: Record<NotificationType, LucideIcon> = {
+  [NotificationType.ISSUE_DUE_SOON]: CalendarClock,
+  [NotificationType.ISSUE_OVERDUE]: CalendarX2,
+  [NotificationType.ISSUE_ASSIGNED]: UserPlus,
+  [NotificationType.COMMENT_ADDED]: MessageSquare,
+};
+
+const NOTICE_TEXTS = {
+  [NotificationType.ISSUE_DUE_SOON]: "notifications.page.dueSoon",
+  [NotificationType.ISSUE_OVERDUE]: "notifications.page.overdue",
+  [NotificationType.ISSUE_ASSIGNED]: "notifications.page.assigned",
+  [NotificationType.COMMENT_ADDED]: "notifications.page.commented",
+} as const;
 
 const columnHelper = createColumnHelper<DataTableFeatures, NotificationDto>();
 
@@ -73,23 +95,22 @@ export default function NotificationsPage() {
       id: "notice",
       header: t("notifications.page.columns.notice"),
       cell: ({ row }) => {
-        const isOverdue = row.original.type === NotificationType.ISSUE_OVERDUE;
-        const Icon = isOverdue ? CalendarX2 : CalendarClock;
+        const { type, dueDate, actorName } = row.original;
+        const Icon = NOTICE_ICONS[type];
 
         return (
           <span
             className={cn(
               "flex items-center gap-2",
-              isOverdue ? "text-destructive" : "text-warning",
+              type === NotificationType.ISSUE_OVERDUE && "text-destructive",
+              type === NotificationType.ISSUE_DUE_SOON && "text-warning",
             )}
           >
             <Icon aria-hidden="true" className="size-4 shrink-0" />
-            {t(
-              isOverdue
-                ? "notifications.page.overdue"
-                : "notifications.page.dueSoon",
-              { date: formatDate(row.original.dueDate, locale) },
-            )}
+            {t(NOTICE_TEXTS[type], {
+              date: dueDate ? formatDate(dueDate, locale) : "",
+              name: actorName ?? "",
+            })}
           </span>
         );
       },

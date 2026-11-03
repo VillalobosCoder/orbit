@@ -8,7 +8,8 @@ export type NotificationDto = {
   issueId: number;
   issueKey: string;
   issueTitle: string;
-  dueDate: string;
+  actorName: string | null;
+  dueDate: string | null;
   readAt: string | null;
   createdAt: string;
 };

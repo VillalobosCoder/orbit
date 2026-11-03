@@ -60,6 +60,7 @@ export const issues = pgTable(
     ...auditColumns((): AnyPgColumn => users.id),
   },
   (table) => [
+    check("issues_story_points_positive_check", sql`${table.storyPoints} is null or ${table.storyPoints} >= 1`),
     check(
       "issues_dates_order_check",
       sql`${table.startDate} is null or ${table.dueDate} is null or ${table.startDate} <= ${table.dueDate}`,

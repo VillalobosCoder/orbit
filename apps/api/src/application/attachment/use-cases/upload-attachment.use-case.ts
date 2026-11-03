@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import {
+  ATTACHMENTS_PER_COMMENT_MAX,
   ATTACHMENTS_PER_ISSUE_MAX,
   type AttachmentDto,
   type IssueRequestDto,
@@ -11,6 +12,8 @@ import {
 import { AttachmentMedia } from "../../../domain/attachment/value-objects/attachment-media.vo.js";
 import { IssueNotFoundError } from "../../../domain/issue/issue.errors.js";
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
+import { CommentNotFoundError } from "../../../domain/comment/comment.errors.js";
+import type { CommentRepository } from "../../comment/ports/comment-repository.port.js";
 import type { FileRepository } from "../../file/ports/file-repository.port.js";
 import type { FileStorage } from "../../file/ports/file-storage.port.js";
 import type { IssueRepository } from "../../issue/ports/issue-repository.port.js";
@@ -20,7 +23,14 @@ import type { TransactionManager } from "../../shared/ports/transaction-manager.
 import type { AttachmentRepository } from "../ports/attachment-repository.port.js";
 
 export type UploadAttachmentInput = IssueRequestDto &
-  Actor & { content: Buffer; originalName: string };
+  Actor & {
+    commentId: number | null;
+    content: Buffer;
+    originalName: string;
+    width?: number | null;
+    height?: number | null;
+    durationSeconds?: number | null;
+  };
 
 const ATTACHMENT_BUCKET = "attachments";
 
@@ -28,6 +38,7 @@ export class UploadAttachmentUseCase {
   constructor(
     private readonly projects: ProjectRepository,
     private readonly issues: IssueRepository,
+    private readonly comments: CommentRepository,
     private readonly attachments: AttachmentRepository,
     private readonly fileRepository: FileRepository,
     private readonly storage: FileStorage,
@@ -51,8 +62,27 @@ export class UploadAttachmentUseCase {
       throw new IssueNotFoundError(input.issueId);
     }
 
-    if ((await this.attachments.countByIssue(input)) >= ATTACHMENTS_PER_ISSUE_MAX) {
-      throw new TooManyAttachmentsError(ATTACHMENTS_PER_ISSUE_MAX);
+    if (input.commentId !== null) {
+      const comment = await this.comments.findById({
+        id: input.id,
+        issueId: input.issueId,
+        commentId: input.commentId,
+      });
+
+      if (!comment) {
+        throw new CommentNotFoundError(input.commentId);
+      }
+
+      comment.assertWrittenBy(input.actorUserId);
+    }
+
+    const max =
+      input.commentId === null
+        ? ATTACHMENTS_PER_ISSUE_MAX
+        : ATTACHMENTS_PER_COMMENT_MAX;
+
+    if ((await this.attachments.countByTarget(input)) >= max) {
+      throw new TooManyAttachmentsError(max);
     }
 
     const storageKey = `${ATTACHMENT_BUCKET}/${input.issueId}/${randomUUID()}.${media.extension}`;
@@ -68,6 +98,9 @@ export class UploadAttachmentUseCase {
           mimeType: media.mimeType,
           sizeBytes: media.sizeBytes,
           checksumSha256: media.checksumSha256,
+          width: input.width,
+          height: input.height,
+          durationSeconds: input.durationSeconds,
         });
 
         return this.attachments.create({ ...input, fileId });

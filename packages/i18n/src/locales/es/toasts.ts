@@ -24,10 +24,10 @@ export const toasts = {
 
 export const notifications = {
   title: "Notificaciones",
-  hint: "Te avisamos cuando una tarea tuya está por vencer o ya venció. Los avisos se guardan y los ves en la campana del menú lateral.",
-  group: "Notificaciones de vencimiento",
+  hint: "Te avisamos cuando una tarea tuya está por vencer o ya venció, cuando te asignan una tarea y cuando comentan en una tuya. Los avisos se guardan y los ves en Notificaciones, en el menú de tu perfil.",
+  group: "Notificaciones de tareas",
   on: "Recibir notificaciones",
-  onDescription: "Recibirás un aviso de las tareas que vencen en los próximos {days} días y de las vencidas.",
+  onDescription: "Recibirás avisos de tareas que vencen en los próximos {days} días, de las vencidas, de asignaciones y de comentarios.",
   off: "No recibir notificaciones",
   offDescription: "No se crearán avisos nuevos. Los que ya tienes se conservan.",
   page: {
@@ -49,6 +49,8 @@ export const notifications = {
     status: { unread: "Sin leer", read: "Leída" },
     dueSoon: "Vence el {date}",
     overdue: "Venció el {date}",
+    assigned: "{name} te asignó esta tarea",
+    commented: "{name} comentó en esta tarea",
   },
   menu: {
     title: "Notificaciones",

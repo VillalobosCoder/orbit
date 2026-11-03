@@ -1,8 +1,10 @@
 import type { NextFunction, Response } from "express";
-import type {
-  AttachmentDto,
-  AttachmentRequestDto,
-  IssueRequestDto,
+import {
+  ATTACHMENT_DIMENSION_MAX,
+  ATTACHMENT_DURATION_MAX_SECONDS,
+  type AttachmentDto,
+  type AttachmentRequestDto,
+  type IssueRequestDto,
 } from "@orbit/shared";
 import type { DeleteAttachmentUseCase } from "../../../application/attachment/use-cases/delete-attachment.use-case.js";
 import type { GetAttachmentContentUseCase } from "../../../application/attachment/use-cases/get-attachment-content.use-case.js";
@@ -10,10 +12,16 @@ import type { GetAttachmentsUseCase } from "../../../application/attachment/use-
 import type { UploadAttachmentUseCase } from "../../../application/attachment/use-cases/upload-attachment.use-case.js";
 import { InvalidAttachmentError } from "../../../domain/attachment/attachment.errors.js";
 import type { AuthedRequest } from "../middleware/auth.middleware.js";
-import { attachmentParamSchema } from "../schemas/attachment.schema.js";
+import {
+  attachmentParamSchema,
+  attachmentTargetSchema,
+} from "../schemas/attachment.schema.js";
 import { issueParamSchema } from "../schemas/issue.schema.js";
 
 const FILE_NAME_HEADER = "x-file-name";
+const WIDTH_HEADER = "x-media-width";
+const HEIGHT_HEADER = "x-media-height";
+const DURATION_HEADER = "x-media-duration";
 const FILE_NAME_MAX_LENGTH = 255;
 const DEFAULT_FILE_NAME = "archivo";
 
@@ -43,6 +51,16 @@ function readFileName(header: string | string[] | undefined): string {
     .slice(0, FILE_NAME_MAX_LENGTH);
 
   return clean || DEFAULT_FILE_NAME;
+}
+
+function readMeasure(
+  header: string | string[] | undefined,
+  max: number,
+): number | null {
+  const raw = Array.isArray(header) ? header[0] : header;
+  const value = raw === undefined ? NaN : Math.round(Number(raw));
+
+  return Number.isFinite(value) && value >= 0 && value <= max ? value : null;
 }
 
 function parseRange(
@@ -113,7 +131,7 @@ export class AttachmentController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const { id, issueId }: IssueRequestDto = issueParamSchema.parse(
+      const { id, issueId, commentId } = attachmentTargetSchema.parse(
         req.params,
       );
 
@@ -125,9 +143,16 @@ export class AttachmentController {
         await this.uploadAttachmentUseCase.execute({
           id,
           issueId,
+          commentId: commentId ?? null,
           actorUserId: req.auth!.id,
           content: req.body,
           originalName: readFileName(req.headers[FILE_NAME_HEADER]),
+          width: readMeasure(req.headers[WIDTH_HEADER], ATTACHMENT_DIMENSION_MAX),
+          height: readMeasure(req.headers[HEIGHT_HEADER], ATTACHMENT_DIMENSION_MAX),
+          durationSeconds: readMeasure(
+            req.headers[DURATION_HEADER],
+            ATTACHMENT_DURATION_MAX_SECONDS,
+          ),
         });
       res.status(201).json(response);
     } catch (error) {
@@ -189,12 +214,13 @@ export class AttachmentController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const { id, issueId, attachmentId }: AttachmentRequestDto =
+      const { id, issueId, commentId, attachmentId } =
         attachmentParamSchema.parse(req.params);
       await this.deleteAttachmentUseCase.execute({
         id,
         issueId,
         attachmentId,
+        commentId: commentId ?? null,
         actorUserId: req.auth!.id,
       });
       res.status(204).send();

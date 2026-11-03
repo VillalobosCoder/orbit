@@ -5,7 +5,11 @@ import type {
 } from "@orbit/shared";
 import type { Actor } from "../../shared/actor.js";
 
-export type CreateAttachmentCommand = IssueRequestDto &
+export type AttachmentTarget = IssueRequestDto & {
+  commentId: number | null;
+};
+
+export type CreateAttachmentCommand = AttachmentTarget &
   Actor & { fileId: number };
 
 export type AttachmentFile = {
@@ -14,13 +18,16 @@ export type AttachmentFile = {
   storageKey: string;
   mimeType: string;
   originalName: string;
+  commentId: number | null;
 };
 
 export interface AttachmentRepository {
   create(command: CreateAttachmentCommand): Promise<number>;
-  countByIssue(query: IssueRequestDto): Promise<number>;
+  countByTarget(query: AttachmentTarget): Promise<number>;
   findAllByIssue(query: IssueRequestDto): Promise<AttachmentDto[]>;
   findDtoById(query: AttachmentRequestDto): Promise<AttachmentDto | null>;
   findFileById(query: AttachmentRequestDto): Promise<AttachmentFile | null>;
+  findFilesByComment(query: Required<AttachmentTarget> & { commentId: number }): Promise<AttachmentFile[]>;
   delete(query: AttachmentRequestDto): Promise<void>;
+  deleteByComment(query: { commentId: number }): Promise<void>;
 }

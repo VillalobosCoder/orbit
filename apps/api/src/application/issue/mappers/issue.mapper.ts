@@ -11,6 +11,8 @@ export function toIssueDto(issue: Issue, projectKey: string): IssueDto {
     description: issue.description,
     startDate: issue.startDate,
     dueDate: issue.dueDate,
+    estimateMinutes: issue.estimateMinutes,
+    storyPoints: issue.storyPoints,
     typeId: issue.typeId,
     priorityId: issue.priorityId,
     difficultyId: issue.difficultyId,

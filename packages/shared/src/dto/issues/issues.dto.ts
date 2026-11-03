@@ -41,6 +41,8 @@ export type IssueDto = {
   /** Fecha sin hora, `YYYY-MM-DD`. */
   startDate: string | null;
   dueDate: string | null;
+  estimateMinutes: number | null;
+  storyPoints: number | null;
   typeId: number;
   priorityId: number | null;
   difficultyId: number | null;
@@ -75,6 +77,8 @@ export type SaveIssueRequestDto = {
   description?: string | null;
   startDate?: string | null;
   dueDate?: string | null;
+  estimateMinutes?: number | null;
+  storyPoints?: number | null;
   typeId: number;
   priorityId?: number | null;
   difficultyId?: number | null;

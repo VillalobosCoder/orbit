@@ -9,6 +9,9 @@ export type CreateFileRequestDto = {
   mimeType: string;
   sizeBytes: number;
   checksumSha256: string;
+  width?: number | null;
+  height?: number | null;
+  durationSeconds?: number | null;
 };
 
 export type StoredFileDto = {

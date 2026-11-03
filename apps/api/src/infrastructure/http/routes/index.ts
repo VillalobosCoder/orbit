@@ -58,7 +58,12 @@ export function createApiRoutes(
   );
   router.use(
     "/projects/:id/issues/:issueId/comments",
-    createCommentRoutes(controllers.comments, authenticateReady, permissions),
+    createCommentRoutes(
+      controllers.comments,
+      controllers.attachments,
+      authenticateReady,
+      permissions,
+    ),
   );
   router.use(
     "/projects/:id/issues/:issueId/attachments",

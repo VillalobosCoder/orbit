@@ -5,6 +5,7 @@ export const issues = {
     done: "Finalizada",
   },
   board: {
+    storyPoints: "{count} puntos de historia",
     section: "Tablero",
     activeSprint: "Sprint activo",
     noActiveSprint: "Sin sprint activo: se muestran los issues del backlog.",
@@ -44,6 +45,9 @@ export const issues = {
     deleteConfirm: "Quitar",
   },
   dialog: {
+    estimate: "Estimación",
+    estimateHours: "Horas",
+    storyPoints: "Puntos de historia",
     newTitle: "Nuevo issue",
     editingTitle: "Editando {key}",
     create: "Crear issue",

@@ -1,7 +1,13 @@
 import * as z from "zod";
 
-export const attachmentParamSchema = z.object({
-  id: z.coerce.number().int().positive(),
-  issueId: z.coerce.number().int().positive(),
-  attachmentId: z.coerce.number().int().positive(),
+const id = z.coerce.number().int().positive();
+
+export const attachmentTargetSchema = z.object({
+  id,
+  issueId: id,
+  commentId: id.optional(),
+});
+
+export const attachmentParamSchema = attachmentTargetSchema.extend({
+  attachmentId: id,
 });

@@ -222,6 +222,7 @@ export function createControllers(dependencies: ControllerDependencies) {
         dependencies.projectMemberRepository,
         dependencies.issueRepository,
         dependencies.issueCatalogRepository,
+        dependencies.notificationRepository,
         dependencies.transaction,
       ),
       new GetIssueUseCase(
@@ -259,6 +260,7 @@ export function createControllers(dependencies: ControllerDependencies) {
         dependencies.projectRepository,
         dependencies.issueRepository,
         dependencies.commentRepository,
+        dependencies.notificationRepository,
       ),
       new UpdateCommentUseCase(
         dependencies.projectRepository,
@@ -267,6 +269,10 @@ export function createControllers(dependencies: ControllerDependencies) {
       new DeleteCommentUseCase(
         dependencies.projectRepository,
         dependencies.commentRepository,
+        dependencies.attachmentRepository,
+        dependencies.fileRepository,
+        dependencies.fileStorage,
+        dependencies.transaction,
       ),
     ),
     attachments: new AttachmentController(
@@ -278,6 +284,7 @@ export function createControllers(dependencies: ControllerDependencies) {
       new UploadAttachmentUseCase(
         dependencies.projectRepository,
         dependencies.issueRepository,
+        dependencies.commentRepository,
         dependencies.attachmentRepository,
         dependencies.fileRepository,
         dependencies.fileStorage,
@@ -290,6 +297,7 @@ export function createControllers(dependencies: ControllerDependencies) {
       ),
       new DeleteAttachmentUseCase(
         dependencies.projectRepository,
+        dependencies.commentRepository,
         dependencies.attachmentRepository,
         dependencies.fileRepository,
         dependencies.fileStorage,

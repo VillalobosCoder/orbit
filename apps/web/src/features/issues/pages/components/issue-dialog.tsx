@@ -35,6 +35,8 @@ import {
 import {
   BoardColumnCategory,
   ISSUE_DESCRIPTION_MAX_LENGTH,
+  ISSUE_ESTIMATE_MAX_MINUTES,
+  ISSUE_STORY_POINTS_MAX,
   ModuleKey,
   ISSUE_TITLE_MAX_LENGTH,
   SprintStatus,
@@ -47,7 +49,7 @@ import {
   type SprintDto,
 } from "@orbit/shared";
 import { AssigneeStack, IssueTypeIcon, PriorityIcon } from "./issue-visuals";
-import { formatDate, getDueState } from "../../utils/due-date";
+import { formatDate, formatEstimate, getDueState } from "../../utils/due-date";
 import { columnLabel, issueTypeLabel, priorityLabel } from "@/i18n/catalog";
 import { useI18n } from "@/i18n/use-i18n";
 
@@ -76,6 +78,8 @@ type Draft = {
   assigneeIds: number[];
   startDate: string;
   dueDate: string;
+  estimateHours: string;
+  storyPoints: string;
 };
 
 function toNumberOrNull(value: string) {
@@ -137,6 +141,9 @@ export default function IssueDialog({
       assigneeIds: issue?.assigneeIds ?? [],
       startDate: issue?.startDate ?? "",
       dueDate: issue?.dueDate ?? "",
+      estimateHours:
+        issue?.estimateMinutes != null ? String(issue.estimateMinutes / 60) : "",
+      storyPoints: issue?.storyPoints != null ? String(issue.storyPoints) : "",
     };
   }
 
@@ -197,6 +204,11 @@ export default function IssueDialog({
       assigneeIds: draft.assigneeIds,
       startDate: draft.startDate || null,
       dueDate: draft.dueDate || null,
+      estimateMinutes:
+        draft.estimateHours === ""
+          ? null
+          : Math.round(Number(draft.estimateHours) * 60),
+      storyPoints: draft.storyPoints === "" ? null : Number(draft.storyPoints),
     };
 
     if (issue) {
@@ -736,6 +748,62 @@ export default function IssueDialog({
                   </span>
                 ) : (
                   t("issues.dialog.noDate")
+                )}
+              </Detail>
+              <Detail label={t("issues.dialog.estimate")}>
+                {isEditing ? (
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    aria-label={t("issues.dialog.estimate")}
+                    className={selectClass}
+                    min={0}
+                    max={ISSUE_ESTIMATE_MAX_MINUTES / 60}
+                    step={0.25}
+                    placeholder={t("issues.dialog.estimateHours")}
+                    value={draft.estimateHours}
+                    onChange={(event) =>
+                      updateDraft({ estimateHours: event.currentTarget.value })
+                    }
+                  />
+                ) : issue?.estimateMinutes != null ? (
+                  formatEstimate(issue.estimateMinutes)
+                ) : (
+                  t("common.none")
+                )}
+              </Detail>
+              <Detail label={t("issues.dialog.storyPoints")}>
+                {isEditing ? (
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    aria-label={t("issues.dialog.storyPoints")}
+                    className={selectClass}
+                    min={1}
+                    max={ISSUE_STORY_POINTS_MAX}
+                    step={1}
+                    value={draft.storyPoints}
+                    onKeyDown={(event) => {
+                      if (["-", "+", ".", ",", "e", "E"].includes(event.key)) {
+                        event.preventDefault();
+                      }
+                    }}
+                    onChange={(event) => {
+                      const digits = event.currentTarget.value
+                        .replace(/\D/g, "")
+                        .replace(/^0+/, "");
+
+                      updateDraft({
+                        storyPoints: String(
+                          Math.min(Number(digits), ISSUE_STORY_POINTS_MAX),
+                        ).replace(/^0$/, ""),
+                      });
+                    }}
+                  />
+                ) : issue?.storyPoints != null ? (
+                  issue.storyPoints
+                ) : (
+                  t("common.none")
                 )}
               </Detail>
               {issue && (
