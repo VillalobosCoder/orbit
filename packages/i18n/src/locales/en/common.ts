@@ -50,5 +50,6 @@ export const api: Messages["api"] = {
   emptyComments: "The API did not return the comments.",
   emptyPlanning: "The API did not return the planning.",
   emptyAttachments: "The API did not return the attachments.",
+  emptyNotifications: "The API did not return the notifications.",
   emptyCreatedColumn: "The API did not return the created column.",
 };

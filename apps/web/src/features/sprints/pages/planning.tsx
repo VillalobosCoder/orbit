@@ -213,7 +213,7 @@ export default function PlanningPage() {
       <div className="flex flex-col gap-3">
         <NavLink
           to={`/projects/${projectId}`}
-          className="inline-flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          className="-ml-2 inline-flex min-h-9 w-fit max-w-full items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" aria-hidden="true" />
           <span className="font-mono text-xs">{project.data.projectKey}</span>

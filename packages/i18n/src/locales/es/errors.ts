@@ -24,6 +24,9 @@ export const errors = {
     notFound: "No se encontró el comentario {commentId}.",
     onlyAuthor: "Solo el autor puede modificar o borrar su comentario.",
   },
+  notification: {
+    notFound: "No se encontró la notificación {notificationId}.",
+  },
   attachment: {
     notFound: "No se encontró el adjunto {attachmentId}.",
     invalid: "El archivo debe ser una imagen (PNG, JPG, WebP, GIF) o un video (MP4, WebM) válido.",
@@ -63,6 +66,7 @@ export const errors = {
   },
   issue: {
     notFound: "No se encontró el issue {issueId}.",
+    invalidDates: "La fecha de inicio no puede ser posterior a la fecha de fin.",
     reference: {
       priority: "La prioridad no pertenece a este proyecto.",
       difficulty: "La dificultad no pertenece a este proyecto.",

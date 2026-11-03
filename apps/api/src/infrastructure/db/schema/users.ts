@@ -20,6 +20,9 @@ export const users = pgTable(
     mustChangePassword: boolean("must_change_password")
       .notNull()
       .default(false),
+    notificationsEnabled: boolean("notifications_enabled")
+      .notNull()
+      .default(true),
     avatarFileId: integer("avatar_file_id").references(
       (): AnyPgColumn => files.id,
     ),

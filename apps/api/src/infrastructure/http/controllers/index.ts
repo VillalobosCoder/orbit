@@ -59,6 +59,12 @@ import { GetAttachmentContentUseCase } from "../../../application/attachment/use
 import { GetAttachmentsUseCase } from "../../../application/attachment/use-cases/get-attachments.use-case.js";
 import { UploadAttachmentUseCase } from "../../../application/attachment/use-cases/upload-attachment.use-case.js";
 import { AttachmentController } from "./attachment.controller.js";
+import type { NotificationRepository } from "../../../application/notification/ports/notification-repository.port.js";
+import { GetNotificationsUseCase } from "../../../application/notification/use-cases/get-notifications.use-case.js";
+import { MarkAllNotificationsReadUseCase } from "../../../application/notification/use-cases/mark-all-notifications-read.use-case.js";
+import { MarkNotificationReadUseCase } from "../../../application/notification/use-cases/mark-notification-read.use-case.js";
+import { SetNotificationPreferenceUseCase } from "../../../application/notification/use-cases/set-notification-preference.use-case.js";
+import { NotificationController } from "./notification.controller.js";
 import type { SprintRepository } from "../../../application/sprint/ports/sprint-repository.port.js";
 import { AssignIssueSprintUseCase } from "../../../application/sprint/use-cases/assign-issue-sprint.use-case.js";
 import { CloseSprintUseCase } from "../../../application/sprint/use-cases/close-sprint.use-case.js";
@@ -88,6 +94,7 @@ export interface ControllerDependencies {
   issueCatalogRepository: IssueCatalogRepository;
   commentRepository: CommentRepository;
   attachmentRepository: AttachmentRepository;
+  notificationRepository: NotificationRepository;
   sprintRepository: SprintRepository;
   boardColumnRepository: BoardColumnRepository;
   fileRepository: FileRepository;
@@ -227,6 +234,7 @@ export function createControllers(dependencies: ControllerDependencies) {
         dependencies.projectMemberRepository,
         dependencies.issueRepository,
         dependencies.issueCatalogRepository,
+        dependencies.notificationRepository,
         dependencies.transaction,
       ),
       new MoveIssueUseCase(
@@ -287,6 +295,12 @@ export function createControllers(dependencies: ControllerDependencies) {
         dependencies.fileStorage,
         dependencies.transaction,
       ),
+    ),
+    notifications: new NotificationController(
+      new GetNotificationsUseCase(dependencies.notificationRepository),
+      new MarkNotificationReadUseCase(dependencies.notificationRepository),
+      new MarkAllNotificationsReadUseCase(dependencies.notificationRepository),
+      new SetNotificationPreferenceUseCase(dependencies.notificationRepository),
     ),
     sprints: new SprintController(
       new GetPlanningUseCase(

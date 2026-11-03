@@ -58,3 +58,11 @@ export class IssueActionNotAllowedError extends DomainError {
     super(`errors.issue.actionNotAllowed.${action}`);
   }
 }
+
+export class InvalidIssueDatesError extends DomainError {
+  readonly statusCode = 400;
+
+  constructor() {
+    super("errors.issue.invalidDates");
+  }
+}

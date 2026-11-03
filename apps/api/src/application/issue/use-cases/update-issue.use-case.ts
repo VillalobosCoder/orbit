@@ -12,6 +12,7 @@ import {
 } from "../../../domain/issue/issue.errors.js";
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { ProjectMemberRepository } from "../../project/ports/project-member-repository.port.js";
+import type { NotificationRepository } from "../../notification/ports/notification-repository.port.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { SprintRepository } from "../../sprint/ports/sprint-repository.port.js";
 import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
@@ -41,6 +42,7 @@ export class UpdateIssueUseCase {
     private readonly members: ProjectMemberRepository,
     private readonly issues: IssueRepository,
     private readonly catalog: IssueCatalogRepository,
+    private readonly notifications: NotificationRepository,
     private readonly transaction: TransactionManager,
   ) {}
 
@@ -118,9 +120,13 @@ export class UpdateIssueUseCase {
 
     await this.transaction.run(async () => {
       let updated = issue.withDetails(input);
+
+      if (updated.dueDate !== issue.dueDate) {
+        await this.notifications.deleteDueForIssue(input.issueId);
+      }
+
       let sprintChanged = false;
 
-      // Las subtareas siguen el sprint de su padre; el resto cambia solo si se pide.
       if (type.isSubtask) {
         updated = updated.withSprint(parent!.sprintId);
       } else if (

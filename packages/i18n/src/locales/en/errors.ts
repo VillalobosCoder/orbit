@@ -26,6 +26,9 @@ export const errors: Messages["errors"] = {
     notFound: "Comment {commentId} was not found.",
     onlyAuthor: "Only the author can edit or delete their comment.",
   },
+  notification: {
+    notFound: "Notification {notificationId} was not found.",
+  },
   attachment: {
     notFound: "Attachment {attachmentId} was not found.",
     invalid: "The file must be a valid image (PNG, JPG, WebP, GIF) or video (MP4, WebM).",
@@ -65,6 +68,7 @@ export const errors: Messages["errors"] = {
   },
   issue: {
     notFound: "Issue {issueId} was not found.",
+    invalidDates: "The start date cannot be after the end date.",
     reference: {
       priority: "The priority does not belong to this project.",
       difficulty: "The difficulty does not belong to this project.",

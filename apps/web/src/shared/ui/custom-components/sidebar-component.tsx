@@ -2,6 +2,7 @@ import { useState } from "react";
 import { cn } from "cn";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
+  Bell,
   ChevronLeft,
   ChevronRight,
   ChevronsUpDown,
@@ -44,6 +45,7 @@ import { usePermission } from "@/context/auth/use-permission";
 import { useLogout } from "@/features/auth/api/queries";
 import { useGetModules } from "@/features/modules/api/queries";
 import { useGetProjects } from "@/features/projects/api/queries";
+import { useGetNotifications } from "@/features/notifications/api/queries";
 import ProjectFormDialog from "@/features/projects/pages/components/project-form-dialog";
 import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
 import { useI18n } from "@/i18n/use-i18n";
@@ -79,6 +81,7 @@ export default function SidebarComponent() {
   const { canWrite: canWriteProjects } = usePermission("projects");
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const logoutMutation = useLogout();
+  const unreadCount = useGetNotifications({ page: 1, pageSize: 1 }).data?.unreadCount ?? 0;
   const { data: modules = [] } = useGetModules();
   const accessibleModuleKeys = new Set(
     user?.permissions
@@ -262,7 +265,16 @@ export default function SidebarComponent() {
               className="flex w-full items-center gap-3 rounded-xl border border-sidebar-border p-2 text-left outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring data-popup-open:bg-sidebar-accent group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:p-1"
               aria-label={t("shell.sidebar.accountMenu")}
             >
-              <UserAvatarComponent name={fullName} avatarUrl={user.avatarUrl} />
+              <span className="relative shrink-0">
+                <UserAvatarComponent name={fullName} avatarUrl={user.avatarUrl} />
+                {unreadCount > 0 && (
+                  <span
+                    role="img"
+                    aria-label={t("notifications.menu.unread", { count: unreadCount })}
+                    className="absolute -top-0.5 -right-0.5 size-3 rounded-full border-2 border-sidebar bg-destructive"
+                  />
+                )}
+              </span>
               <span className="min-w-0 flex-1 leading-tight group-data-[collapsible=icon]:hidden">
                 <span className="block truncate text-sm font-medium text-sidebar-foreground">
                   {fullName}
@@ -290,6 +302,15 @@ export default function SidebarComponent() {
               <DropdownMenuItem onClick={() => navigate("/perfil")}>
                 <UserRound />
                 {t("shell.sidebar.myProfile")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/notificaciones")}>
+                <Bell />
+                {t("notifications.menu.title")}
+                {unreadCount > 0 && (
+                  <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[0.65rem] font-semibold text-white">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/configuracion")}>
                 <Settings />

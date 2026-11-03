@@ -3,6 +3,7 @@ import { PrivateGuard, PublicGuard } from "@/router/guards.tsx";
 import Login from "@/features/auth/pages/login/login";
 import ChangePasswordPage from "@/features/auth/pages/change-password/change-password";
 import ProfilePage from "@/features/profile/pages/profile";
+import NotificationsPage from "@/features/notifications/pages/notifications";
 import SettingsPage from "@/features/settings/pages/settings";
 import AuthLayout from "@/features/auth/pages/auth-layout";
 import ModuleLayout from "@/shared/ui/layouts/module-loyout";
@@ -42,6 +43,7 @@ export const router = createBrowserRouter([
         children: [
           { path: "perfil", element: <ProfilePage /> },
           { path: "configuracion", element: <SettingsPage /> },
+          { path: "notificaciones", element: <NotificationsPage /> },
           {
             element: <PermissionGuard module="home" />,
             children: [{ index: true, element: <HomePage /> }],

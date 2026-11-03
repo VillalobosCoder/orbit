@@ -2,14 +2,11 @@ import type { MessageKey } from "@orbit/i18n";
 
 import { toast } from "@/components/ui/toast";
 import { t } from "@/i18n/locale-store";
-import { getSuccessToastsEnabled } from "./notification-preference";
 
 const SUCCESS_TIMEOUT_MS = 4000;
 const ERROR_TIMEOUT_MS = 8000;
 
 export function notifySuccess(message: MessageKey) {
-  if (!getSuccessToastsEnabled()) return;
-
   toast.add({
     type: "success",
     title: t(message),

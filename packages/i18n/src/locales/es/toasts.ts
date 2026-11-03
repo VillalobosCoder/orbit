@@ -23,11 +23,35 @@ export const toasts = {
 };
 
 export const notifications = {
-  title: "Avisos",
-  hint: "Los avisos de confirmación aparecen en una esquina cuando una acción se completa. Los errores siempre se muestran.",
-  group: "Avisos de confirmación",
-  on: "Mostrar avisos",
-  onDescription: "Verás una confirmación al guardar, crear o eliminar.",
-  off: "Ocultar avisos",
-  offDescription: "Solo verás los avisos de error.",
+  title: "Notificaciones",
+  hint: "Te avisamos cuando una tarea tuya está por vencer o ya venció. Los avisos se guardan y los ves en la campana del menú lateral.",
+  group: "Notificaciones de vencimiento",
+  on: "Recibir notificaciones",
+  onDescription: "Recibirás un aviso de las tareas que vencen en los próximos {days} días y de las vencidas.",
+  off: "No recibir notificaciones",
+  offDescription: "No se crearán avisos nuevos. Los que ya tienes se conservan.",
+  page: {
+    title: "Notificaciones",
+    description: "Avisos de tareas por vencer y vencidas.",
+    markAllRead: "Marcar todas como leídas",
+    markRead: "Marcar como leída",
+    openIssue: "Ver tarea",
+    empty: "No tienes notificaciones.",
+    disabledHint: "Las notificaciones están desactivadas.",
+    settings: "Activarlas en Configuración",
+    columns: {
+      status: "Estado",
+      issue: "Tarea",
+      notice: "Aviso",
+      received: "Recibida",
+      actions: "Acciones",
+    },
+    status: { unread: "Sin leer", read: "Leída" },
+    dueSoon: "Vence el {date}",
+    overdue: "Venció el {date}",
+  },
+  menu: {
+    title: "Notificaciones",
+    unread: "{count} sin leer",
+  },
 };

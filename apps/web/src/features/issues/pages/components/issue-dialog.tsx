@@ -9,6 +9,7 @@ import {
   Trash2,
 } from "lucide-react";
 
+import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
 import {
@@ -46,6 +47,7 @@ import {
   type SprintDto,
 } from "@orbit/shared";
 import { AssigneeStack, IssueTypeIcon, PriorityIcon } from "./issue-visuals";
+import { formatDate, getDueState } from "../../utils/due-date";
 import { columnLabel, issueTypeLabel, priorityLabel } from "@/i18n/catalog";
 import { useI18n } from "@/i18n/use-i18n";
 
@@ -72,6 +74,8 @@ type Draft = {
   difficultyId: number | null;
   sprintId: number | null;
   assigneeIds: number[];
+  startDate: string;
+  dueDate: string;
 };
 
 function toNumberOrNull(value: string) {
@@ -131,6 +135,8 @@ export default function IssueDialog({
       difficultyId: issue?.difficultyId ?? null,
       sprintId: issue ? issue.sprintId : defaultSprintId,
       assigneeIds: issue?.assigneeIds ?? [],
+      startDate: issue?.startDate ?? "",
+      dueDate: issue?.dueDate ?? "",
     };
   }
 
@@ -189,6 +195,8 @@ export default function IssueDialog({
       columnId: draft.columnId,
       sprintId: isDraftSubtask ? undefined : draft.sprintId,
       assigneeIds: draft.assigneeIds,
+      startDate: draft.startDate || null,
+      dueDate: draft.dueDate || null,
     };
 
     if (issue) {
@@ -239,6 +247,9 @@ export default function IssueDialog({
     !type?.isSubtask;
 
   const selectClass = "h-9";
+  const dueState = issue
+    ? getDueState(issue.dueDate, issue.resolvedAt !== null)
+    : null;
 
   return (
     <Dialog
@@ -674,6 +685,59 @@ export default function IssueDialog({
                   )}
                 </Detail>
               )}
+              <Detail label={t("issues.dialog.startDate")}>
+                {isEditing ? (
+                  <Input
+                    type="date"
+                    aria-label={t("issues.dialog.startDate")}
+                    className={selectClass}
+                    value={draft.startDate}
+                    max={draft.dueDate || undefined}
+                    onChange={(event) =>
+                      updateDraft({ startDate: event.currentTarget.value })
+                    }
+                  />
+                ) : issue?.startDate ? (
+                  formatDate(issue.startDate, locale)
+                ) : (
+                  t("issues.dialog.noDate")
+                )}
+              </Detail>
+              <Detail label={t("issues.dialog.dueDate")}>
+                {isEditing ? (
+                  <Input
+                    type="date"
+                    aria-label={t("issues.dialog.dueDate")}
+                    className={selectClass}
+                    value={draft.dueDate}
+                    min={draft.startDate || undefined}
+                    onChange={(event) =>
+                      updateDraft({ dueDate: event.currentTarget.value })
+                    }
+                  />
+                ) : issue?.dueDate ? (
+                  <span
+                    className={cn(
+                      "flex flex-wrap items-center gap-x-2",
+                      dueState === "overdue" && "font-medium text-destructive",
+                      dueState === "soon" && "font-medium text-warning",
+                    )}
+                  >
+                    {formatDate(issue.dueDate, locale)}
+                    {dueState && (
+                      <span className="text-xs">
+                        {t(
+                          dueState === "overdue"
+                            ? "issues.dialog.overdue"
+                            : "issues.dialog.dueSoon",
+                        )}
+                      </span>
+                    )}
+                  </span>
+                ) : (
+                  t("issues.dialog.noDate")
+                )}
+              </Detail>
               {issue && (
                 <div className="flex flex-col gap-3 border-t border-border pt-4 text-xs">
                   <div className="flex justify-between gap-2">

@@ -1,5 +1,6 @@
 import { Bell, BellOff, Languages, Moon, Sun, type LucideIcon } from "lucide-react";
 import { LOCALES, type Locale, type MessageKey } from "@orbit/i18n";
+import { DUE_SOON_DAYS } from "@orbit/shared";
 import { cn } from "cn";
 
 import { useTheme } from "@/context/theme/use-theme";
@@ -7,9 +8,9 @@ import type { Theme } from "@/context/theme/theme-context";
 import { PageHeaderComponent } from "@/components/ui/page-header-component";
 import { useI18n } from "@/i18n/use-i18n";
 import {
-  setSuccessToastsEnabled,
-  useSuccessToastsEnabled,
-} from "@/notifications/notification-preference";
+  useGetNotifications,
+  useSetNotificationPreference,
+} from "@/features/notifications/api/queries";
 
 const THEME_OPTIONS: {
   value: Theme;
@@ -85,7 +86,9 @@ function OptionButton({
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { t, locale, setLocale } = useI18n();
-  const successToasts = useSuccessToastsEnabled();
+  const notifications = useGetNotifications({ page: 1, pageSize: 1 });
+  const setPreference = useSetNotificationPreference();
+  const notificationsEnabled = notifications.data?.enabled ?? true;
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6">
@@ -162,15 +165,15 @@ export default function SettingsPage() {
           className="grid grid-cols-1 gap-3 sm:grid-cols-2"
         >
           <OptionButton
-            selected={successToasts}
-            onSelect={() => setSuccessToastsEnabled(true)}
+            selected={notificationsEnabled}
+            onSelect={() => setPreference.mutate({ enabled: true })}
             icon={Bell}
             label={t("notifications.on")}
-            description={t("notifications.onDescription")}
+            description={t("notifications.onDescription", { days: DUE_SOON_DAYS })}
           />
           <OptionButton
-            selected={!successToasts}
-            onSelect={() => setSuccessToastsEnabled(false)}
+            selected={!notificationsEnabled}
+            onSelect={() => setPreference.mutate({ enabled: false })}
             icon={BellOff}
             label={t("notifications.off")}
             description={t("notifications.offDescription")}

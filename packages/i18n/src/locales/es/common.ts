@@ -48,5 +48,6 @@ export const api = {
   emptyComments: "La API no devolvió los comentarios.",
   emptyPlanning: "La API no devolvió la planificación.",
   emptyAttachments: "La API no devolvió los adjuntos.",
+  emptyNotifications: "La API no devolvió las notificaciones.",
   emptyCreatedColumn: "La API no devolvió la columna creada.",
 };

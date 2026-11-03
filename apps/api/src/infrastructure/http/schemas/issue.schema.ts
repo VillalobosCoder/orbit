@@ -6,9 +6,13 @@ import {
 
 const id = z.number().int().positive();
 
+const isoDate = z.iso.date();
+
 export const saveIssueSchema = z.object({
   title: z.string().trim().min(1).max(ISSUE_TITLE_MAX_LENGTH),
   description: z.string().trim().max(ISSUE_DESCRIPTION_MAX_LENGTH).nullish(),
+  startDate: isoDate.nullish(),
+  dueDate: isoDate.nullish(),
   typeId: id,
   priorityId: id.nullish(),
   difficultyId: id.nullish(),

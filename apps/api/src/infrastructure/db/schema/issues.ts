@@ -1,5 +1,8 @@
+import { sql } from "drizzle-orm";
 import {
   AnyPgColumn,
+  check,
+  date,
   doublePrecision,
   foreignKey,
   integer,
@@ -48,8 +51,8 @@ export const issues = pgTable(
       .references(() => users.id),
     title: varchar({ length: ISSUE_TITLE_MAX_LENGTH }).notNull(),
     description: varchar({ length: ISSUE_DESCRIPTION_MAX_LENGTH }),
-    startAt: timestamp("start_at", { withTimezone: true }),
-    dueAt: timestamp("due_at", { withTimezone: true }),
+    startDate: date("start_date", { mode: "string" }),
+    dueDate: date("due_date", { mode: "string" }),
     resolvedAt: timestamp("resolved_at", { withTimezone: true }),
     estimateMinutes: integer("estimate_minutes"),
     storyPoints: integer("story_points"),
@@ -57,6 +60,10 @@ export const issues = pgTable(
     ...auditColumns((): AnyPgColumn => users.id),
   },
   (table) => [
+    check(
+      "issues_dates_order_check",
+      sql`${table.startDate} is null or ${table.dueDate} is null or ${table.startDate} <= ${table.dueDate}`,
+    ),
     unique("issues_project_id_issue_number_unique").on(
       table.projectId,
       table.issueNumber,

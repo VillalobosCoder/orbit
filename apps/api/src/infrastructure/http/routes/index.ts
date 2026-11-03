@@ -3,6 +3,7 @@ import type { RequestHandler } from "express";
 import type { AuthController } from "../controllers/auth.controller.js";
 import type { UserController } from "../controllers/user.controller.js";
 import type { AttachmentController } from "../controllers/attachment.controller.js";
+import type { NotificationController } from "../controllers/notification.controller.js";
 import type { CommentController } from "../controllers/comment.controller.js";
 import type { SprintController } from "../controllers/sprint.controller.js";
 import type { BoardColumnController } from "../controllers/board-column.controller.js";
@@ -15,6 +16,7 @@ import { createAuthRoutes } from "./auth.routes.js";
 import { UserRoutes } from "./user.routes.js";
 import { createModuleRoutes } from "./module.routes.js";
 import { createAttachmentRoutes } from "./attachment.routes.js";
+import { createNotificationRoutes } from "./notification.routes.js";
 import { createCommentRoutes } from "./comment.routes.js";
 import { createBoardColumnRoutes } from "./board-column.routes.js";
 import { createIssueRoutes } from "./issue.routes.js";
@@ -32,6 +34,7 @@ export interface RouteControllers {
   issues: IssueController;
   comments: CommentController;
   attachments: AttachmentController;
+  notifications: NotificationController;
   sprints: SprintController;
   boardColumns: BoardColumnController;
 }
@@ -80,6 +83,10 @@ export function createApiRoutes(
       authenticateReady,
       permissions,
     ),
+  );
+  router.use(
+    "/notifications",
+    createNotificationRoutes(controllers.notifications, authenticateReady),
   );
   router.use(
     "/home",

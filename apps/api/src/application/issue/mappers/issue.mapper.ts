@@ -9,6 +9,8 @@ export function toIssueDto(issue: Issue, projectKey: string): IssueDto {
     issueKey: `${projectKey}-${issue.issueNumber}`,
     title: issue.title,
     description: issue.description,
+    startDate: issue.startDate,
+    dueDate: issue.dueDate,
     typeId: issue.typeId,
     priorityId: issue.priorityId,
     difficultyId: issue.difficultyId,

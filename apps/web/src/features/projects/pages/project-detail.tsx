@@ -66,7 +66,7 @@ export default function ProjectDetailPage() {
         <button
           type="button"
           onClick={() => setView("board")}
-          className="inline-flex w-fit cursor-pointer items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          className="-ml-2 inline-flex min-h-9 w-fit max-w-full cursor-pointer items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" aria-hidden="true" />
           <span className="font-mono text-xs">{project.projectKey}</span>

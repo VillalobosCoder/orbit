@@ -1,3 +1,5 @@
+import { InvalidIssueDatesError } from "./issue.errors.js";
+
 export type IssueDetails = {
   title: string;
   description?: string | null;
@@ -5,6 +7,8 @@ export type IssueDetails = {
   priorityId?: number | null;
   difficultyId?: number | null;
   parentId?: number | null;
+  startDate?: string | null;
+  dueDate?: string | null;
 };
 
 export type IssuePrimitives = {
@@ -20,6 +24,8 @@ export type IssuePrimitives = {
   reporterId: number;
   title: string;
   description: string | null;
+  startDate: string | null;
+  dueDate: string | null;
   boardPosition: number;
   resolvedAt: Date | null;
   assigneeIds: number[];
@@ -60,6 +66,10 @@ export class Issue {
   }
 
   private static normalizeDetails(input: IssueDetails) {
+    if (input.startDate && input.dueDate && input.startDate > input.dueDate) {
+      throw new InvalidIssueDatesError();
+    }
+
     return {
       title: input.title.trim(),
       description: input.description?.trim() || null,
@@ -67,6 +77,8 @@ export class Issue {
       priorityId: input.priorityId ?? null,
       difficultyId: input.difficultyId ?? null,
       parentId: input.parentId ?? null,
+      startDate: input.startDate || null,
+      dueDate: input.dueDate || null,
     };
   }
 
@@ -145,6 +157,14 @@ export class Issue {
 
   get description(): string | null {
     return this.props.description;
+  }
+
+  get startDate(): string | null {
+    return this.props.startDate;
+  }
+
+  get dueDate(): string | null {
+    return this.props.dueDate;
   }
 
   get boardPosition(): number {

@@ -1,5 +1,5 @@
 import type { DragEvent, TouchEvent } from "react";
-import { CornerDownRight, ListTree } from "lucide-react";
+import { CalendarClock, CornerDownRight, ListTree } from "lucide-react";
 import type {
   DifficultyDto,
   IssueDto,
@@ -15,6 +15,7 @@ import {
   PriorityIcon,
 } from "./issue-visuals";
 import { useI18n } from "@/i18n/use-i18n";
+import { formatDate, getDueState } from "../../utils/due-date";
 
 export type KeyboardMoveDirection = "left" | "right" | "up" | "down";
 
@@ -69,7 +70,8 @@ export default function IssueCard({
   onDragEnd,
   onDragOver,
 }: IssueCardProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const dueState = getDueState(issue.dueDate, issue.resolvedAt !== null);
 
   return (
     <li
@@ -122,6 +124,19 @@ export default function IssueCard({
         >
           {issue.title}
         </span>
+        {dueState && issue.dueDate && (
+          <span
+            className={cn(
+              "flex w-fit items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium",
+              dueState === "overdue"
+                ? "bg-destructive/10 text-destructive"
+                : "bg-warning/15 text-warning",
+            )}
+          >
+            <CalendarClock className="size-3" aria-hidden="true" />
+            {formatDate(issue.dueDate, locale)}
+          </span>
+        )}
         <span className="flex items-center gap-2">
           <IssueTypeIcon type={type} />
           <span className="font-mono text-xs text-muted-foreground">

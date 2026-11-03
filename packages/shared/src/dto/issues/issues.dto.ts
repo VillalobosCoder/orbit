@@ -38,6 +38,9 @@ export type IssueDto = {
   issueKey: string;
   title: string;
   description: string | null;
+  /** Fecha sin hora, `YYYY-MM-DD`. */
+  startDate: string | null;
+  dueDate: string | null;
   typeId: number;
   priorityId: number | null;
   difficultyId: number | null;
@@ -70,6 +73,8 @@ export type IssueRequestDto = ProjectIdRequestDto & {
 export type SaveIssueRequestDto = {
   title: string;
   description?: string | null;
+  startDate?: string | null;
+  dueDate?: string | null;
   typeId: number;
   priorityId?: number | null;
   difficultyId?: number | null;
