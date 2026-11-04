@@ -1,7 +1,11 @@
 import type { AttachmentRequestDto } from "@orbit/shared";
 import { AttachmentNotFoundError } from "../../../domain/attachment/attachment.errors.js";
 import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
-import type { FileStorage } from "../../file/ports/file-storage.port.js";
+import type { Readable } from "node:stream";
+import type {
+  FileRange,
+  FileStorage,
+} from "../../file/ports/file-storage.port.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { Actor } from "../../shared/actor.js";
 import type { AttachmentRepository } from "../ports/attachment-repository.port.js";
@@ -9,9 +13,10 @@ import type { AttachmentRepository } from "../ports/attachment-repository.port.j
 export type GetAttachmentContentInput = AttachmentRequestDto & Actor;
 
 export type AttachmentContent = {
-  content: Buffer;
+  size: number;
   mimeType: string;
   originalName: string;
+  open: (range?: FileRange) => Readable;
 };
 
 export class GetAttachmentContentUseCase {
@@ -32,16 +37,17 @@ export class GetAttachmentContentUseCase {
     }
 
     const file = await this.attachments.findFileById(input);
-    const content = file ? await this.storage.read(file.storageKey) : null;
+    const size = file ? await this.storage.size(file.storageKey) : null;
 
-    if (!file || !content) {
+    if (!file || size === null) {
       throw new AttachmentNotFoundError(input.attachmentId);
     }
 
     return {
-      content,
+      size,
       mimeType: file.mimeType,
       originalName: file.originalName,
+      open: (range) => this.storage.openRead(file.storageKey, range),
     };
   }
 }

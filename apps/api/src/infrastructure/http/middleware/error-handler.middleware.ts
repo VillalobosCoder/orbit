@@ -31,7 +31,7 @@ export function errorHandler(
     return res.status(400).json({
       error: translate(localeOf(res), "errors.http.invalidData"),
       details: err.issues.map((issue) => ({
-        ...issue,
+        path: issue.path.join("."),
         message: isMessageKey(issue.message)
           ? translate(localeOf(res), issue.message)
           : issue.message,

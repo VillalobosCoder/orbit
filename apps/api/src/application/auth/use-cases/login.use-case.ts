@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { InvalidCredentialsError } from "../../../domain/user/user.errors.js";
 import { Password } from "../../../domain/user/value-objects/password.vo.js";
 import { PasswordHasher } from "../../user/ports/password-hasher.port.js";
@@ -25,6 +26,14 @@ export class LoginUseCase {
     private readonly permissions: UserPermissionRepository,
   ) {}
 
+  private dummyHash?: Promise<string>;
+
+  private getDummyHash(): Promise<string> {
+    this.dummyHash ??= this.hasher.hash(randomUUID());
+
+    return this.dummyHash;
+  }
+
   async execute(input: LoginInput): Promise<LoginOutput> {
     if (Password.exceedsByteLimit(input.password)) {
       throw new InvalidCredentialsError();
@@ -33,6 +42,7 @@ export class LoginUseCase {
     const user = await this.usersRepository.findByEmail(input.email);
 
     if (!user) {
+      await this.hasher.compare(input.password, await this.getDummyHash());
       throw new InvalidCredentialsError();
     }
 

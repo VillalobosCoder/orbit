@@ -15,15 +15,14 @@ export function createHttpApp(
   tokenService: TokenService,
   userPermissionRepository: UserPermissionRepository,
   userRepository: UserRepository,
+  trustProxy: number,
 ) {
   const app = express();
 
   app.disable("x-powered-by");
 
-  const proxyHops = Number(process.env.TRUST_PROXY);
-
-  if (Number.isInteger(proxyHops) && proxyHops > 0) {
-    app.set("trust proxy", proxyHops);
+  if (trustProxy > 0) {
+    app.set("trust proxy", trustProxy);
   }
 
   app.use(helmet({ crossOriginResourcePolicy: { policy: "same-site" } }));

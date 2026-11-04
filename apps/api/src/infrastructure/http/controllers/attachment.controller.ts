@@ -1,3 +1,5 @@
+import type { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import type { NextFunction, Response } from "express";
 import {
   ATTACHMENT_DIMENSION_MAX,
@@ -61,6 +63,14 @@ function readMeasure(
   const value = raw === undefined ? NaN : Math.round(Number(raw));
 
   return Number.isFinite(value) && value >= 0 && value <= max ? value : null;
+}
+
+async function sendStream(stream: Readable, res: Response): Promise<void> {
+  try {
+    await pipeline(stream, res);
+  } catch {
+    res.destroy();
+  }
 }
 
 function parseRange(
@@ -168,14 +178,14 @@ export class AttachmentController {
     try {
       const { id, issueId, attachmentId }: AttachmentRequestDto =
         attachmentParamSchema.parse(req.params);
-      const { content, mimeType } =
+      const { size, mimeType, open } =
         await this.getAttachmentContentUseCase.execute({
           id,
           issueId,
           attachmentId,
           actorUserId: req.auth!.id,
         });
-      const range = parseRange(req.headers.range, content.byteLength);
+      const range = parseRange(req.headers.range, size);
 
       res.set({
         "Cache-Control": "private, max-age=86400",
@@ -186,23 +196,24 @@ export class AttachmentController {
       });
 
       if (range === null) {
-        res.status(416).set("Content-Range", `bytes */${content.byteLength}`);
+        res.status(416).set("Content-Range", `bytes */${size}`);
         res.end();
         return;
       }
 
       if (range === "full") {
-        res.status(200).send(content);
+        res.status(200).set("Content-Length", String(size));
+        await sendStream(open(), res);
         return;
       }
 
       res
         .status(206)
-        .set(
-          "Content-Range",
-          `bytes ${range.start}-${range.end}/${content.byteLength}`,
-        )
-        .send(content.subarray(range.start, range.end + 1));
+        .set({
+          "Content-Range": `bytes ${range.start}-${range.end}/${size}`,
+          "Content-Length": String(range.end - range.start + 1),
+        });
+      await sendStream(open(range), res);
     } catch (error) {
       next(error);
     }

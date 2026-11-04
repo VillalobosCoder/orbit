@@ -1,3 +1,4 @@
+import { loadEnv } from "./src/infrastructure/config/env.js";
 import { createControllers } from "./src/infrastructure/http/controllers/index.js";
 import { createHttpApp } from "./src/infrastructure/http/app.js";
 import { createDbClient } from "./src/infrastructure/db/client.js";
@@ -22,8 +23,7 @@ import { LocalFileStorage } from "./src/infrastructure/storage/local-file-storag
 import { DBHomeRepository } from "./src/infrastructure/db/repositories/db-home.repository.js";
 import { DBModuleRepository } from "./src/infrastructure/db/repositories/db-module.repository.js";
 
-const hostname = process.env.HOSTNAME!;
-const port = Number(process.env.PORT!);
+const env = loadEnv();
 
 const { db, pool } = createDbClient();
 const dbContext = new DbContext(db);
@@ -40,10 +40,10 @@ const notificationRepository = new DBNotificationRepository(dbContext);
 const sprintRepository = new DBSprintRepository(dbContext);
 const boardColumnRepository = new DBBoardColumnRepository(dbContext);
 const fileRepository = new DBFileRepository(dbContext);
-const fileStorage = new LocalFileStorage(process.env.STORAGE_DIR ?? "storage");
+const fileStorage = new LocalFileStorage(env.STORAGE_DIR);
 const homeRepository = new DBHomeRepository(dbContext);
 const passwordHasher = new ScryptPasswordHasher();
-const tokenService = new JwtTokenService();
+const tokenService = new JwtTokenService(env.JWT_SECRET);
 const controllers = createControllers({
   userRepository,
   passwordHasher,
@@ -69,12 +69,13 @@ const app = createHttpApp(
   tokenService,
   userPermissionRepository,
   userRepository,
+  env.TRUST_PROXY,
 );
 
 await pool.query("SELECT 1");
 
-const server = app.listen(port, hostname, () => {
-  console.log(`API escuchando en http://${hostname}:${port}`);
+const server = app.listen(env.PORT, env.HOSTNAME, () => {
+  console.log(`API listening on http://${env.HOSTNAME}:${env.PORT}`);
 });
 
 const stopDueNotificationJob = startDueNotificationJob(

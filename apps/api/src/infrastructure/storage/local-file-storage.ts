@@ -1,6 +1,11 @@
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, resolve, sep } from "node:path";
-import type { FileStorage } from "../../application/file/ports/file-storage.port.js";
+import type { Readable } from "node:stream";
+import type {
+  FileRange,
+  FileStorage,
+} from "../../application/file/ports/file-storage.port.js";
 
 export class LocalFileStorage implements FileStorage {
   private readonly root: string;
@@ -40,6 +45,27 @@ export class LocalFileStorage implements FileStorage {
 
       throw error;
     }
+  }
+
+  async size(key: string): Promise<number | null> {
+    try {
+      return (await stat(this.pathFor(key))).size;
+    } catch (error) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === "ENOENT"
+      ) {
+        return null;
+      }
+
+      throw error;
+    }
+  }
+
+  openRead(key: string, range?: FileRange): Readable {
+    return createReadStream(this.pathFor(key), range);
   }
 
   async delete(key: string): Promise<void> {
