@@ -1,6 +1,5 @@
 import type { AttachmentRequestDto } from "@orbit/shared";
 import { AttachmentNotFoundError } from "../../../domain/attachment/attachment.errors.js";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { Readable } from "node:stream";
 import type {
   FileRange,
@@ -9,6 +8,7 @@ import type {
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { Actor } from "../../shared/actor.js";
 import type { AttachmentRepository } from "../ports/attachment-repository.port.js";
+import { requireProjectMember } from "../../project/utils/require-project-member.js";
 
 export type GetAttachmentContentInput = AttachmentRequestDto & Actor;
 
@@ -27,14 +27,7 @@ export class GetAttachmentContentUseCase {
   ) {}
 
   async execute(input: GetAttachmentContentInput): Promise<AttachmentContent> {
-    const project = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
-
-    if (!project) {
-      throw new ProjectNotFoundError(input.id);
-    }
+    await requireProjectMember(this.projects, input.id, input.actorUserId);
 
     const file = await this.attachments.findFileById(input);
     const size = file ? await this.storage.size(file.storageKey) : null;

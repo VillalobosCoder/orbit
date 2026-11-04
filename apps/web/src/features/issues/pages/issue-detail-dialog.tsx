@@ -14,7 +14,7 @@ import {
   useGetProjectMembers,
 } from "@/features/projects/api/queries";
 import { useGetPlanning } from "@/features/sprints/api/queries";
-import { useGetBoard, useGetIssueOptions } from "../../api/queries";
+import { useGetBoard, useGetIssueOptions } from "../api/queries";
 import IssueDialog from "./issue-dialog";
 import { useI18n } from "@/i18n/use-i18n";
 

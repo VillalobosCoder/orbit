@@ -3,11 +3,11 @@ import type {
   ReorderBoardColumnsRequestDto,
 } from "@orbit/shared";
 import { InvalidBoardColumnOrderError } from "../../../domain/board-column/board-column.errors.js";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
 import type { BoardColumnRepository } from "../ports/board-column-repository.port.js";
 import type { Actor } from "../../shared/actor.js";
+import { requireProjectMember } from "../../project/utils/require-project-member.js";
 
 export type ReorderBoardColumnsInput = ReorderBoardColumnsRequestDto &
   ProjectIdRequestDto & Actor;
@@ -20,21 +20,14 @@ export class ReorderBoardColumnsUseCase {
   ) {}
 
   async execute(input: ReorderBoardColumnsInput): Promise<void> {
-    const project = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
-
-    if (!project) {
-      throw new ProjectNotFoundError(input.id);
-    }
+    await requireProjectMember(this.projects, input.id, input.actorUserId);
 
     const existing = await this.columns.findAllByProject({ id: input.id });
     const requested = new Set(input.columnIds);
     const isPermutation =
       requested.size === input.columnIds.length &&
       requested.size === existing.length &&
-      existing.every((column) => requested.has(column.id!));
+      existing.every((column) => requested.has(column.persistedId));
 
     if (!isPermutation) {
       throw new InvalidBoardColumnOrderError();

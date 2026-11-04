@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from "express";
+import type { Request, Response } from "express";
 import type {
   ChangePasswordRequestDto,
   UpdateProfileRequestDto,
@@ -17,7 +17,7 @@ import {
   loginSchema,
   updateProfileSchema,
 } from "../schemas/auth.schema.js";
-import type { AuthedRequest } from "../middleware/auth.middleware.js";
+import { actorId, type AuthedRequest } from "../middleware/auth.middleware.js";
 import { sendError } from "../middleware/locale.middleware.js";
 import {
   ACCESS_TOKEN_COOKIE,
@@ -38,176 +38,121 @@ export class AuthController {
   me = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const authenticatedUserId = req.auth?.id;
+    const authenticatedUserId = actorId(req);
 
-      if (authenticatedUserId === undefined) {
-        sendError(res, 401, "errors.http.notAuthenticated");
-        return;
-      }
+    const user = await this.getCurrentUserUseCase.execute(authenticatedUserId);
 
-      const user = await this.getCurrentUserUseCase.execute(authenticatedUserId);
-
-      if (!user) {
-        sendError(res, 401, "errors.http.sessionInvalid");
-        return;
-      }
-
-      const response: LoginResponseDto = { user };
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
+    if (!user) {
+      sendError(res, 401, "errors.http.sessionInvalid");
+      return;
     }
+
+    const response: LoginResponseDto = { user };
+    res.status(200).json(response);
   };
 
   updateProfile = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const actorUserId = req.auth?.id;
+    const actorUserId = actorId(req);
 
-      if (actorUserId === undefined) {
-        sendError(res, 401, "errors.http.notAuthenticated");
-        return;
-      }
+    const input: UpdateProfileRequestDto = updateProfileSchema.parse(
+      req.body,
+    );
+    await this.updateProfileUseCase.execute({ ...input, actorUserId });
+    const user = await this.getCurrentUserUseCase.execute(actorUserId);
 
-      const input: UpdateProfileRequestDto = updateProfileSchema.parse(
-        req.body,
-      );
-      await this.updateProfileUseCase.execute({ ...input, actorUserId });
-      const user = await this.getCurrentUserUseCase.execute(actorUserId);
-
-      if (!user) {
-        sendError(res, 401, "errors.http.sessionInvalid");
-        return;
-      }
-
-      const response: LoginResponseDto = { user };
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
+    if (!user) {
+      sendError(res, 401, "errors.http.sessionInvalid");
+      return;
     }
+
+    const response: LoginResponseDto = { user };
+    res.status(200).json(response);
   };
 
   uploadAvatar = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const actorUserId = req.auth?.id;
+    const actorUserId = actorId(req);
 
-      if (actorUserId === undefined) {
-        sendError(res, 401, "errors.http.notAuthenticated");
-        return;
-      }
-
-      if (!Buffer.isBuffer(req.body)) {
-        throw new InvalidAvatarImageError();
-      }
-
-      await this.uploadAvatarUseCase.execute({
-        actorUserId,
-        content: req.body,
-      });
-      const user = await this.getCurrentUserUseCase.execute(actorUserId);
-
-      if (!user) {
-        sendError(res, 401, "errors.http.sessionInvalid");
-        return;
-      }
-
-      const response: LoginResponseDto = { user };
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
+    if (!Buffer.isBuffer(req.body)) {
+      throw new InvalidAvatarImageError();
     }
+
+    await this.uploadAvatarUseCase.execute({
+      actorUserId,
+      content: req.body,
+    });
+    const user = await this.getCurrentUserUseCase.execute(actorUserId);
+
+    if (!user) {
+      sendError(res, 401, "errors.http.sessionInvalid");
+      return;
+    }
+
+    const response: LoginResponseDto = { user };
+    res.status(200).json(response);
   };
 
   removeAvatar = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const actorUserId = req.auth?.id;
+    const actorUserId = actorId(req);
 
-      if (actorUserId === undefined) {
-        sendError(res, 401, "errors.http.notAuthenticated");
-        return;
-      }
+    await this.removeAvatarUseCase.execute({ actorUserId });
+    const user = await this.getCurrentUserUseCase.execute(actorUserId);
 
-      await this.removeAvatarUseCase.execute({ actorUserId });
-      const user = await this.getCurrentUserUseCase.execute(actorUserId);
-
-      if (!user) {
-        sendError(res, 401, "errors.http.sessionInvalid");
-        return;
-      }
-
-      const response: LoginResponseDto = { user };
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
+    if (!user) {
+      sendError(res, 401, "errors.http.sessionInvalid");
+      return;
     }
+
+    const response: LoginResponseDto = { user };
+    res.status(200).json(response);
   };
 
   login = async (
     req: Request,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const input: LoginRequestDto = loginSchema.parse(req.body);
-      const result = await this.loginUseCase.execute(input);
+    const input: LoginRequestDto = loginSchema.parse(req.body);
+    const result = await this.loginUseCase.execute(input);
 
-      res.cookie(ACCESS_TOKEN_COOKIE, result.token, accessTokenSetOptions);
+    res.cookie(ACCESS_TOKEN_COOKIE, result.token, accessTokenSetOptions);
 
-      const response: LoginResponseDto = { user: result.user };
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
-    }
+    const response: LoginResponseDto = { user: result.user };
+    res.status(200).json(response);
   };
 
   changePassword = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const userId = req.auth?.id;
+    const userId = actorId(req);
 
-      if (userId === undefined) {
-        sendError(res, 401, "errors.http.notAuthenticated");
-        return;
-      }
+    const input: ChangePasswordRequestDto = changePasswordSchema.parse(
+      req.body,
+    );
+    const { token } = await this.changePasswordUseCase.execute({
+      ...input,
+      userId,
+    });
+    const user = await this.getCurrentUserUseCase.execute(userId);
 
-      const input: ChangePasswordRequestDto = changePasswordSchema.parse(
-        req.body,
-      );
-      const { token } = await this.changePasswordUseCase.execute({
-        ...input,
-        userId,
-      });
-      const user = await this.getCurrentUserUseCase.execute(userId);
-
-      if (!user) {
-        sendError(res, 401, "errors.http.sessionInvalid");
-        return;
-      }
-
-      res.cookie(ACCESS_TOKEN_COOKIE, token, accessTokenSetOptions);
-
-      const response: LoginResponseDto = { user };
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
+    if (!user) {
+      sendError(res, 401, "errors.http.sessionInvalid");
+      return;
     }
+
+    res.cookie(ACCESS_TOKEN_COOKIE, token, accessTokenSetOptions);
+
+    const response: LoginResponseDto = { user };
+    res.status(200).json(response);
   };
 
   logout = (_req: Request, res: Response): void => {

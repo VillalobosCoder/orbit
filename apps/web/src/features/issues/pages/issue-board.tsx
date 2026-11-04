@@ -1,15 +1,19 @@
-import { Fragment, useEffect, useId, useRef, useState, type DragEvent } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { Columns3, Plus } from "lucide-react";
+import {
+  Fragment,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type DragEvent,
+} from "react";
+import { useNavigate } from "react-router-dom";
 
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePermission } from "@/context/auth/use-permission";
 import { useGetProjectMembers } from "@/features/projects/api/queries";
 import {
   BoardColumnCategory,
   ModuleKey,
-  type BoardColumnDto,
   type BoardDto,
   type IssueDto,
   type ProjectDto,
@@ -21,15 +25,15 @@ import {
   useGetBoard,
   useGetIssueOptions,
   useMoveIssue,
-} from "../../api/queries";
+} from "../api/queries";
 import BoardColumnsDialog from "./board-columns-dialog";
-import IssueCard, { type KeyboardMoveDirection } from "./issue-card";
-import { useTouchDrag, type DropTarget } from "./use-touch-drag";
+import BoardToolbar from "./components/issue-board/board-toolbar";
+import IssueCard, { type KeyboardMoveDirection } from "./components/issue-board/issue-card";
+import { ColumnDot } from "./components/shared/issue-visuals";
+import { useTouchDrag, type DropTarget } from "./components/issue-board/use-touch-drag";
 import { useCoarsePointer } from "@/hooks/use-coarse-pointer";
 import IssueDialog from "./issue-dialog";
 import { useI18n } from "@/i18n/use-i18n";
-import { getLocale, t as translateNow } from "@/i18n/locale-store";
-import { describeDays } from "@/features/sprints/pages/utils/format-date";
 import { columnLabel } from "@/i18n/catalog";
 import { LoadFailedComponent } from "@/components/ui/load-failed-component";
 import { queryClient } from "@/api/tanstack-query-config";
@@ -44,43 +48,6 @@ function sortedIssuesIn(
       (issue) => issue.columnId === columnId && issue.id !== excludeIssueId,
     )
     .sort((a, b) => a.boardPosition - b.boardPosition || a.id - b.id);
-}
-
-const CATEGORY_DOT: Record<BoardColumnCategory, string> = {
-  [BoardColumnCategory.TODO]: "bg-muted-foreground",
-  [BoardColumnCategory.IN_PROGRESS]: "bg-primary",
-  [BoardColumnCategory.DONE]: "bg-success",
-};
-
-function describeEndDate(endDate: string) {
-  const [year, month, day] = endDate.split("-").map(Number);
-  const end = new Date(year!, month! - 1, day);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const daysLeft = Math.round((end.getTime() - today.getTime()) / 86_400_000);
-  const formatted = end.toLocaleDateString(getLocale(), {
-    day: "numeric",
-    month: "short",
-    year: end.getFullYear() === today.getFullYear() ? undefined : "numeric",
-  });
-
-  return translateNow("dates.until", {
-    date: formatted,
-    remaining: describeDays(daysLeft),
-  });
-}
-
-function ColumnDot({ column }: { column: BoardColumnDto }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        "size-2 shrink-0 rounded-full",
-        !column.color && CATEGORY_DOT[column.category],
-      )}
-      style={column.color ? { backgroundColor: column.color } : undefined}
-    />
-  );
 }
 
 export default function IssueBoard({ project }: { project: ProjectDto }) {
@@ -241,9 +208,7 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
   ) {
     if (!canMoveIssues) return;
 
-    const freshBoard = queryClient.getQueryData<BoardDto>(
-      boardKey(project.id),
-    );
+    const freshBoard = queryClient.getQueryData<BoardDto>(boardKey(project.id));
     const freshIssues = freshBoard?.issues ?? issues;
     const current = freshIssues.find((item) => item.id === issue.id) ?? issue;
     const orderedColumns = [...columns].sort(
@@ -254,7 +219,8 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
       const currentIndex = orderedColumns.findIndex(
         (column) => column.id === current.columnId,
       );
-      const target = orderedColumns[currentIndex + (direction === "left" ? -1 : 1)];
+      const target =
+        orderedColumns[currentIndex + (direction === "left" ? -1 : 1)];
 
       if (!target) return;
 
@@ -277,7 +243,9 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
       if (targetIndex < 0 || targetIndex >= list.length) return;
 
       const beforeIssueId =
-        direction === "up" ? list[index - 1]!.id : (list[index + 2]?.id ?? null);
+        direction === "up"
+          ? list[index - 1]!.id
+          : (list[index + 2]?.id ?? null);
 
       commitMove(issue.id, current.columnId, beforeIssueId, true);
       setAnnouncement(
@@ -308,69 +276,15 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
         {announcement}
       </p>
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card">
-        <div
-          className={cn(
-            "flex shrink-0 flex-wrap items-center justify-between gap-3 border-b px-4 py-3",
-            activeSprint
-              ? "border-info/40 bg-linear-to-r from-info/12 via-card to-card"
-              : "border-border",
-          )}
-        >
-          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-            {activeSprint ? (
-              <>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-info/15 px-2.5 py-0.5 text-xs font-medium text-info">
-                  <span
-                    className="size-1.5 rounded-full bg-info shadow-[0_0_8px_var(--info)]"
-                    aria-hidden="true"
-                  />
-                  {t("issues.board.activeSprint")}
-                </span>
-                <strong className="text-[0.9375rem] font-semibold">
-                  {activeSprint.name}
-                </strong>
-                {activeSprint.endDate && (
-                  <span className="text-muted-foreground">
-                    {describeEndDate(activeSprint.endDate)}
-                  </span>
-                )}
-              </>
-            ) : (
-              <span className="text-muted-foreground">
-                {t("issues.board.noActiveSprint")}
-              </span>
-            )}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              nativeButton={false}
-              render={<NavLink to={`/projects/${project.id}/planning`} />}
-            >
-              {t("issues.board.planning")}
-            </Button>
-            {canEditColumns && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsEditingColumns(true)}
-              >
-                <Columns3 />
-                {t("issues.board.columns")}
-              </Button>
-            )}
-            {canWriteIssues && (
-              <Button
-                type="button"
-                disabled={!options.data || !members.data}
-                onClick={() => setIsCreating(true)}
-              >
-                <Plus />
-                {t("issues.board.newIssue")}
-              </Button>
-            )}
-          </div>
-        </div>
+        <BoardToolbar
+          projectId={project.id}
+          activeSprint={activeSprint}
+          canEditColumns={canEditColumns}
+          canCreateIssue={canWriteIssues}
+          isCreateDisabled={!options.data || !members.data}
+          onCreateIssue={() => setIsCreating(true)}
+          onEditColumns={() => setIsEditingColumns(true)}
+        />
 
         <div
           data-board-scroll
@@ -447,7 +361,9 @@ export default function IssueBoard({ project }: { project: ProjectDto }) {
                         onOpen={() => {
                           if (touchDrag.shouldSuppressClick()) return;
 
-                          navigate(`/projects/${project.id}/issues/${issue.id}`);
+                          navigate(
+                            `/projects/${project.id}/issues/${issue.id}`,
+                          );
                         }}
                         onTouchStart={(event) =>
                           touchDrag.onTouchStart(event, issue.id)

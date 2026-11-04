@@ -13,9 +13,9 @@ import {
   DifficultyPill,
   IssueTypeIcon,
   PriorityIcon,
-} from "./issue-visuals";
+} from "../shared/issue-visuals";
 import { useI18n } from "@/i18n/use-i18n";
-import { formatDate, getDueState } from "../../utils/due-date";
+import { formatDate, getDueState } from "../../../utils/due-date";
 
 export type KeyboardMoveDirection = "left" | "right" | "up" | "down";
 

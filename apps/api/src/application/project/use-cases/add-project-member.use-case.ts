@@ -3,8 +3,8 @@ import { UserNotFoundError } from "../../../domain/user/user.errors.js";
 import type { UserRepository } from "../../user/ports/user-repository.port.js";
 import type { ProjectMemberRepository } from "../ports/project-member-repository.port.js";
 import type { ProjectRepository } from "../ports/project-repository.port.js";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { Actor } from "../../shared/actor.js";
+import { requireProjectMember } from "../utils/require-project-member.js";
 
 export type AddProjectMemberInput = ProjectMemberRequestDto & Actor;
 
@@ -16,14 +16,7 @@ export class AddProjectMemberUseCase {
   ) {}
 
   async execute(input: AddProjectMemberInput): Promise<void> {
-    const project = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
-
-    if (!project) {
-      throw new ProjectNotFoundError(input.id);
-    }
+    const project = await requireProjectMember(this.projects, input.id, input.actorUserId);
 
     project.assertOwnedBy(input.actorUserId);
 

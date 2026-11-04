@@ -11,7 +11,6 @@ import {
   InvalidIssueReferenceError,
   IssueNotFoundError,
 } from "../../../domain/issue/issue.errors.js";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { ProjectMemberRepository } from "../../project/ports/project-member-repository.port.js";
 import type { NotificationRepository } from "../../notification/ports/notification-repository.port.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
@@ -28,6 +27,7 @@ import {
   normalizeAssignees,
 } from "../utils/validate-issue-references.js";
 import type { Actor } from "../../shared/actor.js";
+import { requireProjectMember } from "../../project/utils/require-project-member.js";
 
 export type UpdateIssueInput = SaveIssueRequestDto &
   IssueRequestDto &
@@ -48,14 +48,7 @@ export class UpdateIssueUseCase {
   ) {}
 
   async execute(input: UpdateIssueInput): Promise<void> {
-    const isMember = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
-
-    if (!isMember) {
-      throw new ProjectNotFoundError(input.id);
-    }
+    const isMember = await requireProjectMember(this.projects, input.id, input.actorUserId);
 
     const issue = await this.issues.findById({
       id: input.id,

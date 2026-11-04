@@ -218,7 +218,7 @@ export class DBIssueRepository implements IssueRepository {
       })
       .where(
         and(
-          eq(issues.id, issue.id!),
+          eq(issues.id, issue.persistedId),
           eq(issues.projectId, issue.projectId),
           ne(issues.statusId, deletedStatusId),
         ),
@@ -226,7 +226,7 @@ export class DBIssueRepository implements IssueRepository {
       .returning({ id: issues.id });
 
     if (!row) {
-      throw new IssueNotFoundError(issue.id!);
+      throw new IssueNotFoundError(issue.persistedId);
     }
   }
 

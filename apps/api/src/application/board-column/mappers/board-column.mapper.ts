@@ -3,7 +3,7 @@ import type { BoardColumn } from "../../../domain/board-column/board-column.enti
 
 export function toBoardColumnDto(column: BoardColumn): BoardColumnDto {
   return {
-    id: column.id!,
+    id: column.persistedId,
     name: column.name,
     category: column.category,
     position: column.position,

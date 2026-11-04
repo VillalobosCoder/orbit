@@ -1,8 +1,8 @@
 import type { ProjectMemberDto, ProjectIdRequestDto } from "@orbit/shared";
 import type { ProjectMemberRepository } from "../ports/project-member-repository.port.js";
 import type { ProjectRepository } from "../ports/project-repository.port.js";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { Actor } from "../../shared/actor.js";
+import { requireProjectMember } from "../utils/require-project-member.js";
 
 export type GetProjectMembersInput = ProjectIdRequestDto & Actor;
 
@@ -13,14 +13,7 @@ export class GetProjectMembersUseCase {
   ) {}
 
   async execute(input: GetProjectMembersInput): Promise<ProjectMemberDto[]> {
-    const isMember = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
-
-    if (!isMember) {
-      throw new ProjectNotFoundError(input.id);
-    }
+    await requireProjectMember(this.projects, input.id, input.actorUserId);
 
     return this.members.findMembers({ id: input.id });
   }

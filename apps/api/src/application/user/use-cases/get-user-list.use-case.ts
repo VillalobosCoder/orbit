@@ -10,11 +10,11 @@ export class GetUserListUseCase {
 
     return {
       items: users.map((user) => ({
-        id: user.id!,
+        id: user.persistedId,
         name: user.name,
         lastName: user.lastName,
         email: user.email.toString(),
-        avatarUrl: buildAvatarUrl(user.id!, user.avatarFileId),
+        avatarUrl: buildAvatarUrl(user.persistedId, user.avatarFileId),
       })),
       total,
       page,

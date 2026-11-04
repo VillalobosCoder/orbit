@@ -118,12 +118,12 @@ export class DBSprintRepository implements SprintRepository {
           updatedByUserId: actorUserId,
         })
         .where(
-          and(eq(sprints.id, sprint.id!), eq(sprints.projectId, sprint.projectId)),
+          and(eq(sprints.id, sprint.persistedId), eq(sprints.projectId, sprint.projectId)),
         )
         .returning({ id: sprints.id });
 
       if (!row) {
-        throw new SprintNotFoundError(sprint.id!);
+        throw new SprintNotFoundError(sprint.persistedId);
       }
     } catch (error) {
       if (violatesConstraint(error, "sprints_project_id_name_unique")) {

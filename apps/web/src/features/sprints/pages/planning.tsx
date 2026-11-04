@@ -18,12 +18,12 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePermission } from "@/context/auth/use-permission";
 import { useGetIssueOptions } from "@/features/issues/api/queries";
-import IssueDialog from "@/features/issues/pages/components/issue-dialog";
+import IssueDialog from "@/features/issues/pages/issue-dialog";
 import {
   AssigneeStack,
   IssueTypeIcon,
   PriorityIcon,
-} from "@/features/issues/pages/components/issue-visuals";
+} from "@/features/issues/pages/components/shared/issue-visuals";
 import {
   useGetProject,
   useGetProjectMembers,

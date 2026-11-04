@@ -6,13 +6,13 @@ import ProfilePage from "@/features/profile/pages/profile";
 import NotificationsPage from "@/features/notifications/pages/notifications";
 import SettingsPage from "@/features/settings/pages/settings";
 import AuthLayout from "@/features/auth/pages/auth-layout";
-import ModuleLayout from "@/shared/ui/layouts/module-loyout";
+import ModuleLayout from "@/components/layouts/module-layout";
 import NotFoundPage from "./not-found";
 import RouteErrorPage from "./route-error";
 import HomePage from "@/features/home/pages/home";
 import UsersPage from "@/features/users/pages/users";
 import PlanningPage from "@/features/sprints/pages/planning";
-import IssueDetailDialog from "@/features/issues/pages/components/issue-detail-dialog";
+import IssueDetailDialog from "@/features/issues/pages/issue-detail-dialog";
 import ProjectDetailPage from "@/features/projects/pages/project-detail";
 import { PermissionGuard } from "./permission-guard";
 

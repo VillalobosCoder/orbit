@@ -3,7 +3,7 @@ import type { Sprint } from "../../../domain/sprint/sprint.entity.js";
 
 export function toSprintDto(sprint: Sprint): SprintDto {
   return {
-    id: sprint.id!,
+    id: sprint.persistedId,
     name: sprint.name,
     goal: sprint.goal,
     startDate: sprint.startDate,

@@ -1,6 +1,5 @@
 import type { CommentRequestDto } from "@orbit/shared";
 import { CommentNotFoundError } from "../../../domain/comment/comment.errors.js";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { AttachmentRepository } from "../../attachment/ports/attachment-repository.port.js";
 import type { FileRepository } from "../../file/ports/file-repository.port.js";
 import type { FileStorage } from "../../file/ports/file-storage.port.js";
@@ -8,6 +7,7 @@ import type { TransactionManager } from "../../shared/ports/transaction-manager.
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { CommentRepository } from "../ports/comment-repository.port.js";
 import type { Actor } from "../../shared/actor.js";
+import { requireProjectMember } from "../../project/utils/require-project-member.js";
 
 export type DeleteCommentInput = CommentRequestDto & Actor;
 
@@ -22,14 +22,7 @@ export class DeleteCommentUseCase {
   ) {}
 
   async execute(input: DeleteCommentInput): Promise<void> {
-    const project = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
-
-    if (!project) {
-      throw new ProjectNotFoundError(input.id);
-    }
+    await requireProjectMember(this.projects, input.id, input.actorUserId);
 
     const comment = await this.comments.findById(input);
 

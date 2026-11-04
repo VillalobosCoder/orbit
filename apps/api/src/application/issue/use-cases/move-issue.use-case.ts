@@ -9,8 +9,8 @@ import type { ProjectRepository } from "../../project/ports/project-repository.p
 import type { IssueCatalogRepository } from "../ports/issue-catalog-repository.port.js";
 import type { IssueRepository } from "../ports/issue-repository.port.js";
 import { findColumn } from "../utils/validate-issue-references.js";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { Actor } from "../../shared/actor.js";
+import { requireProjectMember } from "../../project/utils/require-project-member.js";
 
 export type MoveIssueInput = MoveIssueRequestDto &
   IssueRequestDto & Actor;
@@ -23,14 +23,7 @@ export class MoveIssueUseCase {
   ) {}
 
   async execute(input: MoveIssueInput): Promise<void> {
-    const isMember = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
-
-    if (!isMember) {
-      throw new ProjectNotFoundError(input.id);
-    }
+    await requireProjectMember(this.projects, input.id, input.actorUserId);
 
     const issue = await this.issues.findById({
       id: input.id,

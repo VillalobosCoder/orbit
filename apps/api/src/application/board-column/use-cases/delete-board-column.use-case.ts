@@ -7,11 +7,11 @@ import {
   BoardColumnNotFoundError,
   InvalidBoardColumnTargetError,
 } from "../../../domain/board-column/board-column.errors.js";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
 import type { BoardColumnRepository } from "../ports/board-column-repository.port.js";
 import type { Actor } from "../../shared/actor.js";
+import { requireProjectMember } from "../../project/utils/require-project-member.js";
 
 export type DeleteBoardColumnInput = DeleteBoardColumnRequestDto &
   BoardColumnRequestDto & Actor;
@@ -24,14 +24,7 @@ export class DeleteBoardColumnUseCase {
   ) {}
 
   async execute(input: DeleteBoardColumnInput): Promise<void> {
-    const project = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
-
-    if (!project) {
-      throw new ProjectNotFoundError(input.id);
-    }
+    await requireProjectMember(this.projects, input.id, input.actorUserId);
 
     const siblings = await this.columns.findAllByProject({ id: input.id });
     const column = siblings.find((item) => item.id === input.columnId);
@@ -53,8 +46,8 @@ export class DeleteBoardColumnUseCase {
     await this.transaction.run(async () => {
       await this.columns.moveIssues({
         id: input.id,
-        fromColumnId: column.id!,
-        toColumnId: target.id!,
+        fromColumnId: column.persistedId,
+        toColumnId: target.persistedId,
         toIsDone: target.category === BoardColumnCategory.DONE,
         actorUserId: input.actorUserId,
       });

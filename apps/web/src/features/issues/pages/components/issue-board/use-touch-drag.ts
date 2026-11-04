@@ -54,7 +54,6 @@ function scrollNearEdges(x: number, y: number) {
   }
 }
 
-/** Arrastre táctil: se activa con una pulsación larga y usa los mismos destinos que el arrastre con mouse. */
 export function useTouchDrag(options: TouchDragOptions) {
   const optionsRef = useRef(options);
   const stateRef = useRef<TouchDragState | null>(null);

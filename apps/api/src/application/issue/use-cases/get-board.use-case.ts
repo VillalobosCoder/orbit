@@ -5,8 +5,8 @@ import type { SprintRepository } from "../../sprint/ports/sprint-repository.port
 import { toIssueDto } from "../mappers/issue.mapper.js";
 import type { IssueCatalogRepository } from "../ports/issue-catalog-repository.port.js";
 import type { IssueRepository } from "../ports/issue-repository.port.js";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { Actor } from "../../shared/actor.js";
+import { requireProjectMember } from "../../project/utils/require-project-member.js";
 
 export type GetBoardInput = ProjectIdRequestDto & Actor;
 
@@ -19,16 +19,8 @@ export class GetBoardUseCase {
   ) {}
 
   async execute(input: GetBoardInput): Promise<BoardDto> {
-    const project = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
+    const project = await requireProjectMember(this.projects, input.id, input.actorUserId);
 
-    if (!project) {
-      throw new ProjectNotFoundError(input.id);
-    }
-
-    // Con un sprint activo el tablero muestra solo sus issues; si no, el backlog.
     const activeSprint = await this.sprints.findActive({ id: input.id });
     const [columns, issues] = await Promise.all([
       this.catalog.findColumns({ id: input.id }),

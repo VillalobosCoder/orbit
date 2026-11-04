@@ -76,6 +76,14 @@ export class Project {
     return this.props.id;
   }
 
+  get persistedId(): number {
+    if (this.props.id === undefined) {
+      throw new Error("The entity has not been saved yet.");
+    }
+
+    return this.props.id;
+  }
+
   get ownerUserId(): number {
     return this.props.ownerUserId;
   }

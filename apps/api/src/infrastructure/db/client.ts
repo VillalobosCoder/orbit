@@ -1,23 +1,18 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
+import { loadDatabaseEnv } from "../config/env.js";
 
-export function readDatabaseConfig(env: NodeJS.ProcessEnv = process.env) {
-  const database = env.DATABASE_NAME!;
-  const user = env.DATABASE_USER!;
-  const password = env.DATABASE_PASSWORD!;
-  const host = env.DATABASE_URL!;
-  const port = Number(env.DATABASE_PORT);
-  const sslSetting = env.DATABASE_SSL?.trim().toLowerCase();
+export function readDatabaseConfig(source: NodeJS.ProcessEnv = process.env) {
+  const env = loadDatabaseEnv(source);
 
-  if (!database || !user || !password) {
-    throw new Error(
-      "DATABASE_NAME, DATABASE_USER y DATABASE_PASSWORD son obligatorios.",
-    );
-  }
-
-  const ssl = sslSetting === "true";
-
-  return { host, port, database, user, password, ssl };
+  return {
+    host: env.DATABASE_URL,
+    port: env.DATABASE_PORT,
+    database: env.DATABASE_NAME,
+    user: env.DATABASE_USER,
+    password: env.DATABASE_PASSWORD,
+    ssl: env.DATABASE_SSL?.toLowerCase() === "true",
+  };
 }
 
 export function createDbClient() {

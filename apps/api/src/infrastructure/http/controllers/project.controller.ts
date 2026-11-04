@@ -1,4 +1,4 @@
-import type { NextFunction, Response } from "express";
+import type { Response } from "express";
 import type {
   AddProjectMemberRequestDto,
   CreateProjectRequestDto,
@@ -16,7 +16,7 @@ import type { GetProjectMembersUseCase } from "../../../application/project/use-
 import type { GetProjectUseCase } from "../../../application/project/use-cases/get-project.use-case.js";
 import type { RemoveProjectMemberUseCase } from "../../../application/project/use-cases/remove-project-member.use-case.js";
 import type { UpdateProjectUseCase } from "../../../application/project/use-cases/update-project.use-case.js";
-import type { AuthedRequest } from "../middleware/auth.middleware.js";
+import { actorId, type AuthedRequest } from "../middleware/auth.middleware.js";
 import {
   addProjectMemberSchema,
   createProjectSchema,
@@ -41,164 +41,119 @@ export class ProjectController {
   getAll = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const response: ProjectDto[] = await this.getProjectListUseCase.execute({
-        actorUserId: req.auth!.id,
-      });
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
-    }
+    const response: ProjectDto[] = await this.getProjectListUseCase.execute({
+      actorUserId: actorId(req),
+    });
+    res.status(200).json(response);
   };
 
   getById = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const { id } = projectIdParamSchema.parse(req.params);
-      const response: ProjectDto = await this.getProjectUseCase.execute({
-        id,
-        actorUserId: req.auth!.id,
-      });
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
-    }
+    const { id } = projectIdParamSchema.parse(req.params);
+    const response: ProjectDto = await this.getProjectUseCase.execute({
+      id,
+      actorUserId: actorId(req),
+    });
+    res.status(200).json(response);
   };
 
   create = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const input: CreateProjectRequestDto = createProjectSchema.parse(
-        req.body,
-      );
-      const response: ProjectDto = await this.createProjectUseCase.execute({
-        ...input,
-        actorUserId: req.auth!.id,
-      });
-      res.status(201).json(response);
-    } catch (error) {
-      next(error);
-    }
+    const input: CreateProjectRequestDto = createProjectSchema.parse(
+      req.body,
+    );
+    const response: ProjectDto = await this.createProjectUseCase.execute({
+      ...input,
+      actorUserId: actorId(req),
+    });
+    res.status(201).json(response);
   };
 
   update = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const { id } = projectIdParamSchema.parse(req.params);
-      const input: UpdateProjectRequestDto = updateProjectSchema.parse(
-        req.body,
-      );
-      await this.updateProjectUseCase.execute({
-        ...input,
-        id,
-        actorUserId: req.auth!.id,
-      });
-      res.status(204).end();
-    } catch (error) {
-      next(error);
-    }
+    const { id } = projectIdParamSchema.parse(req.params);
+    const input: UpdateProjectRequestDto = updateProjectSchema.parse(
+      req.body,
+    );
+    await this.updateProjectUseCase.execute({
+      ...input,
+      id,
+      actorUserId: actorId(req),
+    });
+    res.status(204).end();
   };
 
   delete = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const { id } = projectIdParamSchema.parse(req.params);
-      await this.deleteProjectUseCase.execute({
-        id,
-        actorUserId: req.auth!.id,
-      });
-      res.status(204).end();
-    } catch (error) {
-      next(error);
-    }
+    const { id } = projectIdParamSchema.parse(req.params);
+    await this.deleteProjectUseCase.execute({
+      id,
+      actorUserId: actorId(req),
+    });
+    res.status(204).end();
   };
 
   getMembers = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const { id } = projectIdParamSchema.parse(req.params);
-      const response: ProjectMemberDto[] =
-        await this.getProjectMembersUseCase.execute({
-          id,
-          actorUserId: req.auth!.id,
-        });
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
-    }
+    const { id } = projectIdParamSchema.parse(req.params);
+    const response: ProjectMemberDto[] =
+      await this.getProjectMembersUseCase.execute({
+        id,
+        actorUserId: actorId(req),
+      });
+    res.status(200).json(response);
   };
 
   getAvailableUsers = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const { id } = projectIdParamSchema.parse(req.params);
-      const response: ProjectMemberDto[] =
-        await this.getAvailableUsersUseCase.execute({
-          id,
-          actorUserId: req.auth!.id,
-        });
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
-    }
+    const { id } = projectIdParamSchema.parse(req.params);
+    const response: ProjectMemberDto[] =
+      await this.getAvailableUsersUseCase.execute({
+        id,
+        actorUserId: actorId(req),
+      });
+    res.status(200).json(response);
   };
 
   addMember = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const { id } = projectIdParamSchema.parse(req.params);
-      const { userId }: AddProjectMemberRequestDto =
-        addProjectMemberSchema.parse(req.body);
-      await this.addProjectMemberUseCase.execute({
-        id,
-        userId,
-        actorUserId: req.auth!.id,
-      });
-      res.status(204).end();
-    } catch (error) {
-      next(error);
-    }
+    const { id } = projectIdParamSchema.parse(req.params);
+    const { userId }: AddProjectMemberRequestDto =
+      addProjectMemberSchema.parse(req.body);
+    await this.addProjectMemberUseCase.execute({
+      id,
+      userId,
+      actorUserId: actorId(req),
+    });
+    res.status(204).end();
   };
 
   removeMember = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const { id, userId }: ProjectMemberRequestDto =
-        projectMemberParamSchema.parse(req.params);
-      await this.removeProjectMemberUseCase.execute({
-        id,
-        userId,
-        actorUserId: req.auth!.id,
-      });
-      res.status(204).end();
-    } catch (error) {
-      next(error);
-    }
+    const { id, userId }: ProjectMemberRequestDto =
+      projectMemberParamSchema.parse(req.params);
+    await this.removeProjectMemberUseCase.execute({
+      id,
+      userId,
+      actorUserId: actorId(req),
+    });
+    res.status(204).end();
   };
 }

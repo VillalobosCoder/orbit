@@ -3,10 +3,10 @@ import type {
   SaveBoardColumnRequestDto,
 } from "@orbit/shared";
 import { BoardColumnNotFoundError } from "../../../domain/board-column/board-column.errors.js";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { BoardColumnRepository } from "../ports/board-column-repository.port.js";
 import type { Actor } from "../../shared/actor.js";
+import { requireProjectMember } from "../../project/utils/require-project-member.js";
 
 export type UpdateBoardColumnInput = SaveBoardColumnRequestDto &
   BoardColumnRequestDto & Actor;
@@ -18,14 +18,7 @@ export class UpdateBoardColumnUseCase {
   ) {}
 
   async execute(input: UpdateBoardColumnInput): Promise<void> {
-    const project = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
-
-    if (!project) {
-      throw new ProjectNotFoundError(input.id);
-    }
+    await requireProjectMember(this.projects, input.id, input.actorUserId);
 
     const column = await this.columns.findById(input);
 

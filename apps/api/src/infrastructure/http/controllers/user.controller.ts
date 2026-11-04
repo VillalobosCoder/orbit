@@ -1,4 +1,4 @@
-import type { NextFunction, Response } from "express";
+import type { Response } from "express";
 import type {
   CreateUserResponseDto,
   ResetUserPasswordResponseDto,
@@ -16,7 +16,7 @@ import {
   saveSchema,
 } from "../schemas/user.schema.js";
 import { DeleteUserUseCase } from "../../../application/user/use-cases/delete-user.use-case.js";
-import type { AuthedRequest } from "../middleware/auth.middleware.js";
+import { actorId, type AuthedRequest } from "../middleware/auth.middleware.js";
 import { GetUserUseCase } from "../../../application/user/use-cases/get-user.use-case.js";
 import { UpdateUserUseCase } from "../../../application/user/use-cases/update-user.use-case.js";
 import type { GetAvatarUseCase } from "../../../application/user/use-cases/get-avatar.use-case.js";
@@ -37,156 +37,97 @@ export class UserController {
   getAllUsers = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const authenticatedUserId = req.auth?.id;
-      if (authenticatedUserId === undefined) {
-        sendError(res, 401, "errors.http.notAuthenticated");
-        return;
-      }
-
-      const query: UserListQueryDto = listUsersQuerySchema.parse(req.query);
-      const response: UserListResponseDto =
-        await this.getUserListUseCase.execute(query);
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
-    }
+    const query: UserListQueryDto = listUsersQuerySchema.parse(req.query);
+    const response: UserListResponseDto =
+      await this.getUserListUseCase.execute(query);
+    res.status(200).json(response);
   };
 
   getAvatar = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const { id } = idParamSchema.parse(req.params);
-      const { content, mimeType } = await this.getAvatarUseCase.execute({ id });
+    const { id } = idParamSchema.parse(req.params);
+    const { content, mimeType } = await this.getAvatarUseCase.execute({ id });
 
-      res
-        .status(200)
-        .type(mimeType)
-        .set({
-          "Cache-Control": "private, max-age=86400",
-          "X-Content-Type-Options": "nosniff",
-        })
-        .send(content);
-    } catch (error) {
-      next(error);
-    }
+    res
+      .status(200)
+      .type(mimeType)
+      .set({
+        "Cache-Control": "private, max-age=86400",
+        "X-Content-Type-Options": "nosniff",
+      })
+      .send(content);
   };
 
   create = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const actorUserId = req.auth?.id;
-      if (actorUserId === undefined) {
-        sendError(res, 401, "errors.http.notAuthenticated");
-        return;
-      }
+    const actorUserId = actorId(req);
 
-      const input: SaveUserRequestDto = saveSchema.parse(req.body);
-      const result = await this.createUserUseCase.execute({
-        ...input,
-        actorUserId,
-      });
-      const response: CreateUserResponseDto = result;
-      res.status(201).json(response);
-    } catch (error) {
-      next(error);
-    }
+    const input: SaveUserRequestDto = saveSchema.parse(req.body);
+    const result = await this.createUserUseCase.execute({
+      ...input,
+      actorUserId,
+    });
+    const response: CreateUserResponseDto = result;
+    res.status(201).json(response);
   };
 
   getById = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const { id } = idParamSchema.parse(req.params);
-      const response: UserDetailDto = await this.getUserUseCase.execute({ id });
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
-    }
+    const { id } = idParamSchema.parse(req.params);
+    const response: UserDetailDto = await this.getUserUseCase.execute({ id });
+    res.status(200).json(response);
   };
 
   update = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const actorUserId = req.auth?.id;
-      if (actorUserId === undefined) {
-        sendError(res, 401, "errors.http.notAuthenticated");
-        return;
-      }
+    const actorUserId = actorId(req);
 
-      const { id } = idParamSchema.parse(req.params);
-      const input: SaveUserRequestDto = saveSchema.parse(req.body);
+    const { id } = idParamSchema.parse(req.params);
+    const input: SaveUserRequestDto = saveSchema.parse(req.body);
 
-      if (id === actorUserId && input.permissions !== undefined) {
-        sendError(res, 403, "errors.http.cannotEditOwnPermissions");
-        return;
-      }
-
-      await this.updateUserUseCase.execute({ ...input, id, actorUserId });
-      res.status(204).end();
-    } catch (error) {
-      next(error);
+    if (id === actorUserId && input.permissions !== undefined) {
+      sendError(res, 403, "errors.http.cannotEditOwnPermissions");
+      return;
     }
+
+    await this.updateUserUseCase.execute({ ...input, id, actorUserId });
+    res.status(204).end();
   };
 
   resetPassword = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const actorUserId = req.auth?.id;
+    const actorUserId = actorId(req);
 
-      if (actorUserId === undefined) {
-        sendError(res, 401, "errors.http.notAuthenticated");
-        return;
-      }
-
-      const { id } = idParamSchema.parse(req.params);
-      const response: ResetUserPasswordResponseDto =
-        await this.resetUserPasswordUseCase.execute({ id, actorUserId });
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
-    }
+    const { id } = idParamSchema.parse(req.params);
+    const response: ResetUserPasswordResponseDto =
+      await this.resetUserPasswordUseCase.execute({ id, actorUserId });
+    res.status(200).json(response);
   };
 
   delete = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const { id } = deleteSchema.parse(req.params);
-      const authenticatedUserId = req.auth?.id;
+    const { id } = deleteSchema.parse(req.params);
+    const authenticatedUserId = actorId(req);
 
-      if (authenticatedUserId === undefined) {
-        sendError(res, 401, "errors.http.notAuthenticated");
-        return;
-      }
-
-      if (id === authenticatedUserId) {
-        sendError(res, 403, "errors.http.cannotDeleteOwnAccount");
-        return;
-      }
-
-      await this.deleteUserUseCase.execute({ id });
-      res.status(204).end();
-    } catch (error) {
-      next(error);
+    if (id === authenticatedUserId) {
+      sendError(res, 403, "errors.http.cannotDeleteOwnAccount");
+      return;
     }
+
+    await this.deleteUserUseCase.execute({ id });
+    res.status(204).end();
   };
 }

@@ -1,10 +1,10 @@
 import type { CommentDto, IssueRequestDto } from "@orbit/shared";
 import { IssueNotFoundError } from "../../../domain/issue/issue.errors.js";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { IssueRepository } from "../../issue/ports/issue-repository.port.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { CommentRepository } from "../ports/comment-repository.port.js";
 import type { Actor } from "../../shared/actor.js";
+import { requireProjectMember } from "../../project/utils/require-project-member.js";
 
 export type GetCommentsInput = IssueRequestDto & Actor;
 
@@ -16,14 +16,7 @@ export class GetCommentsUseCase {
   ) {}
 
   async execute(input: GetCommentsInput): Promise<CommentDto[]> {
-    const project = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
-
-    if (!project) {
-      throw new ProjectNotFoundError(input.id);
-    }
+    await requireProjectMember(this.projects, input.id, input.actorUserId);
 
     const issue = await this.issues.findById(input);
 

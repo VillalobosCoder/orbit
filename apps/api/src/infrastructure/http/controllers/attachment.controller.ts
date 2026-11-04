@@ -1,6 +1,6 @@
 import type { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import type { NextFunction, Response } from "express";
+import type { Response } from "express";
 import {
   ATTACHMENT_DIMENSION_MAX,
   ATTACHMENT_DURATION_MAX_SECONDS,
@@ -13,7 +13,7 @@ import type { GetAttachmentContentUseCase } from "../../../application/attachmen
 import type { GetAttachmentsUseCase } from "../../../application/attachment/use-cases/get-attachments.use-case.js";
 import type { UploadAttachmentUseCase } from "../../../application/attachment/use-cases/upload-attachment.use-case.js";
 import { InvalidAttachmentError } from "../../../domain/attachment/attachment.errors.js";
-import type { AuthedRequest } from "../middleware/auth.middleware.js";
+import { actorId, type AuthedRequest } from "../middleware/auth.middleware.js";
 import {
   attachmentParamSchema,
   attachmentTargetSchema,
@@ -117,126 +117,106 @@ export class AttachmentController {
   getAll = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const { id, issueId }: IssueRequestDto = issueParamSchema.parse(
-        req.params,
-      );
-      const response: AttachmentDto[] =
-        await this.getAttachmentsUseCase.execute({
-          id,
-          issueId,
-          actorUserId: req.auth!.id,
-        });
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
-    }
+    const { id, issueId }: IssueRequestDto = issueParamSchema.parse(
+      req.params,
+    );
+    const response: AttachmentDto[] =
+      await this.getAttachmentsUseCase.execute({
+        id,
+        issueId,
+        actorUserId: actorId(req),
+      });
+    res.status(200).json(response);
   };
 
   upload = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const { id, issueId, commentId } = attachmentTargetSchema.parse(
-        req.params,
-      );
+    const { id, issueId, commentId } = attachmentTargetSchema.parse(
+      req.params,
+    );
 
-      if (!Buffer.isBuffer(req.body)) {
-        throw new InvalidAttachmentError();
-      }
-
-      const response: AttachmentDto =
-        await this.uploadAttachmentUseCase.execute({
-          id,
-          issueId,
-          commentId: commentId ?? null,
-          actorUserId: req.auth!.id,
-          content: req.body,
-          originalName: readFileName(req.headers[FILE_NAME_HEADER]),
-          width: readMeasure(req.headers[WIDTH_HEADER], ATTACHMENT_DIMENSION_MAX),
-          height: readMeasure(req.headers[HEIGHT_HEADER], ATTACHMENT_DIMENSION_MAX),
-          durationSeconds: readMeasure(
-            req.headers[DURATION_HEADER],
-            ATTACHMENT_DURATION_MAX_SECONDS,
-          ),
-        });
-      res.status(201).json(response);
-    } catch (error) {
-      next(error);
+    if (!Buffer.isBuffer(req.body)) {
+      throw new InvalidAttachmentError();
     }
+
+    const response: AttachmentDto =
+      await this.uploadAttachmentUseCase.execute({
+        id,
+        issueId,
+        commentId: commentId ?? null,
+        actorUserId: actorId(req),
+        content: req.body,
+        originalName: readFileName(req.headers[FILE_NAME_HEADER]),
+        width: readMeasure(req.headers[WIDTH_HEADER], ATTACHMENT_DIMENSION_MAX),
+        height: readMeasure(req.headers[HEIGHT_HEADER], ATTACHMENT_DIMENSION_MAX),
+        durationSeconds: readMeasure(
+          req.headers[DURATION_HEADER],
+          ATTACHMENT_DURATION_MAX_SECONDS,
+        ),
+      });
+    res.status(201).json(response);
   };
 
   getContent = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const { id, issueId, attachmentId }: AttachmentRequestDto =
-        attachmentParamSchema.parse(req.params);
-      const { size, mimeType, open } =
-        await this.getAttachmentContentUseCase.execute({
-          id,
-          issueId,
-          attachmentId,
-          actorUserId: req.auth!.id,
-        });
-      const range = parseRange(req.headers.range, size);
-
-      res.set({
-        "Cache-Control": "private, max-age=86400",
-        "X-Content-Type-Options": "nosniff",
-        "Content-Security-Policy": "sandbox",
-        "Accept-Ranges": "bytes",
-        "Content-Type": mimeType,
+    const { id, issueId, attachmentId }: AttachmentRequestDto =
+      attachmentParamSchema.parse(req.params);
+    const { size, mimeType, open } =
+      await this.getAttachmentContentUseCase.execute({
+        id,
+        issueId,
+        attachmentId,
+        actorUserId: actorId(req),
       });
+    const range = parseRange(req.headers.range, size);
 
-      if (range === null) {
-        res.status(416).set("Content-Range", `bytes */${size}`);
-        res.end();
-        return;
-      }
+    res.set({
+      "Cache-Control": "private, max-age=86400",
+      "X-Content-Type-Options": "nosniff",
+      "Content-Security-Policy": "sandbox",
+      "Accept-Ranges": "bytes",
+      "Content-Type": mimeType,
+    });
 
-      if (range === "full") {
-        res.status(200).set("Content-Length", String(size));
-        await sendStream(open(), res);
-        return;
-      }
-
-      res
-        .status(206)
-        .set({
-          "Content-Range": `bytes ${range.start}-${range.end}/${size}`,
-          "Content-Length": String(range.end - range.start + 1),
-        });
-      await sendStream(open(range), res);
-    } catch (error) {
-      next(error);
+    if (range === null) {
+      res.status(416).set("Content-Range", `bytes */${size}`);
+      res.end();
+      return;
     }
+
+    if (range === "full") {
+      res.status(200).set("Content-Length", String(size));
+      await sendStream(open(), res);
+      return;
+    }
+
+    res
+      .status(206)
+      .set({
+        "Content-Range": `bytes ${range.start}-${range.end}/${size}`,
+        "Content-Length": String(range.end - range.start + 1),
+      });
+    await sendStream(open(range), res);
   };
 
   delete = async (
     req: AuthedRequest,
     res: Response,
-    next: NextFunction,
   ): Promise<void> => {
-    try {
-      const { id, issueId, commentId, attachmentId } =
-        attachmentParamSchema.parse(req.params);
-      await this.deleteAttachmentUseCase.execute({
-        id,
-        issueId,
-        attachmentId,
-        commentId: commentId ?? null,
-        actorUserId: req.auth!.id,
-      });
-      res.status(204).send();
-    } catch (error) {
-      next(error);
-    }
+    const { id, issueId, commentId, attachmentId } =
+      attachmentParamSchema.parse(req.params);
+    await this.deleteAttachmentUseCase.execute({
+      id,
+      issueId,
+      attachmentId,
+      commentId: commentId ?? null,
+      actorUserId: actorId(req),
+    });
+    res.status(204).send();
   };
 }

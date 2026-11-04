@@ -3,12 +3,12 @@ import type {
   SaveSprintRequestDto,
   SprintDto,
 } from "@orbit/shared";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import { Sprint } from "../../../domain/sprint/sprint.entity.js";
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import { toSprintDto } from "../mappers/sprint.mapper.js";
 import type { SprintRepository } from "../ports/sprint-repository.port.js";
 import type { Actor } from "../../shared/actor.js";
+import { requireProjectMember } from "../../project/utils/require-project-member.js";
 
 export type CreateSprintInput = SaveSprintRequestDto &
   ProjectIdRequestDto & Actor;
@@ -20,14 +20,7 @@ export class CreateSprintUseCase {
   ) {}
 
   async execute(input: CreateSprintInput): Promise<SprintDto> {
-    const project = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
-
-    if (!project) {
-      throw new ProjectNotFoundError(input.id);
-    }
+    await requireProjectMember(this.projects, input.id, input.actorUserId);
 
     const sprint = Sprint.register({ ...input, projectId: input.id });
     const sprintId = await this.sprints.save(sprint, input.actorUserId);

@@ -4,7 +4,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import SidebarComponent from "@/shared/ui/custom-components/sidebar-component";
+import SidebarComponent from "@/components/layouts/sidebar-component";
 import { useI18n } from "@/i18n/use-i18n";
 
 export default function ModuleLayout() {

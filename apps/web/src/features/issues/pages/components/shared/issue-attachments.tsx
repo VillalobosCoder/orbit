@@ -17,13 +17,13 @@ import {
   type AttachmentDto,
   type IssueRequestDto,
 } from "@orbit/shared";
-import { formatDuration, readMediaMetadata } from "../../utils/media-metadata";
+import { formatDuration, readMediaMetadata } from "../../../utils/media-metadata";
 import {
   attachmentContentUrl,
   useDeleteAttachment,
   useGetAttachments,
   useUploadAttachment,
-} from "../../api/attachments-queries";
+} from "../../../api/attachments-queries";
 
 const MEGABYTE = 1024 * 1024;
 

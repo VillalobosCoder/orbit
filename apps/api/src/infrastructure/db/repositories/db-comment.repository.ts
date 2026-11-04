@@ -126,11 +126,11 @@ export class DBCommentRepository implements CommentRepository {
         updatedAt: new Date(),
         updatedByUserId: actorUserId,
       })
-      .where(eq(comments.id, comment.id!))
+      .where(eq(comments.id, comment.persistedId))
       .returning({ id: comments.id });
 
     if (!row) {
-      throw new CommentNotFoundError(comment.id!);
+      throw new CommentNotFoundError(comment.persistedId);
     }
   }
 

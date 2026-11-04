@@ -122,12 +122,12 @@ export class DBProjectRepository implements ProjectRepository {
         updatedByUserId: actorUserId,
       })
       .where(
-        and(eq(projects.id, project.id!), ne(projects.statusId, deletedStatusId)),
+        and(eq(projects.id, project.persistedId), ne(projects.statusId, deletedStatusId)),
       )
       .returning({ id: projects.id });
 
     if (!row) {
-      throw new ProjectNotFoundError(project.id!);
+      throw new ProjectNotFoundError(project.persistedId);
     }
   }
 

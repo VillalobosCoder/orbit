@@ -1,6 +1,5 @@
 import type { AttachmentRequestDto } from "@orbit/shared";
 import { AttachmentNotFoundError } from "../../../domain/attachment/attachment.errors.js";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import { CommentNotFoundError } from "../../../domain/comment/comment.errors.js";
 import type { CommentRepository } from "../../comment/ports/comment-repository.port.js";
 import type { FileRepository } from "../../file/ports/file-repository.port.js";
@@ -9,6 +8,7 @@ import type { ProjectRepository } from "../../project/ports/project-repository.p
 import type { Actor } from "../../shared/actor.js";
 import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
 import type { AttachmentRepository } from "../ports/attachment-repository.port.js";
+import { requireProjectMember } from "../../project/utils/require-project-member.js";
 
 export type DeleteAttachmentInput = AttachmentRequestDto & {
   commentId: number | null;
@@ -25,14 +25,7 @@ export class DeleteAttachmentUseCase {
   ) {}
 
   async execute(input: DeleteAttachmentInput): Promise<void> {
-    const project = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
-
-    if (!project) {
-      throw new ProjectNotFoundError(input.id);
-    }
+    await requireProjectMember(this.projects, input.id, input.actorUserId);
 
     const file = await this.attachments.findFileById(input);
 

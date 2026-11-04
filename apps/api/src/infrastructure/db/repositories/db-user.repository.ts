@@ -224,7 +224,8 @@ export class DBUserRepository implements UserRepository {
   }
 
   async update(user: User, actorUserId: ActorUserId): Promise<void> {
-    const { id, ...data } = user.toPrimitives();
+    const data = user.toPrimitives();
+    const id = user.persistedId;
     const deletedStatusId = await this.getStatusId(UserStatusKey.DELETED);
 
     try {
@@ -237,11 +238,11 @@ export class DBUserRepository implements UserRepository {
           updatedAt: new Date(),
           updatedByUserId: actorUserId,
         })
-        .where(and(eq(users.id, id!), ne(users.statusId, deletedStatusId)))
+        .where(and(eq(users.id, id), ne(users.statusId, deletedStatusId)))
         .returning({ id: users.id });
 
       if (!row) {
-        throw new UserNotFoundError(id!);
+        throw new UserNotFoundError(id);
       }
     } catch (error) {
       if (isEmailUniqueViolation(error)) {

@@ -16,7 +16,7 @@ import {
   useGetComments,
   useUpdateComment,
 } from "../../api/queries";
-import IssueAttachments from "@/features/issues/pages/components/issue-attachments";
+import IssueAttachments from "@/features/issues/pages/components/shared/issue-attachments";
 import { useI18n } from "@/i18n/use-i18n";
 
 interface IssueCommentsProps {

@@ -1,5 +1,4 @@
 import type { SprintRequestDto } from "@orbit/shared";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import {
   ActiveSprintAlreadyExistsError,
   SprintNotFoundError,
@@ -7,6 +6,7 @@ import {
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { SprintRepository } from "../ports/sprint-repository.port.js";
 import type { Actor } from "../../shared/actor.js";
+import { requireProjectMember } from "../../project/utils/require-project-member.js";
 
 export type StartSprintInput = SprintRequestDto & Actor;
 
@@ -17,14 +17,7 @@ export class StartSprintUseCase {
   ) {}
 
   async execute(input: StartSprintInput): Promise<void> {
-    const project = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
-
-    if (!project) {
-      throw new ProjectNotFoundError(input.id);
-    }
+    await requireProjectMember(this.projects, input.id, input.actorUserId);
 
     const sprint = await this.sprints.findById(input);
 

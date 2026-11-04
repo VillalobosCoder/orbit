@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/auth/use-auth";
 import { usePermission } from "@/context/auth/use-permission";
-import IssueBoard from "@/features/issues/pages/components/issue-board";
-import { AssigneeStack } from "@/features/issues/pages/components/issue-visuals";
+import IssueBoard from "@/features/issues/pages/issue-board";
+import { AssigneeStack } from "@/features/issues/pages/components/shared/issue-visuals";
 import { ConfirmDialogComponent } from "@/components/ui/confirm-dialog-component";
 import {
   useDeleteProject,

@@ -10,11 +10,17 @@ import {
   SquareCheckBig,
   type LucideIcon,
 } from "lucide-react";
-import type { DifficultyDto, IssueTypeDto, PriorityDto } from "@orbit/shared";
+import {
+  type BoardColumnDto,
+  type DifficultyDto,
+  type IssueTypeDto,
+  type PriorityDto,
+} from "@orbit/shared";
 import { cn } from "cn";
 
 import { UserAvatarComponent } from "@/components/ui/user-avatar-component";
 import { useI18n } from "@/i18n/use-i18n";
+import { CATEGORY_DOT } from "../../../utils/category-dot";
 import { issueTypeLabel, priorityLabel } from "@/i18n/catalog";
 
 const TYPE_ICONS: Record<string, { icon: LucideIcon; className: string }> = {
@@ -155,5 +161,18 @@ export function AssigneeStack({
         </span>
       )}
     </span>
+  );
+}
+
+export function ColumnDot({ column }: { column: BoardColumnDto }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "size-2 shrink-0 rounded-full",
+        !column.color && CATEGORY_DOT[column.category],
+      )}
+      style={column.color ? { backgroundColor: column.color } : undefined}
+    />
   );
 }

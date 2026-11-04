@@ -23,9 +23,9 @@ import {
   findIssueType,
   normalizeAssignees,
 } from "../utils/validate-issue-references.js";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { NotificationRepository } from "../../notification/ports/notification-repository.port.js";
 import type { Actor } from "../../shared/actor.js";
+import { requireProjectMember } from "../../project/utils/require-project-member.js";
 
 export type CreateIssueInput = SaveIssueRequestDto &
   ProjectIdRequestDto & Actor;
@@ -42,14 +42,7 @@ export class CreateIssueUseCase {
   ) {}
 
   async execute(input: CreateIssueInput): Promise<IssueDto> {
-    const project = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
-
-    if (!project) {
-      throw new ProjectNotFoundError(input.id);
-    }
+    const project = await requireProjectMember(this.projects, input.id, input.actorUserId);
 
     const [columns, types, priorities, difficulties, members] =
       await Promise.all([

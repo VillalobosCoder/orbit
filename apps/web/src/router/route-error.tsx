@@ -2,7 +2,7 @@ import { House, RotateCw } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
-import { StatusPageComponent } from "@/shared/ui/custom-components/status-page-component";
+import { StatusPageComponent } from "@/components/ui/status-page-component";
 import { useI18n } from "@/i18n/use-i18n";
 
 export default function RouteErrorPage() {

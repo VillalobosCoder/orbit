@@ -57,23 +57,23 @@ export class LoginUseCase {
 
     if (this.hasher.needsRehash(user.password)) {
       const upgradedHash = await this.hasher.hash(input.password);
-      await this.usersRepository.updatePassword(user.id!, upgradedHash);
+      await this.usersRepository.updatePassword(user.persistedId, upgradedHash);
     }
 
     const token = this.tokens.sign({
-      sub: String(user.id!),
+      sub: String(user.persistedId),
       mustChangePassword: user.mustChangePassword,
     });
-    const permissions = await this.permissions.findByUserId(user.id!);
+    const permissions = await this.permissions.findByUserId(user.persistedId);
 
     return {
       token,
       user: {
-        id: user.id!,
+        id: user.persistedId,
         name: user.name,
         lastName: user.lastName,
         email: user.email.toString(),
-        avatarUrl: buildAvatarUrl(user.id!, user.avatarFileId),
+        avatarUrl: buildAvatarUrl(user.persistedId, user.avatarFileId),
         permissions,
         mustChangePassword: user.mustChangePassword,
       },

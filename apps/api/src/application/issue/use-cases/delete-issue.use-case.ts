@@ -1,9 +1,9 @@
 import type { ProjectRepository } from "../../project/ports/project-repository.port.js";
 import type { TransactionManager } from "../../shared/ports/transaction-manager.port.js";
 import type { IssueRepository } from "../ports/issue-repository.port.js";
-import { ProjectNotFoundError } from "../../../domain/project/project.errors.js";
 import type { IssueRequestDto } from "@orbit/shared";
 import type { Actor } from "../../shared/actor.js";
+import { requireProjectMember } from "../../project/utils/require-project-member.js";
 
 export type DeleteIssueInput = IssueRequestDto & Actor;
 
@@ -15,14 +15,7 @@ export class DeleteIssueUseCase {
   ) {}
 
   async execute(input: DeleteIssueInput): Promise<void> {
-    const isMember = await this.projects.findByIdForMember({
-      id: input.id,
-      userId: input.actorUserId,
-    });
-
-    if (!isMember) {
-      throw new ProjectNotFoundError(input.id);
-    }
+    await requireProjectMember(this.projects, input.id, input.actorUserId);
 
     await this.transaction.run(() => this.issues.delete(input));
   }

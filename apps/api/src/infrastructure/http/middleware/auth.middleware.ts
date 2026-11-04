@@ -1,4 +1,5 @@
 import type { Request, RequestHandler } from "express";
+import { DomainError } from "../../../domain/shared/domain-error.js";
 import type {
   TokenService,
   VerifiedToken,
@@ -10,6 +11,24 @@ import {
   accessTokenSetOptions,
 } from "../config/cookie.config.js";
 import { sendError } from "./locale.middleware.js";
+
+class NotAuthenticatedError extends DomainError {
+  readonly statusCode = 401;
+
+  constructor() {
+    super("errors.http.notAuthenticated");
+  }
+}
+
+export function actorId(req: AuthedRequest): number {
+  const id = req.auth?.id;
+
+  if (id === undefined) {
+    throw new NotAuthenticatedError();
+  }
+
+  return id;
+}
 
 const RENEW_AFTER_SECONDS = 5 * 60;
 

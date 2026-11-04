@@ -42,6 +42,14 @@ export class Comment {
     return this.props.id;
   }
 
+  get persistedId(): number {
+    if (this.props.id === undefined) {
+      throw new Error("The entity has not been saved yet.");
+    }
+
+    return this.props.id;
+  }
+
   get issueId(): number {
     return this.props.issueId;
   }

@@ -119,14 +119,14 @@ export class DBBoardColumnRepository implements BoardColumnRepository {
         })
         .where(
           and(
-            eq(boardColumns.id, column.id!),
+            eq(boardColumns.id, column.persistedId),
             eq(boardColumns.projectId, column.projectId),
           ),
         )
         .returning({ id: boardColumns.id });
 
       if (!row) {
-        throw new BoardColumnNotFoundError(column.id!);
+        throw new BoardColumnNotFoundError(column.persistedId);
       }
     } catch (error) {
       if (isNameUniqueViolation(error)) {

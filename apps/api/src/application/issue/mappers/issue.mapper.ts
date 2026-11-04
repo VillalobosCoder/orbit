@@ -3,7 +3,7 @@ import type { Issue } from "../../../domain/issue/issue.entity.js";
 
 export function toIssueDto(issue: Issue, projectKey: string): IssueDto {
   return {
-    id: issue.id!,
+    id: issue.persistedId,
     projectId: issue.projectId,
     issueNumber: issue.issueNumber,
     issueKey: `${projectKey}-${issue.issueNumber}`,

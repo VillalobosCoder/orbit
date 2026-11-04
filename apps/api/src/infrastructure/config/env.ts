@@ -1,14 +1,17 @@
 import * as z from "zod";
 
-const envSchema = z.object({
-  PORT: z.coerce.number().int().min(1).max(65535),
-  HOSTNAME: z.string().trim().min(1),
+const databaseEnvSchema = z.object({
   DATABASE_URL: z.string().trim().min(1),
   DATABASE_PORT: z.coerce.number().int().min(1).max(65535),
   DATABASE_NAME: z.string().trim().min(1),
   DATABASE_USER: z.string().trim().min(1),
   DATABASE_PASSWORD: z.string().min(1),
   DATABASE_SSL: z.string().trim().optional(),
+});
+
+const envSchema = databaseEnvSchema.extend({
+  PORT: z.coerce.number().int().min(1).max(65535),
+  HOSTNAME: z.string().trim().min(1),
   JWT_SECRET: z
     .string()
     .refine((value) => Buffer.byteLength(value, "utf8") >= 32, {
@@ -20,12 +23,8 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
-export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
-  const parsed = envSchema.safeParse({
-    ...source,
-    TRUST_PROXY: source.TRUST_PROXY || undefined,
-    STORAGE_DIR: source.STORAGE_DIR || undefined,
-  });
+function parseEnv<T extends z.ZodType>(schema: T, source: NodeJS.ProcessEnv) {
+  const parsed = schema.safeParse(source);
 
   if (!parsed.success) {
     const problems = parsed.error.issues
@@ -36,4 +35,16 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   }
 
   return parsed.data;
+}
+
+export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
+  return parseEnv(envSchema, {
+    ...source,
+    TRUST_PROXY: source.TRUST_PROXY || undefined,
+    STORAGE_DIR: source.STORAGE_DIR || undefined,
+  });
+}
+
+export function loadDatabaseEnv(source: NodeJS.ProcessEnv = process.env) {
+  return parseEnv(databaseEnvSchema, source);
 }
