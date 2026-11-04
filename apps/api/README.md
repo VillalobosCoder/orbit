@@ -24,3 +24,7 @@ neither is created. Remove the bootstrap variables from `.env` after setup.
 
 Afterward, sign in with the configured email and password. Create additional
 users through `POST /api/users`, using an account with `users.write`.
+
+## Database design
+
+The data model and the decisions behind it are described in [docs/database.md](docs/database.md).

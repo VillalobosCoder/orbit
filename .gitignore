@@ -28,6 +28,9 @@ lerna-debug.log*
 *.sw?
 
 # Environment variables
+/.env
+/.env.production
+/backups
 /apps/api/.env
 /apps/web/.env
 
