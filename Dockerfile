@@ -1,4 +1,4 @@
-FROM node:24-alpine AS base
+FROM node:26-alpine AS base
 RUN npm install --global pnpm@12.9.1
 WORKDIR /app
 
@@ -17,7 +17,7 @@ FROM build AS tools
 WORKDIR /app/apps/api
 CMD ["pnpm", "migration:run"]
 
-FROM node:24-alpine AS api
+FROM node:26-alpine AS api
 ENV NODE_ENV=production
 WORKDIR /app
 RUN mkdir -p /data/storage && chown -R node:node /data
