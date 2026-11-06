@@ -28,6 +28,7 @@ export function createUserController(dependencies: ControllerDependencies) {
   const resetUserPassword = new ResetUserPasswordUseCase(
     dependencies.userRepository,
     dependencies.passwordHasher,
+    dependencies.sessionRepository,
   );
   const getAllUsers = new GetUserListUseCase(dependencies.userRepository);
 

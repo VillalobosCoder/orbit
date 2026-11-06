@@ -10,6 +10,7 @@ import { DBUserPermissionRepository } from "./src/infrastructure/db/repositories
 import { DBBoardColumnRepository } from "./src/infrastructure/db/repositories/db-board-column.repository.js";
 import { DBSprintRepository } from "./src/infrastructure/db/repositories/db-sprint.repository.js";
 import { DBAttachmentRepository } from "./src/infrastructure/db/repositories/db-attachment.repository.js";
+import { DBSessionRepository } from "./src/infrastructure/db/repositories/db-session.repository.js";
 import { DBNotificationRepository } from "./src/infrastructure/db/repositories/db-notification.repository.js";
 import { GenerateDueNotificationsUseCase } from "./src/application/notification/use-cases/generate-due-notifications.use-case.js";
 import { startDueNotificationJob } from "./src/infrastructure/jobs/due-notification.job.js";
@@ -37,6 +38,7 @@ const issueCatalogRepository = new DBIssueCatalogRepository(dbContext);
 const commentRepository = new DBCommentRepository(dbContext);
 const attachmentRepository = new DBAttachmentRepository(dbContext);
 const notificationRepository = new DBNotificationRepository(dbContext);
+const sessionRepository = new DBSessionRepository(dbContext);
 const sprintRepository = new DBSprintRepository(dbContext);
 const boardColumnRepository = new DBBoardColumnRepository(dbContext);
 const fileRepository = new DBFileRepository(dbContext);
@@ -60,6 +62,7 @@ const controllers = createControllers({
   boardColumnRepository,
   attachmentRepository,
   notificationRepository,
+  sessionRepository,
   fileRepository,
   fileStorage,
   homeRepository,
@@ -69,6 +72,7 @@ const app = createHttpApp(
   tokenService,
   userPermissionRepository,
   userRepository,
+  sessionRepository,
   env.TRUST_PROXY,
 );
 

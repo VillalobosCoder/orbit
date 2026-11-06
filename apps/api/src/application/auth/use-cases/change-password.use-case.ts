@@ -8,6 +8,7 @@ import {
 import { Password } from "../../../domain/user/value-objects/password.vo.js";
 import type { PasswordHasher } from "../../user/ports/password-hasher.port.js";
 import type { UserRepository } from "../../user/ports/user-repository.port.js";
+import type { SessionRepository } from "../ports/session-repository.port.js";
 import type { TokenService } from "../ports/token-service.port.js";
 
 export type ChangePasswordInput = ChangePasswordRequestDto & {
@@ -23,6 +24,7 @@ export class ChangePasswordUseCase {
     private readonly userRepository: UserRepository,
     private readonly hasher: PasswordHasher,
     private readonly tokens: TokenService,
+    private readonly sessions: SessionRepository,
   ) {}
 
   async execute(input: ChangePasswordInput): Promise<ChangePasswordOutput> {
@@ -57,6 +59,8 @@ export class ChangePasswordUseCase {
       mustChangePassword: false,
       actorUserId: input.userId,
     });
+
+    await this.sessions.revokeAllForUser(input.userId);
 
     return { token: this.tokens.sign({ sub: String(input.userId) }) };
   }

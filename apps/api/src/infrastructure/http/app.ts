@@ -7,6 +7,7 @@ import { createApiRoutes } from "./routes/index.js";
 import { errorHandler } from "./middleware/error-handler.middleware.js";
 import { makeLocaleMiddleware } from "./middleware/locale.middleware.js";
 import { makeAuthMiddleware } from "./middleware/auth.middleware.js";
+import type { SessionRepository } from "../../application/auth/ports/session-repository.port.js";
 import type { UserRepository } from "../../application/user/ports/user-repository.port.js";
 import type { UserPermissionRepository } from "../../application/auth/ports/user-permission-repository.port.js";
 
@@ -15,6 +16,7 @@ export function createHttpApp(
   tokenService: TokenService,
   userPermissionRepository: UserPermissionRepository,
   userRepository: UserRepository,
+  sessionRepository: SessionRepository,
   trustProxy: number,
 ) {
   const app = express();
@@ -35,7 +37,7 @@ export function createHttpApp(
   app.use(cookieParser());
   app.use("/api", createApiRoutes(
     controllers,
-    makeAuthMiddleware(tokenService, userRepository),
+    makeAuthMiddleware(tokenService, userRepository, sessionRepository),
     userPermissionRepository,
   ));
   app.use(errorHandler);

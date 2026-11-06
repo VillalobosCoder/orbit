@@ -3,12 +3,13 @@ import {
   TokenService,
   VerifiedToken,
 } from "../../application/auth/ports/token-service.port.js";
+import { randomUUID } from "node:crypto";
 import jwt from "jsonwebtoken";
+import { SESSION_MAX_SECONDS } from "../../application/auth/session.policy.js";
 
 const TOKEN_ISSUER = "orbit-api";
 const TOKEN_AUDIENCE = "orbit-api";
 const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
-const SESSION_MAX_SECONDS = 12 * 60 * 60;
 
 export class JwtTokenService implements TokenService {
   private readonly secret: string;
@@ -26,10 +27,14 @@ export class JwtTokenService implements TokenService {
       throw new Error("El subject del token no puede estar vacío.");
     }
 
-    const { sessionStartedAt, ...claims } = payload;
+    const { sessionStartedAt, sessionId, ...claims } = payload;
 
     return jwt.sign(
-      { ...claims, sat: sessionStartedAt ?? Math.floor(Date.now() / 1000) },
+      {
+        ...claims,
+        sat: sessionStartedAt ?? Date.now(),
+        sid: sessionId ?? randomUUID(),
+      },
       this.secret,
       {
         algorithm: "HS256",
@@ -61,10 +66,14 @@ export class JwtTokenService implements TokenService {
       throw new Error("El token no contiene claims válidos.");
     }
 
-    const sessionStartedAt =
-      typeof payload.sat === "number" ? payload.sat : payload.iat;
+    if (typeof payload.sid !== "string" || !payload.sid) {
+      throw new Error("El token no tiene identificador de sesión.");
+    }
 
-    if (Date.now() / 1000 - sessionStartedAt > SESSION_MAX_SECONDS) {
+    const sessionStartedAt =
+      typeof payload.sat === "number" ? payload.sat : payload.iat * 1000;
+
+    if (Date.now() - sessionStartedAt > SESSION_MAX_SECONDS * 1000) {
       throw new Error("La sesión superó su duración máxima.");
     }
 
@@ -73,6 +82,7 @@ export class JwtTokenService implements TokenService {
       mustChangePassword: payload.mustChangePassword === true,
       issuedAt: payload.iat,
       sessionStartedAt,
+      sessionId: payload.sid,
     };
   }
 }

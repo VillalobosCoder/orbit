@@ -19,6 +19,8 @@ jobs:
       - run: npm install --global pnpm@12.9.1
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
+      - run: pnpm --filter api test:typecheck
+      - run: pnpm test
       - run: pnpm lint
       - run: pnpm build
       - run: pnpm audit --prod
