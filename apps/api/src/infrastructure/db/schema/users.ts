@@ -3,6 +3,7 @@ import {
   boolean,
   integer,
   pgTable,
+  timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
 import { auditColumns } from "./audit-columns.js";
@@ -20,6 +21,9 @@ export const users = pgTable(
     mustChangePassword: boolean("must_change_password")
       .notNull()
       .default(false),
+    sessionsValidAfter: timestamp("sessions_valid_after", {
+      withTimezone: true,
+    }),
     notificationsEnabled: boolean("notifications_enabled")
       .notNull()
       .default(true),

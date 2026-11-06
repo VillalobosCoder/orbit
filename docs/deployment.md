@@ -93,7 +93,7 @@ Edit `.env` (for example with `nano .env`):
 | `JWT_SECRET` | another secret; generate it with `openssl rand -hex 32` |
 | `BOOTSTRAP_ADMIN_NAME`, `BOOTSTRAP_ADMIN_LAST_NAME` | name and last name of the first administrator |
 | `BOOTSTRAP_ADMIN_EMAIL` | their email |
-| `BOOTSTRAP_ADMIN_PASSWORD` | a password of at least 12 characters |
+| `BOOTSTRAP_ADMIN_PASSWORD` | a password of at least 8 characters; use a long one anyway |
 
 Save those values in your password manager. **The `.env` file must never be pushed to GitHub**: git already ignores it. Because this repository is public, any password that gets pushed is visible to everyone, even if you delete it later.
 

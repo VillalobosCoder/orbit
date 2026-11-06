@@ -7,6 +7,7 @@ import {
   UserNotFoundError,
 } from "../../../domain/user/user.errors.js";
 import { Password } from "../../../domain/user/value-objects/password.vo.js";
+import type { SessionRepository } from "../../auth/ports/session-repository.port.js";
 import type { PasswordHasher } from "../ports/password-hasher.port.js";
 import type { UserRepository } from "../ports/user-repository.port.js";
 import type { Actor } from "../../shared/actor.js";
@@ -17,6 +18,7 @@ export class ResetUserPasswordUseCase {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly hasher: PasswordHasher,
+    private readonly sessions: SessionRepository,
   ) {}
 
   async execute(
@@ -40,6 +42,8 @@ export class ResetUserPasswordUseCase {
       mustChangePassword: true,
       actorUserId: input.actorUserId,
     });
+
+    await this.sessions.revokeAllForUser(input.id);
 
     return { temporaryPassword: temporaryPassword.toString() };
   }

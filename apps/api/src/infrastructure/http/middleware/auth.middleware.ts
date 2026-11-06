@@ -4,6 +4,7 @@ import type {
   TokenService,
   VerifiedToken,
 } from "../../../application/auth/ports/token-service.port.js";
+import type { SessionRepository } from "../../../application/auth/ports/session-repository.port.js";
 import type { UserRepository } from "../../../application/user/ports/user-repository.port.js";
 import {
   ACCESS_TOKEN_COOKIE,
@@ -62,6 +63,7 @@ export function requirePasswordChanged(
 export function makeAuthMiddleware(
   tokens: TokenService,
   users: UserRepository,
+  sessions: SessionRepository,
 ): RequestHandler {
   return async (req, res, next) => {
     const token: unknown = req.cookies?.[ACCESS_TOKEN_COOKIE];
@@ -96,6 +98,18 @@ export function makeAuthMiddleware(
         return;
       }
 
+      const isActive = await sessions.isActive({
+        sessionId: verified.sessionId,
+        userId: id,
+        startedAt: verified.sessionStartedAt,
+      });
+
+      if (!isActive) {
+        res.clearCookie(ACCESS_TOKEN_COOKIE, accessTokenCookieOptions);
+        sendError(res, 401, "errors.http.sessionInvalid");
+        return;
+      }
+
       const mustChangePassword = user.mustChangePassword;
 
       if (Date.now() / 1000 - verified.issuedAt > RENEW_AFTER_SECONDS) {
@@ -105,6 +119,7 @@ export function makeAuthMiddleware(
             sub: verified.sub,
             mustChangePassword,
             sessionStartedAt: verified.sessionStartedAt,
+            sessionId: verified.sessionId,
           }),
           accessTokenSetOptions,
         );

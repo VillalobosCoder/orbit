@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && node scripts/build.mjs",
     "start": "node --env-file-if-exists=.env dist/index.js",
     "test": "vitest run",
+    "test:watch": "vitest",
     "test:typecheck": "tsc --project tsconfig.test.json",
     "typecheck": "tsc --noEmit",
     "bootstrap:admin": "node --env-file-if-exists=.env --import tsx scripts/bootstrap-admin.ts",
@@ -36,6 +37,6 @@
     "esbuild": "^0.28.2",
     "tsx": "^4.20.0",
     "typescript": "~6.0.2",
-    "vitest": "^3.2.4"
+    "vitest": "^5.1.0"
   }
 }

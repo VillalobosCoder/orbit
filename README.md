@@ -44,7 +44,7 @@ Fill in `apps/api/.env`. For the local database from `compose.yml`:
 | `DATABASE_PASSWORD` | `example` |
 | `DATABASE_SSL` | `false` |
 | `JWT_SECRET` | the output of `openssl rand -hex 32` |
-| `BOOTSTRAP_ADMIN_*` | name, last name, email and a password of at least 12 characters for the first administrator |
+| `BOOTSTRAP_ADMIN_*` | name, last name, email and a password of at least 8 characters for the first administrator |
 
 Then create the tables and the first administrator, and start both apps:
 
@@ -63,6 +63,7 @@ The web opens at http://localhost:5173 and talks to the API at http://127.0.0.1:
 | `pnpm dev` | API and web with automatic reload |
 | `pnpm typecheck` | Type-checks every package |
 | `pnpm lint` | ESLint |
+| `pnpm test` | API tests (Vitest) |
 | `pnpm build` | Production build of the API and the web |
 | `pnpm migration:run` | Applies the database migrations |
 | `pnpm --filter api migration:generate --name <name>` | Creates a migration from the schema changes |

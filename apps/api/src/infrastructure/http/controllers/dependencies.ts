@@ -1,5 +1,6 @@
 import type { UserRepository } from "../../../application/user/ports/user-repository.port.js";
 import type { PasswordHasher } from "../../../application/user/ports/password-hasher.port.js";
+import type { SessionRepository } from "../../../application/auth/ports/session-repository.port.js";
 import type { TokenService } from "../../../application/auth/ports/token-service.port.js";
 import type { UserPermissionRepository } from "../../../application/auth/ports/user-permission-repository.port.js";
 import type { ModuleRepository } from "../../../application/modules/ports/module-repository.port.js";
@@ -31,6 +32,7 @@ export interface ControllerDependencies {
   commentRepository: CommentRepository;
   attachmentRepository: AttachmentRepository;
   notificationRepository: NotificationRepository;
+  sessionRepository: SessionRepository;
   sprintRepository: SprintRepository;
   boardColumnRepository: BoardColumnRepository;
   fileRepository: FileRepository;

@@ -7,6 +7,7 @@ import type {
 } from "@orbit/shared";
 import type { LoginUseCase } from "../../../application/auth/use-cases/login.use-case.js";
 import type { GetCurrentUserUseCase } from "../../../application/auth/use-cases/get-current-user.use-case.js";
+import type { LogoutUseCase } from "../../../application/auth/use-cases/logout.use-case.js";
 import type { ChangePasswordUseCase } from "../../../application/auth/use-cases/change-password.use-case.js";
 import type { UpdateProfileUseCase } from "../../../application/auth/use-cases/update-profile.use-case.js";
 import type { UploadAvatarUseCase } from "../../../application/user/use-cases/upload-avatar.use-case.js";
@@ -30,6 +31,7 @@ export class AuthController {
     private readonly loginUseCase: LoginUseCase,
     private readonly getCurrentUserUseCase: GetCurrentUserUseCase,
     private readonly changePasswordUseCase: ChangePasswordUseCase,
+    private readonly logoutUseCase: LogoutUseCase,
     private readonly updateProfileUseCase: UpdateProfileUseCase,
     private readonly uploadAvatarUseCase: UploadAvatarUseCase,
     private readonly removeAvatarUseCase: RemoveAvatarUseCase,
@@ -155,9 +157,11 @@ export class AuthController {
     res.status(200).json(response);
   };
 
-  logout = (_req: Request, res: Response): void => {
+  logout = async (req: Request, res: Response): Promise<void> => {
+    const token: unknown = req.cookies?.[ACCESS_TOKEN_COOKIE];
+
+    await this.logoutUseCase.execute(typeof token === "string" ? token : undefined);
     res.clearCookie(ACCESS_TOKEN_COOKIE, accessTokenCookieOptions);
-    
     res.status(204).end();
   };
 }
